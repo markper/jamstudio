@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Studio</title>
+	<link rel="stylesheet" type="text/css" href="includes/style/stylesheetstudio.css">
+	<link href="https://fonts.googleapis.com/css?family=Berkshire+Swash" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<body>
+	<header>
+		<ul>
+			<li id="logo">
+			J
+			</li>
+			<li id="connected_user">
+				<div class="user_img" style="background-image: url(https://scontent.fhfa2-1.fna.fbcdn.net/v/t1.0-1/c26.7.40.40/p74x74/1374206_10151895529017929_1400551419_n.jpg?oh=d2a7b83d1a19fb557fb09fc50bc5b760&oe=5929F59B)"></div>
+				<div class="username">israel.israeli@gmail.com <span>&#x25BC;</span></div>
+			</li>
+			<li id="toolbox">
+				<ul>
+					<li onclick="zoomIn()">(+)</li>
+					<li onclick="zoomOut()">(-)</li>
+					<li></li>
+				</ul>
+				<ul>
+					<li></li>
+					<li></li>
+					<li></li>
+				</ul>
+			</li>
+			<li id="searchbox">
+			</li>
+		</ul>
+	</header>
+	<main class="scrolls">
+		<section id="channels_title">
+			<article class="channel_list_buttons"></article>
+			<article class="channels_grid_title"></article>
+		</section>
+		<section id="channels_list">
+		</section>
+	</main>
+	<footer>
+		
+	</footer>
+	<script>
+
+		var max_time = 60*20;
+		var time_unit = 5;
+		var time_zoom = 20;
+
+		function zoomIn(){
+			if(time_zoom==100)
+				return;
+			time_zoom+=10;
+			DrawGrid(time_zoom);
+			console.log("in");
+		}
+		function zoomOut(){
+			if(time_zoom==10)
+				return;
+			time_zoom-=10;
+			DrawGrid(time_zoom);
+			console.log("out");
+		}
+
+		function DrawGrid(time_zoom){
+				var rows = 0;cells = 0;
+				cells = Math.round(max_time/time_unit);
+				$('.channels_grid_title').html('').css('width',cells*(time_zoom+1.12));
+				$('.channel_grid_row').html('');
+				$('#channels_list').html('');
+				for (var i = 0; i < cells; i++) {
+						$('.channels_grid_title').append('<div>'+i*time_unit+'</div>');
+						$('.channels_grid_title div').css('width',time_zoom);
+					}
+				for (var i = 0; i < 10; i++) {
+					var el = $('<div><article class="channel_list_row"></article><article class="channel_grid_row"></article></div>');
+					for (var j = 0; j < cells; j++) {
+						$(el).find('.channel_grid_row').append('<div></div>');
+						$(el).find('div').css('width',time_zoom);
+					}
+					$('#channels_list').append(el);
+				}
+				$('#channels_list').css('width',cells*(time_zoom+1.12)+200);
+				$('.channel_grid_row').css('width',cells*(time_zoom+1.12));
+				$('#channels_title').css('width',cells*(time_zoom+1.12)+200);
+			}
+
+		$(document).ready(function(){
+
+
+			$('main').scroll(function(){
+			    $('main #channels_title').css({
+			        'top': $(this).scrollTop()  
+			    });
+			});
+
+			 
+			DrawGrid(time_zoom);
+
+			
+		});
+		
+
+
+	</script>
+</body>
+</html>
