@@ -74,10 +74,27 @@ header #toolbox ul{
 	border: 1px solid #000000;
 	border-radius: 3px;
 	height: 25px;
-	min-width: 100px;
+	min-width: 80px;
 	display: inline-block;
 	margin-left: 20px;
 	margin-top: 12px;
+}
+header #toolbox ul li{
+	width: 20px;
+	height: 20px;
+	background-size: 20px;
+	margin-top: 2px;
+	margin-left: 5px;
+}
+#toolbox li#toolbox_btn_zoomin{
+	background-image: url(../images/studio_icon_zoomin.png);
+}
+#toolbox li#toolbox_btn_zoomout{
+	background-image: url(../images/studio_icon_zoomout.png);
+}
+#toolbox li#toolbox_btn_cursor{
+	background-position: 0px -2px;
+	background-image: url(../images/studio_icon_cursor.png);
 }
 header #searchbox{
 	width: 100px;
@@ -95,6 +112,8 @@ main #channels_title{
 	height: 24px;
 	top: 0px;
     left: 0px;
+    position: absolute;
+    z-index: 4;
 }
 main #channels_title:after{
 	clear: both;
@@ -135,6 +154,7 @@ div.time-box-border{
 }
 main #channels_list{
 	height: 100%;
+	margin-top: 24px;
 }
 main #channels_list:after{
 	clear: both;
@@ -168,6 +188,16 @@ main .channel_grid_row div:after{
 }
 main .channel_grid_row div:last-child{
 	border-right:1px solid #ebebeb ;
+}
+main #cursorLine{
+	width:1px;
+	background-color: red;
+	height: calc(100% - 65px);
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	margin-left: 160px;
+	z-index: 99999999999;
 }
 .row_pressed{
 	background-color: #00a4d3;
@@ -215,4 +245,15 @@ footer{
 	height: 50px;
 	width: 100%;
 	background-color: #000000;
+	color: #ffffff;
+}
+footer ul{
+	position: relative;
+	margin: 20px auto;
+	width: 500px;
+	list-style: none;
+}
+footer li{
+	float: left;
+	margin-left: 10px;
 }
