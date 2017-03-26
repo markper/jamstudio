@@ -48,89 +48,80 @@
 	<script>
 
 		var max_time = 60*20;
-		var time_unit = 5;
-		var time_zoom = 10;
+		var time_units = 5;
+		var unit_width = 10;
 		var z_index = 3;
 
 		function zoomIn(){
-			if(time_zoom==80)
+			if(unit_width==80)
 				return;
-			time_zoom=time_zoom*2;
-			zoomGrid();
-			zoomInSamples();
+			unit_width=unit_width*2;
+			zoom();
 			console.log("in");
 		}
 		function zoomOut(){
-			if(time_zoom==2.5)
+			if(unit_width==2.5)
 				return;
-			time_zoom = time_zoom/2;
-			zoomGrid();
-			zoomOutSamples();
+			unit_width = unit_width/2;
+			zoom();
 			console.log("out");
 		}
 
-		function DrawGrid(time_zoom){
-				var rows = 0;cells = 0;
-				cells = Math.round(max_time/time_unit);
-				$('.channels_grid_title').html('').css('width',cells*(time_zoom*time_unit+1.12));
-				$('.channel_grid_row').html('');
+		function DrawGrid(unit_width){
+				var cells = Math.round(max_time/time_units);
+				// intialize elements
 				$('#channels_list').html('');
+				$('.channels_grid_title').html('');
+				$('.channel_grid_row').html('');
+				// generate grid title
 				for (var i = 0; i < cells; i++) {
-						$('.channels_grid_title').append('<div class="time-box">'+(i*time_unit+time_unit)+'</div><div class="time-box-border"></div>');
+						$('.channels_grid_title').append('<div class="time-box">'+(i*time_units+time_units)+'</div><div class="time-box-border"></div>');
 					}
-				$('.channels_grid_title div.time-box').css('width',time_zoom*time_unit-1);
+				// generate grid rows
 				for (var i = 0; i < 10; i++) {
-					var el = $('<div><article class="channel_list_row" ></article><article class="channel_grid_row" ondrop="drop(event)" ondragover="allowDrop(event)" id="channel_grid_row_'+i+'"></article></article></div>');
+					// create grid row
+					var row = $('<div><article class="channel_list_row" ></article><article class="channel_grid_row" ondrop="drop(event)" ondragover="allowDrop(event)" id="channel_grid_row_'+i+'"></article></article></div>');
+					// create and append, grid cells to grid row
 					for (var j = 0; j < cells; j++) {
-						$(el).find('.channel_grid_row').append('<div class="time-box"></div><div class="time-box-border"></div>');
-						$(el).find('div.time-box').css('width',time_zoom*time_unit-1);
+						$(row).find('.channel_grid_row').append('<div class="time-box"></div><div class="time-box-border"></div>');
 					}
-					$(el).find('.channel_grid_row').append('<article class="sample_placeholder" id="sample_placeholder_'+ i +'"><article class="sample" id="sample'+ i +'" ondragstart="drag(event)" draggable="true" data-time="25" data-start="25"></article>');
-					$('#channels_list').append(el);
-					$(el).find('.sample').each(function(){
-						drawSample(this);
-					});
-					zoomGrid();
-					console.log($(el).find('.sample').attr("data-time"));
+					// create and append, grid sample placeholder to grid row
+					$(row).find('.channel_grid_row').append('<article class="sample_placeholder" id="sample_placeholder_'+ i +'"><article class="sample" id="sample'+ i +'" ondragstart="drag(event)" draggable="true" data-time="100" data-start="25"></article>');
+					// append grid row to channel list
+					$('#channels_list').append(row);
 				}
-				
-				$('#channels_list').css('width',cells*(time_zoom*time_unit+1.12)+200);
-				$('.channel_grid_row').css('width',cells*(time_zoom*time_unit+1.12));
-				$('#channels_title').css('width',cells*(time_zoom*time_unit+1.12)+200);
+				zoom();	
 			}
-		function drawSample(element){
-			$(element).css('width',$(element).attr("data-time")*time_zoom+ ($(element).attr("data-time")/time_unit-1));
-			$(element).css('left',secondsToOffset($(element).attr("data-start")));
-		}
-		function zoomInSamples(){
-			$('.sample').each(function(data){
-				drawSample(this);
+		function zoom(){
+			$('.channels_grid_title div.time-box').css('width',unit_width*time_units);
+			$('.channel_grid_row').find('div.time-box').css('width',unit_width*time_units);
+			var time_offset = secondsToOffset(max_time);
+			$('.channels_grid_title').css('width',time_offset);
+			$('.channel_grid_row').css('width',time_offset);
+			$('#channels_list').css('width',time_offset+160);
+			$('#channels_title').css('width',time_offset+160);
+			$('.sample').each(function(){
+				refreshSample(this);
 			});
 		}
-		function zoomOutSamples(){
+		function refreshSample(element){
+			$(element).css('width',$(element).attr("data-time")*unit_width+ ($(element).attr("data-time")/time_units-2));
+			$(element).css('left',secondsToOffset($(element).attr("data-start")));
+		}
+		function refreshSamples(){
 			$('.sample').each(function(data){
-				drawSample(this);
+				refreshSample(this);
 			});	
 		}
 		function offsetToSeconds(offset){
-			var borders = Math.floor(offset/((time_unit*time_zoom)));
-		    var all = ((offset-borders)/(time_unit*time_zoom))*time_unit;
+			var borders = Math.floor(offset/((time_units*unit_width)));
+		    var all = ((offset-borders)/(time_units*unit_width))*time_units;
 		    return all;
 		}
 		function secondsToOffset(sec){
-			var real = Math.floor(sec*time_zoom);
-			var borders = Math.floor(real/((time_unit*time_zoom)));
+			var real = Math.floor(sec*unit_width);
+			var borders = Math.floor(real/((time_units*unit_width)));
 		    return real+borders;
-		}
-		function zoomGrid(){
-			var rows = 0;cells = 0;
-				cells = Math.round(max_time/time_unit);
-				$('.channels_grid_title').css('width',cells*(time_zoom*time_unit+1.12));
-				$('.channels_grid_title div.time-box').css('width',time_zoom*time_unit);
-				$('.channel_grid_row').find('div.time-box').css('width',time_zoom*time_unit);
-				$('#channels_list').css('width',cells*(time_zoom*time_unit+1.12)+200);
-				$('.channel_grid_row').css('width',cells*(time_zoom*time_unit+1.12));
-				$('#channels_title').css('width',cells*(time_zoom*time_unit+1.12)+200);
 		}
 
 		function collouringGridRow(el,isMulti){
@@ -146,8 +137,7 @@
 			}
 		}
 
-
-		// drag and drop listener
+		// drag and drop 
 		function allowDrop(ev) {
 		    ev.preventDefault();
 		}
@@ -175,47 +165,32 @@
 		    	($(target).parent()).find('.sample_placeholder').append(dragged);
 		    	$('#'+data).css('left', new_offset);
 		    }
+		    // z-index up
 		    $('#'+data).css('z-index', z_index++);
-		    var borders = Math.floor(new_offset/((time_unit*time_zoom)));
-		    var all = ((new_offset-borders)/(time_unit*time_zoom))*time_unit;
+		    // define new start
+		    var borders = Math.floor(new_offset/((time_units*unit_width)));
+		    var all = ((new_offset-borders)/(time_units*unit_width))*time_units;
 		    $('#'+data).attr('data-start', all);
-		    console.log('ss'+ all);
+		    console.log('start at: '+ all);
 		}
-		// mouseup listener
-		var mouse_e;
+
+		// Listeners
 		var mouse_offset;
-		var isMoouseClicked;
 		$(document).on('mousedown', function(e){
-		    isMoouseClicked = true;
 		    mouse_offset = e.pageX - $(e.target).offset().left;
 		});
 		$(document).on('mouseup', function(e){
-			if(isMoouseClicked){
-		    	isMoouseClicked = false;
-		    	mouse_e = e;
-
-		    }
+	
 		});
+		$(document).bind('click',function(el){	
+			if($(el.target).hasClass('sample'))
+		    	$(el.target).css('z-index', z_index++);
+		});
+		var shifted = false;
+		$(document).on('keyup keydown', function(e){shifted = e.shiftKey} );
 
 		$(document).ready(function(){
-
-			$('main').scroll(function(){
-			    $('main #channels_title').css({
-			        'top': $(this).scrollTop()  
-			    });
-			});
-
-			DrawGrid(time_zoom);
-
-			var shifted = false;
-			$(document).on('keyup keydown', function(e){shifted = e.shiftKey} );
-			$('.sample').on('mousedown', function(e){
-					//$(this).css('visibility','hidden');
-			});			
-			$('.channel_grid_row').bind('click',function(el){	
-		    $(el.target).css('z-index', z_index++);
-			});
-
+			DrawGrid(unit_width);
 		});
 		
 

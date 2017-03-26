@@ -186,12 +186,14 @@ main .channel_grid_row div:last-child{
 	z-index: 3;
 	left:0px;
 }
-
+.sample_signed{
+	background: linear-gradient(141deg, #0fb8ad 0%, #1fc8db 51%, #2cb5e8 75%);
+}
 #channels_list > div:nth-child(3n+2) .channel_grid_row .sample {
 	background-color: #FFB253;
 	border: 1px solid #d68227;
 }
-#channels_list > div:nth-child(2n+3) .channel_grid_row .sample {
+#channels_list > div:nth-child(3n+3) .channel_grid_row .sample {
 	background-color: #00A4D3;
 	border: 1px solid #006e8c;
 }
