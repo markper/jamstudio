@@ -73,7 +73,7 @@
 		}
 
 		function DrawGrid(unit_width){
-				var cells = Math.round(max_time/time_units);
+				var cells = Math.round(max_time/time_units);				
 				// intialize elements
 				$('#channels_list').html('');
 				$('.channels_grid_title').html('');
@@ -85,7 +85,9 @@
 				// generate grid rows
 				for (var i = 0; i < samples.length; i++) {
 					drawChannel(i,cells);
-				}			
+				}	
+				// draw cursorLine
+				$('#cursorLine').css('height',$('main')[0].scrollHeight-100);
 				zoom();	
 			}		
 		
@@ -103,26 +105,30 @@
 		}	
 
 		var initialize = function(){
-			samples.push(new Sample('includes/loops/1.wav',16,5,1));
-			samples.push(new Sample('includes/loops/2.wav',8,7,0.2));
-			samples.push(new Sample('includes/loops/3.wav',9,11,1));
-			samples.push(new Sample('includes/loops/1.wav',16,5,1));
-			samples.push(new Sample('includes/loops/2.wav',8,7,0.2));
-			samples.push(new Sample('includes/loops/3.wav',9,11,1));
-			samples.push(new Sample('includes/loops/1.wav',16,5,1));
-			samples.push(new Sample('includes/loops/2.wav',8,7,0.2));
-			samples.push(new Sample('includes/loops/3.wav',9,11,1));
+			for (var i = 3 - 1; i >= 0; i--) {
+				var x1 = Math.floor((Math.random() * 80) + 1);
+				var x2 = Math.floor((Math.random() * 80) + 1);
+				var x3 = Math.floor((Math.random() * 80) + 1);
+				samples.push(new Sample('includes/loops/1.wav',16,x1,1));
+				samples.push(new Sample('includes/loops/2.wav',8,x2,0.2));
+				samples.push(new Sample('includes/loops/3.wav',9,x3,1));
+			}
 		};
 
-		function player(playTime=0){
+		function player(){
 
 			player.timeouts = new Array();
 			player.intervals = new Array();
-			player.playTime = playTime;
+			player.playTime = 0;
 			player.isPlaying = false;
 
-			this.play = function(playTime = 0){
-					console.log('start');
+			this.setTime =  function(playTime){
+				player.playTime = playTime*100;
+				$('#time').text(playTime);
+				$('#cursorLine').css({'left':secondsToOffset(playTime)});
+			}
+			this.play = function(playTime){
+					//console.log(samples);
 					if(player.isPlaying)
 						return;
 					player.isPlaying = true;
@@ -134,15 +140,33 @@
 					// music
 					$(samples).each(function(index){
 						var el = $(this);
-						var delay = parseFloat($(el)[0].start_)-parseFloat(player.playTime/100);
-						if(delay<0)
-						delay = 0; 
-						console.log();
-						if((parseFloat($(el)[0].start_)+parseFloat($(el)[0].time_)<parseFloat(player.playTime/100)))
-							return;	
+						var timeToStartPlaying = parseFloat($(el)[0].start_)-parseFloat(player.playTime)/100;
+						var startAt = 0;
+						var remainToStart = 0;
+						// start at
+
+						if(timeToStartPlaying<0){
+							//console.log('remain to start:'+ index +':'+ timeToStartPlaying);
+							if(Math.abs(timeToStartPlaying)>$(el)[0].time_)
+								return;
+							remainToStart = 0;
+						}else{
+							//console.log('remain to start:'+ timeToStartPlaying);
+							remainToStart = timeToStartPlaying;							
+						}
+					
+						if(timeToStartPlaying<0 ){
+							//console.log('start at:'+ timeToStartPlaying);
+							startAt = Math.abs(timeToStartPlaying);	
+						}else{
+							startAt = 0;
+							//console.log('start at:'+ 0);
+						}
+						console.log(index + ': remainToStart:' + remainToStart);
 						var st = setTimeout(function(){
+							$(el)[0].audi.currentTime = startAt;
 							$(el)[0].audi.play();
-						},delay*1000);	
+						},remainToStart*1000);	
 						player.timeouts.push(st);
 					});
 					//cursor					
@@ -155,9 +179,8 @@
 					$(samples).each(function(){
 						var el = $(this);
 						$(el)[0].audi.pause();
-						clearInterval(player.timeouts.pop());
-					});
-					clearInterval(player.intervals.pop());					
+					});		
+					reset();		
 				// cursor
 				$('#cursorLine').stop();
 			};
@@ -170,14 +193,24 @@
 						console.log($(el)[0]);
 						$(el)[0].audi.pause();
 						$(el)[0].audi.currentTime = 0;
-						clearTimeout(player.timeouts.pop());
 					});		
-					clearInterval(player.intervals.pop());	
-					$('#time').text(player.playTime=0);		
+					$('#time').text(player.playTime=0);	
+					reset();	
 				// cursor
 				$('#cursorLine').stop();
 			    $('#cursorLine').css({'left':0});
 			};
+
+			function reset(){
+				for (var i = player.intervals.length - 1; i >= 0; i--) {
+					clearInterval(player.intervals[i]);
+				}
+				player.intervals = new Array()
+				for (var i = player.timeouts.length - 1; i >= 0; i--) {
+					clearTimeout(player.timeouts[i]);
+				}
+				player.timeouts = new Array()
+			}
 		}
 		
 		var Channel = class Channel {
@@ -229,6 +262,7 @@
 			$('.sample').each(function(){
 				refreshSample(this);
 			});
+
 		}
 		function refreshSample(element){
 			$(element).css('width',$(element).attr("data-time")*unit_width+ ($(element).attr("data-time")/time_units-2));
@@ -301,9 +335,10 @@
 		    var all = ((new_offset-borders)/(time_units*unit_width))*time_units;
 		    $('#'+data).attr('data-start', all);
 		    updateSampleStart($('#'+data).attr('data-index'),$('#'+data).attr('data-start'));
-		    p.stop();
-		    p.play();
-		    console.log('start at: '+ all);
+			if(player.isPlaying){
+				p.pause();
+				p.play();
+			}
 		}
 
 		// Listeners
@@ -321,6 +356,7 @@
 		var shifted = false;
 		$(document).on('keyup keydown', function(e){shifted = e.shiftKey} );
 
+	
 		$('main').scroll(function(){
 		    $('#channels_title').css({
 		        'top': $(this).scrollTop() 
@@ -339,6 +375,16 @@
 			$("#stop").click(function(){
 				p.stop();
 			});
+			$(".channel_grid_row").on('click',function(e){
+				if(player.isPlaying){
+					p.pause();
+					p.setTime(offsetToSeconds($('main').scrollLeft()+ e.pageX  - 160));
+					p.play();
+				}
+				else
+					p.setTime(offsetToSeconds($('main').scrollLeft()+ e.pageX  - 160));				
+			});
+
 		});
 		
 

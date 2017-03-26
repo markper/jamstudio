@@ -192,8 +192,8 @@ main .channel_grid_row div:last-child{
 main #cursorLine{
 	width:1px;
 	background-color: red;
-	height: calc(100% - 65px);
-	position: fixed;
+	height: 100%;
+	position: absolute;
 	left: 0px;
 	top: 0px;
 	margin-left: 160px;
