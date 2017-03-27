@@ -1,7 +1,7 @@
 window.AudioContext = window.AudioContext || window.webkitAudioContext ;
 var audioContext = new AudioContext();
 
-function drawSoundFile(callback,context,newCanvas,canvasHeight,canvasWidth){
+function drawSoundFile(callback,context,newCanvas,canvasHeight,canvasWidth,file){
 	// AUDIO CONTEXT
 	window.AudioContext = window.AudioContext || window.webkitAudioContext ;
 
@@ -66,5 +66,5 @@ function drawSoundFile(callback,context,newCanvas,canvasHeight,canvasWidth){
 
 
 
-	loadMusic('includes/loops/1.wav');
+	loadMusic(file);
 }
