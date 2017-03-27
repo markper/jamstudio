@@ -1,0 +1,25 @@
+{
+
+	"project": {
+		"projectId":"project1",
+		"userId": "user1",
+		"name": "New project",
+		"description": "Write a poem to Meir Einstein",
+		"genre": "Alternative",
+		"track_version": "1.0",
+		"users": ["user1","user2","user3"],
+		"issues": [{
+			"issue": {
+				"issueId": "Issue1",
+				"fromUserId": "user1",
+				"toUserId": "user1",
+				"name": "play me sothing..",
+				"description": "a new task..",
+				"status": 0
+			}
+		}],
+		"tracks": ["track1"]
+	}
+
+}
+

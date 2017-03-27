@@ -1,0 +1,11 @@
+{
+	"track": {
+		"trackId": "track1",
+		"projectId": "project1",
+		"name": "New project",
+		"description": "Write a poem to Meir Einstein",
+		"genre": "Alternative",
+		"version": "1.0",
+		"channels": ["channel1","channel2","channel3"]
+	}
+}

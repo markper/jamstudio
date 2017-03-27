@@ -1,0 +1,10 @@
+{
+	"plan": {
+		"planId": "plan1",
+		"name": "starter",
+		"description": "starter pack 50mb ",
+		"repositories_amount": 1,
+		"storage_capacity": 50,
+		"setting_bounds": ["export"]
+	}
+}

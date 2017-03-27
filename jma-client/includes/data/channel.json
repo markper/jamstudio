@@ -1,0 +1,63 @@
+[{
+	"channel": {
+		"channelId": "channel1",
+		"trackId": "track1",
+		"userId": "user1",
+		"name": "playing guitar",
+		"instrument": "guitar",
+		"lock": false,
+		"visible": false,
+		"samples": [{
+			"sample": {
+				"sampleId": "sample1",
+				"fadein": "3",
+				"fadeout": "3",
+				"start": "5",
+				"duration": "16",
+				"fileId": "includes/loops/1.wav"
+			}
+		}]
+	}
+},
+{
+	"channel": {
+		"channelId": "channel2",
+		"trackId": "track1",
+		"userId": "user2",
+		"name": "playing bass",
+		"instrument": "bass",
+		"lock": false,
+		"visible": false,
+		"samples": [{
+			"sample": {
+				"sampleId": "sample1",
+				"fadein": "3",
+				"fadeout": "3",
+				"start": "5",
+				"duration": "16",
+				"fileId": "includes/loops/1.wav"
+			}
+		}]
+	}
+},
+{
+	"channel": {
+		"channelId": "channel3",
+		"trackId": "track1",
+		"userId": "user3",
+		"name": "playing piano",
+		"instrument": "piano",
+		"lock": false,
+		"visible": false,
+		"samples": [{
+			"sample": {
+				"sampleId": "sample1",
+				"fadein": "3",
+				"fadeout": "3",
+				"start": "5",
+				"duration": "16",
+				"fileId": "includes/loops/1.wav"
+			}
+		}]
+	}
+}]
