@@ -7,6 +7,7 @@
 	<link href="https://fonts.googleapis.com/css?family=Berkshire+Swash" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<script src="spectrum.js"></script>
 </head>
 <body>
 	<header>
@@ -58,18 +59,16 @@
 		var p = new player();
 
 		function zoomIn(){
-			if(unit_width==80)
+			if(unit_width>20)
 				return;
-			unit_width=unit_width*2;
+			unit_width=unit_width*1.1;
 			zoom();
-			console.log("in");
 		}
 		function zoomOut(){
-			if(unit_width==2.5)
+			if(unit_width<4)
 				return;
-			unit_width = unit_width/2;
+			unit_width = unit_width/1.1;
 			zoom();
-			console.log("out");
 		}
 
 		function DrawGrid(unit_width){
@@ -87,7 +86,6 @@
 					drawChannel(i,cells);
 				}	
 				// draw cursorLine
-				$('#cursorLine').css('height',$('main')[0].scrollHeight-100);
 				zoom();	
 			}		
 		
@@ -102,6 +100,18 @@
 			$(row).find('.channel_grid_row').append('<article class="sample_placeholder" id="sample_placeholder_'+ i +'"><article class="sample" id="sample'+ i +'" ondragstart="drag(event)" draggable="true" data-index="'+i+'" data-time="'+samples[i].time+'" data-start="'+samples[i].start+'"></article>');
 			// append grid row to channel list
 			$('#channels_list').append(row);
+			
+			var newCanvas   = createCanvas (200, 100);
+	 		var context = newCanvas.getContext('2d');
+	 		function createCanvas ( w, h ) {
+			    var newCanvas = document.createElement('canvas');
+			    newCanvas.width  = w;     newCanvas.height = h;
+			    return newCanvas;
+			};
+			drawSoundFile(function(data){
+				console.log(data);
+			},context,newCanvas,100,200);
+			$(row).find('.sample').append(newCanvas);
 		}	
 
 		var initialize = function(){
@@ -253,8 +263,9 @@
 
 		function zoom(){
 			$('.channels_grid_title div.time-box').css('width',unit_width*time_units);
+			$('main #channels_list > div').css('height',unit_width*10);
 			$('.channel_grid_row').find('div.time-box').css('width',unit_width*time_units);
-			var time_offset = secondsToOffset(max_time);
+			var time_offset = secondsToOffset(max_time)+5;
 			$('.channels_grid_title').css('width',time_offset);
 			$('.channel_grid_row').css('width',time_offset);
 			$('#channels_list').css('width',time_offset+160);
@@ -262,6 +273,16 @@
 			$('.sample').each(function(){
 				refreshSample(this);
 			});
+			if(player.isPlaying){
+				p.pause();
+				$('#cursorLine').css('left',secondsToOffset(player.playTime/100));
+				p.play();
+			}
+			else
+				$('#cursorLine').css('left',secondsToOffset(player.playTime/100));
+			$('#cursorLine').css('height',$('.channel_grid_row').length*(unit_width*10+1)+24);
+
+			console.log(secondsToOffset(player.playTime/100));
 
 		}
 		function refreshSample(element){

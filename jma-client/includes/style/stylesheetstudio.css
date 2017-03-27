@@ -107,6 +107,7 @@ main{
 	position: relative;
 	height: calc(100% - 100px);
 	width:100%;
+	background-color: #232323;
 }
 main #channels_title{
 	height: 24px;
@@ -147,6 +148,9 @@ main .channels_grid_title div{
 main .channels_grid_title div.time-box-border{
 	width: 1px;
 	background-color: #ebebeb;
+}
+div.time-box{
+	background-color: #ffffff;
 }
 div.time-box-border{
 	width: 1px;
