@@ -51,24 +51,45 @@ function drawGrid(unit_width,data){
 
 function drawChannel(i,cells,data){
 	var samples = data.project.tracks[0].track.channels[i].channel.samples;
-	var channel = data.project.tracks[0].track.channels[i].channel;
+	var channelObject = data.project.tracks[0].track.channels[i].channel;
+	var channel = new Channel(channelObject.channelId,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument);
 	// create grid row
-	var row = $('<div><article class="channel_list_row" ></article><article class="channel_grid_row" ondrop="drop(event)" ondragover="allowDrop(event)" id="channel_grid_row_'+i+'"></article></article></div>');
+	var row = $('<div class="channels_list_row"><article class="channel_list_row" ></article><article class="channel_grid_row" ondrop="drop(event)" ondragover="allowDrop(event)" id="channel_grid_row_'+i+'"></article></article></div>');
 	// create and append, grid cells to grid row
-	var svg = '<?xml version="1.0" ?><svg height="20px" class="channel_play" version="1.1" viewBox="0 0 20 20" width="20px" xmlns="http://www.w3.org/2000/svg" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns" xmlns:xlink="http://www.w3.org/1999/xlink"><title/><desc/><defs/><g fill="none" fill-rule="evenodd" id="Page-1" stroke="none" stroke-width="1"><g  id="Icons-AV" transform="translate(-126.000000, -85.000000)"><g id="play-circle-fill" transform="translate(126.000000, 85.000000)"><path d="M10,0 C4.5,0 0,4.5 0,10 C0,15.5 4.5,20 10,20 C15.5,20 20,15.5 20,10 C20,4.5 15.5,0 10,0 L10,0 Z M8,14.5 L8,5.5 L14,10 L8,14.5 L8,14.5 Z" id="Shape"/></g></g></g></svg>';
-	var list_item = $('<article class="channel_list_row_info">'+svg+' <div class="channel_name">'+ channel.name +'<div><div class="channel_details">'+channel.userId+' - '+ channel.instrument +'<div></article><article class="channel_list_row_btns"><ul><li></li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
+	var svg = '<?xml version="1.0" ?><svg  class="channel_play player-icon" data-channel="'+ channelObject.channelId +'" version="1.1" viewBox="0 0 20 20" width="20px" xmlns="http://www.w3.org/2000/svg" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns" xmlns:xlink="http://www.w3.org/1999/xlink"><title/><desc/><defs/><g fill="none" fill-rule="evenodd" id="Page-1" stroke="none" stroke-width="1"><g  id="Icons-AV" transform="translate(-126.000000, -85.000000)"><g class="player-fill" transform="translate(126.000000, 85.000000)"><path d="M10,0 C4.5,0 0,4.5 0,10 C0,15.5 4.5,20 10,20 C15.5,20 20,15.5 20,10 C20,4.5 15.5,0 10,0 L10,0 Z M8,14.5 L8,5.5 L14,10 L8,14.5 L8,14.5 Z" id="Shape"/></g></g></g></svg>';
+	//
+	var svg2 = '<svg version="1.1"  class="channel_pause player-icon" data-channel="'+ channelObject.channelId +'" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 300.003 300.003" style="enable-background:new 0 0 300.003 300.003;" xml:space="preserve"><g><path class="player-fill" d="M150.001,0c-82.838,0-150,67.159-150,150c0,82.838,67.162,150.003,150,150.003c82.843,0,150-67.165,150-150.003C300.001,67.159,232.846,0,150.001,0z M134.41,194.538c0,9.498-7.7,17.198-17.198,17.198s-17.198-7.7-17.198-17.198V105.46c0-9.498,7.7-17.198,17.198-17.198s17.198,7.7,17.198,17.198V194.538z M198.955,194.538c0,9.498-7.701,17.198-17.198,17.198c-9.498,0-17.198-7.7-17.198-17.198V105.46c0-9.498,7.7-17.198,17.198-17.198s17.198,7.7,17.198,17.198V194.538z"/></g></svg>'
+	var svg3 = 	'<svg version="1.1" class="channel_stop player-icon" data-channel="'+ channelObject.channelId +'" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"'+
+				' viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">'+
+				'<path class="player-fill" d="M256,0C114.617,0,0,114.617,0,256s114.617,256,256,256s256-114.617,256-256S397.383,0,256,0z M336,320'+
+				'c0,8.836-7.156,16-16,16H192c-8.844,0-16-7.164-16-16V192c0-8.836,7.156-16,16-16h128c8.844,0,16,7.164,16,16V320z"/>';
+	
+	var slider = $('<div class="slider-vertical"></div>');
+	$(slider).slider({
+	    orientation: "horizontal",
+	    range: "min",
+	    min: 0,
+	    max: 100,
+	    value: 60,
+	    slide: function( event, ui ) {
+ 			p.changeChannelVolume(channel.channelId,ui.value*0.01);
+  	    }
+	});
+	var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_name">'+ channelObject.name +'<div><div class="channel_details">'+channelObject.userId+' - '+ channelObject.instrument +'<div></article><article class="channel_list_row_btns"><ul><li></li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
+	$(list_item).find('.volume_placeholder').append(slider);
 	$(row).find('.channel_list_row').append(list_item);
 	// create and append, grid cells to grid row
 	for (var j = 0; j < cells; j++) {
 		$(row).find('.channel_grid_row').append('<div class="time-box"></div><div class="time-box-border"></div>');
 	}
 	// create and append, grid sample placeholder to grid row
-	$(row).find('.channel_grid_row').append('<article class="sample_placeholder" id="sample_placeholder_'+ i +'"></article>');
+	$(row).find('.channel_grid_row').append('<article class="sample_placeholder" id="sample_placeholder_'+ i +'" data-channel="'+ channel.channelId +'"></article>');
 	// create and append samples on placeolder
 	for (var j = 0; j < samples.length; j++) {
-		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+samples[j].sample.sampleId+'" ondragstart="drag(event)" draggable="true" data-index="channel'+j+'sample'+i+'"></article>');
-		p.addSample(new Sample(samples[j].sample.sampleId,samples[j].sample.file.path,samples[j].sample.duration,samples[j].sample.start,1,channel.channelId));
+		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+samples[j].sample.sampleId+'" ondragstart="drag(event)" draggable="true"></article>');
+		p.addSample(new Sample(samples[j].sample.sampleId,channel.channelId, samples[j].sample.file.path,samples[j].sample.duration,samples[j].sample.start,1,channel.channelId));
 	}	
+	p.addChannel(channel);
 	// append grid row to channel list
 	$('#channels_list').append(row);
 }	
@@ -90,15 +111,38 @@ function random(max){
 
 function player(data){
 	player.samples = new Array();
+	player.channels = new Array();
 	player.timeouts = new Array();
 	player.intervals = new Array();
+	player.channelId = null;
 	player.playTime = 0;
 	player.isPlaying = false;
+	var p = this;
 
 	this.setTime =  function(playTime){
 		player.playTime = playTime*100;
+		console.log(playTime);
 		$('#time').text(playTime);
 		$('#cursorLine').css({'left':secondsToOffset(playTime)});
+	}
+
+	this.move =  function(playTime){
+		var isPlaying = player.isPlaying;
+		if(isPlaying)
+			this.pause();
+		if(playTime+player.playTime/100 <=max_time && playTime+player.playTime/100>=0){
+			$('main').animate({scrollLeft: ($('main').scrollLeft() + secondsToOffset(playTime)) + 'px'}, 0);
+			this.setTime(player.playTime/100 + playTime);
+		}else if(!(playTime+player.playTime/100>=0))
+			this.setTime(0);
+		else
+			this.setTime(max_time);
+		if(isPlaying)
+			this.play();
+	}
+
+	this.setChannel = function(channelId){
+		player.channelId = channelId;
 	}
 	
 	this.addSample = function(sample){
@@ -111,96 +155,56 @@ function player(data){
 			}
 		}
 	};
-	this.playChannel = function(playTime,channel){
-	//console.log(samples);
-			if(player.isPlaying)
-				return;
-			player.isPlaying = true;
-			var st1 =setInterval(function(){						
-				$('#time').text(++player.playTime/100);
-				//console.log(player.playTime/100);
-			},10);
-			player.intervals.push(st1);
-			// music
-			console.log('samples');
-			$(player.samples).each(function(index){
-				var sample = player.samples[index];
-				console.log(sample);
-				var timeToStartPlaying = parseFloat(player.samples[index].start_)-parseFloat(player.playTime)/100;
-				var startAt = 0;
-				var remainToStart = 0;
-				// start at
-				if(timeToStartPlaying<0){
-					//console.log('remain to start:'+ index +':'+ timeToStartPlaying);
-					if(Math.abs(timeToStartPlaying)>player.samples[index].time_)
-						return;
-					remainToStart = 0;
-				}else{
-					//console.log('remain to start:'+ timeToStartPlaying);
-					remainToStart = timeToStartPlaying;							
-				}
-			
-				if(timeToStartPlaying<0 ){
-					//console.log('start at:'+ timeToStartPlaying);
-					startAt = Math.abs(timeToStartPlaying);	
-				}else{
-					startAt = 0;
-					//console.log('start at:'+ 0);
-				}
-				console.log(index + ': remainToStart:' + remainToStart);
-				var st = setTimeout(function(){
-					console.log('>>');
-					console.log(sample.aud);
-					sample.aud.currentTime = startAt;
-					sample.aud.play();
-				},remainToStart*1000);	
-				player.timeouts.push(st);
-			});
-			//cursor					
-	    	$('#cursorLine').animate({'left':unit_width*max_time},max_time*1000, 'linear');
+	this.addChannel = function(channel){
+		player.channels.push(channel);
+
 	}
+	player.getChannel = function(id){
+		for (var i = player.channels.length - 1; i >= 0; i--) {
+			if(player.channels[i].channelId == id){
+				return player.channels[i];
+			}
+		}
+	};
+	this.changeChannelVolume = function(channelId,volume){
+		for (var i = player.samples.length - 1; i >= 0; i--) {
+			if(player.samples[i].channelId == channelId){
+				player.samples[i].volume = volume;
+				player.samples[i].aud.volume = volume;
+			}
+		}
+	};
 	this.play = function(playTime){
-			//console.log(samples);
 			if(player.isPlaying)
 				return;
+			console.log('play');
 			player.isPlaying = true;
 			var st1 =setInterval(function(){						
 				$('#time').text(++player.playTime/100);
-				//console.log(player.playTime/100);
 			},10);
 			player.intervals.push(st1);
-			// music
-			console.log('samples');
 			$(player.samples).each(function(index){
 				var sample = player.samples[index];
-				console.log(sample);
+				if(player.channelId && player.channelId!=sample.channelId)
+					return;
 				var timeToStartPlaying = parseFloat(player.samples[index].start_)-parseFloat(player.playTime)/100;
 				var startAt = 0;
 				var remainToStart = 0;
-				// start at
 				if(timeToStartPlaying<0){
-					//console.log('remain to start:'+ index +':'+ timeToStartPlaying);
 					if(Math.abs(timeToStartPlaying)>player.samples[index].time_)
 						return;
 					remainToStart = 0;
-				}else{
-					//console.log('remain to start:'+ timeToStartPlaying);
+				}else
 					remainToStart = timeToStartPlaying;							
-				}
-			
-				if(timeToStartPlaying<0 ){
-					//console.log('start at:'+ timeToStartPlaying);
+				
+				if(timeToStartPlaying<0 )
 					startAt = Math.abs(timeToStartPlaying);	
-				}else{
+				else
 					startAt = 0;
-					//console.log('start at:'+ 0);
-				}
-				console.log(index + ': remainToStart:' + remainToStart);
 				var st = setTimeout(function(){
-					console.log('>>');
-					console.log(sample.aud);
 					sample.aud.currentTime = startAt;
 					sample.aud.play();
+					sample.aud.volume = parseFloat(player.getChannel(sample.channelId).volume * sample.volume);
 				},remainToStart*1000);	
 				player.timeouts.push(st);
 			});
@@ -246,23 +250,26 @@ function player(data){
 }
 
 var Channel = class Channel {
-  constructor(volume,username,userId,type) {
+  constructor(channelId,volume,name,username,instrument) {
+  	this.channelId = channelId;	
     this.volume = volume;
-    this.username = username;
-    this.userId = userId;
-    this.type = type;		    
+    this.name = name;	
+    this.username = username;		    
+    this.instrument = instrument;		    
   }
 }
 
 var Sample = class Sample {
-  constructor(id,file, time, start,volume,username,userId,type,channel) {
+  constructor(id,channelId,file, time, start,volume,username,userId,type,channel) {
     this.id = id;
+    this.channelId = channelId;
     this.file = file;
     this.time = time;
     this.start = start;
     this.aud = new Audio();
     this.aud.src = file; 
     this.aud.volume = volume;
+    this.volume = volume;
     this.username = username;
     this.userId = userId;
     this.type = type;	
@@ -288,7 +295,7 @@ var Sample = class Sample {
 
 function zoom(){
 	$('.channels_grid_title div.time-box').css('width',unit_width*time_units);
-	$('main #channels_list > div').css('height',unit_width*10);
+	$('main #channels_list > div').css('height',unit_width*3/4*10);
 	$('.channel_grid_row').find('div.time-box').css('width',unit_width*time_units);
 	var time_offset = secondsToOffset(max_time)+5;
 	$('.channels_grid_title').css('width',time_offset);
@@ -305,22 +312,19 @@ function zoom(){
 	}
 	else
 		$('#cursorLine').css('left',secondsToOffset(player.playTime/100));
-	$('#cursorLine').css('height',$('.channel_grid_row').length*(unit_width*10+1)+24);
+	$('#cursorLine').css('height',$('.channel_grid_row').length*(unit_width*3/4*10+1)+24);
 }
 
 function refreshSample(element){
 	var sample = p.getSample(element.id);
-	console.log("<><><><>");
-	console.log(element.id);
 	var width = sample.time*unit_width+ (sample.time/time_units-2);
 	$(element).css('width',width);
 	$(element).css('left',secondsToOffset(sample.start));
-	createSoundSpectrum(element,width,100);
+	//createSoundSpectrum(element,width,(unit_width*3/4*10+1));
 }
 
 function createSoundSpectrum(sample,width,height){
 	if($(sample).find('canvas').length==0){
-		console.log('new can');
 		var newCanvas   = createCanvas (width, height);
  		var context = newCanvas.getContext('2d');
  		function createCanvas ( w, h ) {
@@ -329,7 +333,6 @@ function createSoundSpectrum(sample,width,height){
 		    return newCanvas;
 		};
 		drawSoundFile(function(data){
-			console.log(data);
 		},context,newCanvas,height,width,p.getSample(sample.id).aud.src);
 		$(sample).append(newCanvas);
 	}
@@ -339,12 +342,21 @@ function refreshSamples(){
 		refreshSample(this);
 	});	
 }
-function updateSampleStart(id,start){
+function updateSampleStart(id,start,channelId){
 	for (var i = player.samples.length - 1; i >= 0; i--) {
-		console.log(id);	
 		if(player.samples[i].id == id){
 			player.samples[i].start = start;
+			player.samples[i].channelId = channelId;
 		}
+	}
+}
+function lightChannel(channels_list_row){
+	if(channels_list_row){
+		$('.channels_list_row').css('opacity','0.5');
+		$(channels_list_row).css('opacity','1');
+	}else{
+		$('.channels_list_row').css('opacity','1');	
+		resetPlayStopChannelBtns();
 	}
 }
 function offsetToSeconds(offset){
@@ -370,6 +382,24 @@ function collouringGridRow(el,isMulti){
 		$(el.target).parent().addClass('row_pressed');
 	}
 }
+function togglePlayPause(){
+	$("#play").toggle();
+	$("#pause").toggle();
+}
+function resetPlayPause(){
+	$('#pause').hide();
+	$('#play').show();
+}
+function togglePlayStopChannelBtns(channelId){
+	$('.channel_pause').not('[data-channel=\''+channelId+'\']').hide();
+	$('.channel_play').not('[data-channel=\''+channelId+'\']').show();
+	$('.channel_pause[data-channel=\''+channelId+'\']').toggle();
+	$('.channel_play[data-channel=\''+channelId+'\']').toggle();
+}
+function resetPlayStopChannelBtns(){
+	$('.channel_pause').hide();
+	$('.channel_play').show();
+}
 
 // drag and drop 
 function allowDrop(ev) {
@@ -390,14 +420,16 @@ function drop(ev) {
 		new_offset = 0;
 	// drop on sample
     if($(target).hasClass('sample')){
+    	target = $(target).parent();
     	if($(target).parent().attr('id') != $(dragged).parent().attr('id')){
-    		$($(target).parent()).append(dragged); // drop on sample on other layer
+    		$(target).append(dragged); // drop on sample on other layer
     	}
 		$('#'+data).css('left', new_offset);
     }
     // drop on layer
     else{
-    	($(target).parent()).find('.sample_placeholder').append(dragged);
+    	target = ($(target).parent()).find('.sample_placeholder');
+    	target.append(dragged);
     	$('#'+data).css('left', new_offset);
     }
     // z-index up
@@ -407,12 +439,14 @@ function drop(ev) {
     var borders = Math.floor(new_offset/((time_units*unit_width)));
     var all = ((new_offset-borders)/(time_units*unit_width))*time_units;
     $('#'+data).attr('data-start', all);
-    updateSampleStart(data,all);
+    var channelId = $(target).attr('data-channel');
+    updateSampleStart(data,all,channelId);
 	if(player.isPlaying){
 		p.pause();
 		p.play();
 	}
 }
+
 
 // Listeners
 var mouse_offset;
@@ -437,23 +471,78 @@ $(document).bind('click',function(el){
 	
 });
 var shifted = false;
-$(document).on('keyup keydown', function(e){shifted = e.shiftKey} );
+$(document).on('keyup keydown', function(e){
+	shifted = e.shiftKey
+});
+
+document.onkeydown = checkKey;
+function checkKey(e) {
+    e = e || window.event;
+    if (e.keyCode == '38') {
+        // up arrow
+    }
+    else if (e.keyCode == '40') {
+        // down arrow
+    }
+    else if (e.keyCode == '37') {
+       // left arrow
+       p.move(-0.25);
+    }
+    else if (e.keyCode == '39') {
+       // right arrow
+       p.move(0.25);
+    }
+      e.preventDefault();
+}
 
 
+$(document).on('click','.player-icon',function(e){
+	var channelId = $(this).attr('data-channel');
+	lightChannel($(this).closest('.channels_list_row'));
+	if(!player.isPlaying){
+		p.setChannel(channelId);
+		p.play();
+	}
+	else if(player.isPlaying && channelId != player.channelId){
+		p.setChannel(channelId);
+		p.pause();
+		p.play();
+	}else{
+		p.setChannel();
+		p.pause();
+	}
+	var channelId = $(this).attr('data-channel');
+	togglePlayStopChannelBtns(channelId);
+	resetPlayPause();
+});
 
+$(document).on('click','.channel_pause',function(e){
+	lightChannel();
+});
 
 $(document).ready(function(){
 	getData();
+	
 	$("#play").click(function(){
+		p.setChannel();
+		p.pause();
 		p.play();
+		lightChannel(null);
+		togglePlayPause();
 	});
 	$("#pause").click(function(){
 		p.pause();
+		p.setChannel();
+		togglePlayPause();
+		lightChannel();
 	});
 	$("#stop").click(function(){
 		p.stop();
+		p.setChannel();
+		lightChannel();
+		resetPlayPause();
 	});
-	$("#channels_list").on('click',function(e){
+	$(document).on('click','.channel_grid_row',function(e){
 		if(offsetToSeconds($('main').scrollLeft()+ e.pageX  < 160))
 			return;
 		if(player.isPlaying){
@@ -462,7 +551,8 @@ $(document).ready(function(){
 			p.play();
 		}
 		else
-			p.setTime(offsetToSeconds($('main').scrollLeft()+ e.pageX  - 160));				
+			p.setTime(offsetToSeconds($('main').scrollLeft()+ e.pageX  - 160));		
+		$(this).focusout();
 	});
 
 	$('main').scroll(function(){

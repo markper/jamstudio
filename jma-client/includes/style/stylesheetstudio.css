@@ -202,13 +202,26 @@ main .channel_list_row_info .channel_details{
 	font-size: 12px;
 	margin-top: 3px;
 }
-main .channel_list_row_info .channel_play #play-circle-fill{
-	width:30px;
-	height: 30px;
-	background-image: url(../images/studio_icon_play.svg);
+main .channel_list_row_info .mini_player{
+	height: 20px;
+}
+main .channel_list_row_info .player-icon {
+	width:20px;
+	height: 20px;
+	float: left;
+}
+main .channel_list_row_info .channel_stop , main .channel_list_row_info .channel_pause{
+	display: none;
+}
+main .channel_list_row_info .player-fill {
 	fill: #e2ee79;
 	background-size: contain;
 	background-repeat: no-repeat;
+}
+main .channel_list_row_info  .volume_placeholder{
+	float: left;
+	margin-top: 8px;
+	margin-left: 8px;
 }
 main .channel_list_row_btns{
 	float: left;
@@ -282,12 +295,12 @@ main #cursorLine{
 .sample_signed{
 	background: linear-gradient(141deg, #0fb8ad 0%, #1fc8db 51%, #2cb5e8 75%);
 }
-#channels_list > div:nth-child(3n+2) .channel_grid_row .sample , #channels_list > div:nth-child(3n+2) #play-circle-fill{
+#channels_list > div:nth-child(3n+2) .channel_grid_row .sample , #channels_list > div:nth-child(3n+2) .player-fill{
 	background-color: #FFB253;
 	border: 1px solid #d68227;
 	fill: #FFB253;
 }
-#channels_list > div:nth-child(3n+3) .channel_grid_row .sample  , #channels_list > div:nth-child(3n+3) #play-circle-fill{
+#channels_list > div:nth-child(3n+3) .channel_grid_row .sample  , #channels_list > div:nth-child(3n+3) .player-fill{
 	background-color: #00A4D3;
 	border: 1px solid #006e8c;
 	fill: #00A4D3;
@@ -303,6 +316,26 @@ main #cursorLine{
 	position: relative;
 	float: left;
 }
+.slider-vertical.ui-slider.ui-corner-all.ui-slider-horizontal.ui-widget.ui-widget-content{
+	height:1px;
+	width:100px;
+}
+.ui-slider-handle.ui-corner-all.ui-state-default{
+	height:5px;
+	width:3px;
+	top:-3px;
+	margin-left: 0px;
+}
+#play{
+	
+}
+#pause{
+	display: none;
+}
+#stop{
+
+}
+
 /* Let's get this party started */
 ::-webkit-scrollbar {
     width: 12px;

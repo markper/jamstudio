@@ -68,6 +68,7 @@
 						"userId": "user1",
 						"name": "playing guitar",
 						"instrument": "guitar",
+						"volume":"0.6",
 						"lock": false,
 						"visible": false,
 						"samples": [{
@@ -95,6 +96,7 @@
 						"userId": "user2",
 						"name": "playing bass",
 						"instrument": "bass",
+						"volume":"0.6",
 						"lock": false,
 						"visible": false,
 						"samples": [{
@@ -122,6 +124,7 @@
 						"userId": "user3",
 						"name": "playing piano",
 						"instrument": "piano",
+						"volume":"0.6",
 						"lock": false,
 						"visible": false,
 						"samples": [{
