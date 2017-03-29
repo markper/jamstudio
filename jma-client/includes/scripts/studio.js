@@ -320,7 +320,7 @@ function refreshSample(element){
 	var width = sample.time*unit_width+ (sample.time/time_units-2);
 	$(element).css('width',width);
 	$(element).css('left',secondsToOffset(sample.start));
-	//createSoundSpectrum(element,width,(unit_width*3/4*10+1));
+	createSoundSpectrum(element,width,(unit_width*3/4*10+1));
 }
 
 function createSoundSpectrum(sample,width,height){
@@ -352,7 +352,7 @@ function updateSampleStart(id,start,channelId){
 }
 function lightChannel(channels_list_row){
 	if(channels_list_row){
-		$('.channels_list_row').css('opacity','0.5');
+		$('.channels_list_row').css('opacity','0.9');
 		$(channels_list_row).css('opacity','1');
 	}else{
 		$('.channels_list_row').css('opacity','1');	
@@ -385,6 +385,24 @@ function collouringGridRow(el,isMulti){
 function togglePlayPause(){
 	$("#play").toggle();
 	$("#pause").toggle();
+}
+function modePlaying(){
+	$("#play").hide();
+	$("#pause").show();
+}
+function modePausing(){
+	$("#play").show();
+	$("#pause").hide();
+}
+function modePlayingChannel(channelId){
+	$('.channel_play[data-channel=\''+channelId+'\']').hide();
+	$('.channel_pause[data-channel=\''+channelId+'\']').show();
+	console.log('pla '+ channelId);
+}
+function modePausingChannel(channelId){
+	$('.channel_play[data-channel=\''+channelId+'\']').show();
+	$('.channel_pause[data-channel=\''+channelId+'\']').hide();
+	console.log('pau '+ channelId);
 }
 function resetPlayPause(){
 	$('#pause').hide();
@@ -452,7 +470,6 @@ function drop(ev) {
 var mouse_offset;
 $(document).on('mousedown', function(e){
     mouse_offset = e.pageX - $(e.target).offset().left;
-
     if($(e.target).hasClass('sample')){
     	$(e.target).css('z-index', z_index++);
         $('#channels_title').css('z-index', z_index++);
@@ -487,16 +504,49 @@ function checkKey(e) {
     else if (e.keyCode == '37') {
        // left arrow
        p.move(-0.25);
+       e.preventDefault();
     }
     else if (e.keyCode == '39') {
        // right arrow
        p.move(0.25);
-    }
-      e.preventDefault();
+       e.preventDefault();
+    }else if (e.keyCode == '32') {
+    	if(player.channelId){ //channel
+    		if(player.isPlaying){
+				modePausing();
+				modePausingChannel(player.channelId);
+				p.pause();
+    		}
+	    	else {
+	    		modePlaying();
+	    		modePlayingChannel(player.channelId);
+	    		p.play();
+	    	}
+	    	lightChannel($('.channel_play[data-channel=\''+player.channelId+'\']').closest('.channels_list_row'));
+    	}else{				// all
+    		if(player.isPlaying){
+    			modePausing();
+    			p.pause();
+    		}
+    		else{
+    			modePlaying(); 
+    			p.play();   		
+    		}
+    		lightChannel();
+    	}
+    }  
 }
 
 
-$(document).on('click','.player-icon',function(e){
+$(document).on('click','.channel_pause',function(e){
+	var channelId = $(this).attr('data-channel');
+	lightChannel();
+	p.setChannel();
+	p.pause();
+	modePausingChannel(player.channelId);
+	//resetPlayPause();
+});
+$(document).on('click','.channel_play',function(e){
 	var channelId = $(this).attr('data-channel');
 	lightChannel($(this).closest('.channels_list_row'));
 	if(!player.isPlaying){
@@ -507,17 +557,8 @@ $(document).on('click','.player-icon',function(e){
 		p.setChannel(channelId);
 		p.pause();
 		p.play();
-	}else{
-		p.setChannel();
-		p.pause();
 	}
-	var channelId = $(this).attr('data-channel');
-	togglePlayStopChannelBtns(channelId);
-	resetPlayPause();
-});
-
-$(document).on('click','.channel_pause',function(e){
-	lightChannel();
+	modePlayingChannel(player.channelId);
 });
 
 $(document).ready(function(){
