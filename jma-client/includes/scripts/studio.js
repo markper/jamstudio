@@ -5,6 +5,7 @@ var z_index = 3;
 var samples = new Array();
 var p = new player();
 var data = null;
+var grid_offset = 160;
 
 function getData(){
 	var tmp = null;
@@ -12,7 +13,6 @@ function getData(){
 		dataType: "json",
 		url: "includes/data/data.json",
 		success:  function(result){
-			console.log('success load slogans.json');
 			drawGrid(unit_width, result);
 		}
 	});	
@@ -87,7 +87,10 @@ function drawChannel(i,cells,data){
 	// create and append samples on placeolder
 	for (var j = 0; j < samples.length; j++) {
 		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+samples[j].sample.sampleId+'" ondragstart="drag(event)" draggable="true"></article>');
-		p.addSample(new Sample(samples[j].sample.sampleId,channel.channelId, samples[j].sample.file.path,samples[j].sample.duration,samples[j].sample.start,1,channel.channelId));
+		$($(row).find('#'+samples[j].sample.sampleId)).resizable({
+	    	handles: 'e, w'
+		});
+		p.addSample(new Sample(samples[j].sample.sampleId,channel.channelId, samples[j].sample.file.path,samples[j].sample.duration,samples[j].sample.start,samples[j].sample.volume,channel.channelId));
 	}	
 	p.addChannel(channel);
 	// append grid row to channel list
@@ -121,7 +124,6 @@ function player(data){
 
 	this.setTime =  function(playTime){
 		player.playTime = playTime*100;
-		console.log(playTime);
 		$('#time').text(playTime);
 		$('#cursorLine').css({'left':secondsToOffset(playTime)});
 	}
@@ -148,6 +150,15 @@ function player(data){
 	this.addSample = function(sample){
 		player.samples.push(sample);
 	}
+	this.updateSampleLoop = function(id,isLoop){
+		this.getSample(id).aud.loop = isLoop;
+	}
+	this.updateSampleTime = function(id,time){
+		this.getSample(id).time = time;
+	}
+	this.updateSampleStart = function(id,start){
+		this.getSample(id).start = start;
+	}
 	this.getSample = function(id){
 		for (var i = player.samples.length - 1; i >= 0; i--) {
 			if(player.samples[i].id == id){
@@ -167,10 +178,10 @@ function player(data){
 		}
 	};
 	this.changeChannelVolume = function(channelId,volume){
+		player.getChannel(channelId).volume = volume;
 		for (var i = player.samples.length - 1; i >= 0; i--) {
 			if(player.samples[i].channelId == channelId){
-				player.samples[i].volume = volume;
-				player.samples[i].aud.volume = volume;
+				player.samples[i].aud.volume = volume * player.samples[i].volume;
 			}
 		}
 	};
@@ -185,28 +196,38 @@ function player(data){
 			player.intervals.push(st1);
 			$(player.samples).each(function(index){
 				var sample = player.samples[index];
-				if(player.channelId && player.channelId!=sample.channelId)
-					return;
-				var timeToStartPlaying = parseFloat(player.samples[index].start_)-parseFloat(player.playTime)/100;
-				var startAt = 0;
-				var remainToStart = 0;
-				if(timeToStartPlaying<0){
-					if(Math.abs(timeToStartPlaying)>player.samples[index].time_)
-						return;
-					remainToStart = 0;
-				}else
-					remainToStart = timeToStartPlaying;							
-				
-				if(timeToStartPlaying<0 )
-					startAt = Math.abs(timeToStartPlaying);	
-				else
+				var playerTimeSec = parseFloat(player.playTime)/100;
+				var a = parseFloat(player.samples[index].start);  // second of start sample
+				var b = parseFloat(player.samples[index].start) + parseFloat(player.samples[index].time); // second of end sample
+				var c = playerTimeSec; // second of cursor position
+				var remainToStart = a-c;
+				var remainToEnd = b-c;
+				var startAt = c-a;
+				if(player.channelId && player.channelId != sample.channelId)
+					return; // sample channel muted
+				if(c<a){ // play from start
 					startAt = 0;
+				}
+				if(a<c&&c<b){ // play from middle
+					remainToStart = 0;
+					startAt = parseFloat(c-a)%parseFloat(player.samples[index].aud.duration);
+				}
+				if(c>b){ // play after ends
+					return;
+				}
+				console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
 				var st = setTimeout(function(){
 					sample.aud.currentTime = startAt;
-					sample.aud.play();
 					sample.aud.volume = parseFloat(player.getChannel(sample.channelId).volume * sample.volume);
+					sample.aud.play();
 				},remainToStart*1000);	
 				player.timeouts.push(st);
+				var st = setTimeout(function(){
+					sample.aud.currentTime = 0;
+					sample.aud.pause();
+				},remainToEnd*1000);	
+				player.timeouts.push(st);
+
 			});
 			//cursor					
 	    	$('#cursorLine').animate({'left':unit_width*max_time},max_time*1000, 'linear');
@@ -300,8 +321,8 @@ function zoom(){
 	var time_offset = secondsToOffset(max_time)+5;
 	$('.channels_grid_title').css('width',time_offset);
 	$('.channel_grid_row').css('width',time_offset);
-	$('#channels_list').css('width',time_offset+160);
-	$('#channels_title').css('width',time_offset+160);
+	$('#channels_list').css('width',time_offset+grid_offset);
+	$('#channels_title').css('width',time_offset+grid_offset);
 	$('.sample').each(function(){
 		refreshSample(this);
 	});
@@ -320,7 +341,7 @@ function refreshSample(element){
 	var width = sample.time*unit_width+ (sample.time/time_units-2);
 	$(element).css('width',width);
 	$(element).css('left',secondsToOffset(sample.start));
-	createSoundSpectrum(element,width,(unit_width*3/4*10+1));
+	//createSoundSpectrum(element,width,(unit_width*3/4*10+1));
 }
 
 function createSoundSpectrum(sample,width,height){
@@ -342,7 +363,7 @@ function refreshSamples(){
 		refreshSample(this);
 	});	
 }
-function updateSampleStart(id,start,channelId){
+function updateSample(id,start,channelId){
 	for (var i = player.samples.length - 1; i >= 0; i--) {
 		if(player.samples[i].id == id){
 			player.samples[i].start = start;
@@ -371,7 +392,6 @@ function secondsToOffset(sec){
 }
 
 function collouringGridRow(el,isMulti){
-	console.log(isMulti);
 	if(isMulti)
 		if($(el.target).parent().hasClass('row_pressed'))
 			$(el.target).parent().removeClass('row_pressed');
@@ -395,14 +415,16 @@ function modePausing(){
 	$("#pause").hide();
 }
 function modePlayingChannel(channelId){
+	$('.channel_pause').not('[data-channel=\''+channelId+'\']').hide();
+	$('.channel_play').not('[data-channel=\''+channelId+'\']').show();
 	$('.channel_play[data-channel=\''+channelId+'\']').hide();
 	$('.channel_pause[data-channel=\''+channelId+'\']').show();
-	console.log('pla '+ channelId);
 }
 function modePausingChannel(channelId){
+	$('.channel_pause').not('[data-channel=\''+channelId+'\']').hide();
+	$('.channel_play').not('[data-channel=\''+channelId+'\']').show();
 	$('.channel_play[data-channel=\''+channelId+'\']').show();
 	$('.channel_pause[data-channel=\''+channelId+'\']').hide();
-	console.log('pau '+ channelId);
 }
 function resetPlayPause(){
 	$('#pause').hide();
@@ -419,21 +441,20 @@ function resetPlayStopChannelBtns(){
 	$('.channel_play').show();
 }
 
+
 // drag and drop 
 function allowDrop(ev) {
     ev.preventDefault();
 }
 function drag(ev) {
     ev.dataTransfer.setData("text", ev.target.id);
-    console.log(ev.target.style.left);	
 }
 function drop(ev) {
     ev.preventDefault();
     var data = ev.dataTransfer.getData("text");
     var dragged = document.getElementById(data);		   
     var target = ev.target;
-    console.log(dragged.id);
-    var new_offset = $('main').scrollLeft()+ ev.pageX - mouse_offset - 160;
+    var new_offset = $('main').scrollLeft()+ ev.pageX - mouse_offset - grid_offset;
 	if(new_offset<0)
 		new_offset = 0;
 	// drop on sample
@@ -458,7 +479,7 @@ function drop(ev) {
     var all = ((new_offset-borders)/(time_units*unit_width))*time_units;
     $('#'+data).attr('data-start', all);
     var channelId = $(target).attr('data-channel');
-    updateSampleStart(data,all,channelId);
+    updateSample(data,all,channelId);
 	if(player.isPlaying){
 		p.pause();
 		p.play();
@@ -481,6 +502,23 @@ $(document).on('mousedown', function(e){
         $('.channel_list_buttons').css('z-index', z_index++);
     }
 });
+function isResize(element){
+	p.updateSampleTime($(element).attr('id'),offsetToSeconds($(element).width()));
+	p.updateSampleStart($(element).attr('id'),offsetToSeconds(parseFloat($(element).css('left'))));
+	p.updateSampleLoop($(element).attr('id'),true);
+	console.log(offsetToSeconds(parseFloat($(element).css('left'))));
+	if(player.isPlaying){
+		p.pause();
+		p.play();
+	}
+}
+
+
+$(document).on('resize','.sample',function(){
+        isResize(this);
+});
+
+
 $(document).on('mouseup', function(e){
 
 });
@@ -544,6 +582,7 @@ $(document).on('click','.channel_pause',function(e){
 	p.setChannel();
 	p.pause();
 	modePausingChannel(player.channelId);
+	modePausing();
 	//resetPlayPause();
 });
 $(document).on('click','.channel_play',function(e){
@@ -558,6 +597,7 @@ $(document).on('click','.channel_play',function(e){
 		p.pause();
 		p.play();
 	}
+	modePlaying();
 	modePlayingChannel(player.channelId);
 });
 
@@ -569,12 +609,12 @@ $(document).ready(function(){
 		p.pause();
 		p.play();
 		lightChannel(null);
-		togglePlayPause();
+    	modePlaying();
 	});
 	$("#pause").click(function(){
 		p.pause();
 		p.setChannel();
-		togglePlayPause();
+    	modePausing();
 		lightChannel();
 	});
 	$("#stop").click(function(){
@@ -584,15 +624,15 @@ $(document).ready(function(){
 		resetPlayPause();
 	});
 	$(document).on('click','.channel_grid_row',function(e){
-		if(offsetToSeconds($('main').scrollLeft()+ e.pageX  < 160))
+		if(offsetToSeconds($('main').scrollLeft()+ e.pageX  < grid_offset))
 			return;
 		if(player.isPlaying){
 			p.pause();
-			p.setTime(offsetToSeconds($('main').scrollLeft()+ e.pageX  - 160));
+			p.setTime(offsetToSeconds($('main').scrollLeft()+ e.pageX  - grid_offset));
 			p.play();
 		}
 		else
-			p.setTime(offsetToSeconds($('main').scrollLeft()+ e.pageX  - 160));		
+			p.setTime(offsetToSeconds($('main').scrollLeft()+ e.pageX  - grid_offset));		
 		$(this).focusout();
 	});
 

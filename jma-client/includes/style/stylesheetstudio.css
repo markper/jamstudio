@@ -2,6 +2,15 @@
 	margin: 0px;
 	padding: 0px;
 }
+.noselect *{
+	-webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
 html,body{
 	height: 100%;
 }
@@ -262,7 +271,7 @@ main .channel_grid_row div{
 main .channel_grid_row div:after{
 	clear: both;
 }
-main .channel_grid_row div:last-child{
+main .channel_grid_row > div:last-child{
 	border-right:1px solid #ebebeb ;
 }
 main #cursorLine{
@@ -290,6 +299,13 @@ main #cursorLine{
 	border: 1px solid #c1d045;
 	height: calc(100% - 2px);
 	z-index: 3;
+	left:0px;
+}
+.ui-resizable {
+     position: absolute !important; 
+}
+.sample canvas{
+	position: absolute;
 	left:0px;
 }
 .sample_signed{
