@@ -76,7 +76,7 @@
 								"sampleId": "sample1",
 								"fadein": "3",
 								"fadeout": "3",
-								"start": "5",
+								"start": "40",
 								"volume": "1",
 								"duration": "16",
 								"file": {

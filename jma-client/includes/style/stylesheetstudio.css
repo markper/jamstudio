@@ -84,17 +84,18 @@ header #toolbox ul{
 	border: 1px solid #000000;
 	border-radius: 3px;
 	height: 25px;
-	min-width: 80px;
+	min-width: 10px;
 	display: inline-block;
-	margin-left: 20px;
 	margin-top: 12px;
+	padding-right:  7px;
 }
 header #toolbox ul li{
 	width: 20px;
 	height: 20px;
 	background-size: 20px;
 	margin-top: 2px;
-	margin-left: 5px;
+	margin-left: 7px;
+	background-repeat: no-repeat;
 }
 #toolbox li#toolbox_btn_zoomin{
 	background-image: url(../images/studio_icon_zoomin.png);
@@ -105,6 +106,16 @@ header #toolbox ul li{
 #toolbox li#toolbox_btn_cursor{
 	background-position: 0px -2px;
 	background-image: url(../images/studio_icon_cursor.png);
+}
+#toolbox li#toolbox_btn_undo{
+	background-position: 0px 4px;
+	background-image: url(../images/studio_icon_undo.png);
+	opacity: 0.5;
+}
+#toolbox li#toolbox_btn_redo{
+	background-position: 0px 4px;
+	background-image: url(../images/studio_icon_redo.png);
+	opacity: 0.5;
 }
 header #searchbox{
 	width: 100px;

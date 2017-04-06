@@ -25,14 +25,13 @@
 			</li>
 			<li id="toolbox">
 				<ul>
-					<li id="toolbox_btn_zoomin" onclick="zoomIn()"></li>
-					<li id="toolbox_btn_zoomout" onclick="zoomOut()"></li>
+					<li id="toolbox_btn_zoomin"></li>
+					<li id="toolbox_btn_zoomout"></li>
 					<li id="toolbox_btn_cursor"></li>
 				</ul>
 				<ul>
-					<li></li>
-					<li></li>
-					<li></li>
+					<li id="toolbox_btn_undo"></li>
+					<li id="toolbox_btn_redo"></li>
 				</ul>
 			</li>
 			<li id="searchbox">
@@ -53,5 +52,11 @@
 			<li id="play">Play</li><li id="pause">Pause</div><li id="stop">Stop</div></li></li><li id="time">time</li>
 		</ul>
 	</footer>
+	<script>
+		(function(){
+			var s = new studio();
+			s.init('includes/data/data.json');
+		})();
+	</script>
 </body>
 </html>
