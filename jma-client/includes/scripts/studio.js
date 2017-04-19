@@ -9,6 +9,8 @@ var studio = function studio(){
 	var ac = new actionController();
 	var data = null;
 	var grid_offset = 160;
+	var cursorType = null;
+	var sampleIndexGenerator = 0;
 
 	this.init = function init(url){
 		var tmp = null;
@@ -28,7 +30,6 @@ var studio = function studio(){
 		this.addAction = function(action){
 			actionController.actions.push(action);
 			actionController.actionsRedo = new Array();
-			console.log(action);
 		}
 		this.redo = function(){
 			if(actionController.actionsRedo.length<=0)
@@ -36,8 +37,6 @@ var studio = function studio(){
 			var action = actionController.actionsRedo.pop();
 			var currentSample = p.getSample(action.state.id);
 			actionController.actions.push(new Action('sample',jQuery.extend(true, {}, currentSample)));	
-			console.log(action);
-			console.log('redo');
 			this.restoreAction(action);			
 		};
 		this.undo = function(){
@@ -46,7 +45,6 @@ var studio = function studio(){
 			var action = actionController.actions.pop();
 			var currentSample = p.getSample(action.state.id);
 			actionController.actionsRedo.push(new Action('sample',jQuery.extend(true, {}, currentSample)));	
-			console.log('undo');
 			this.restoreAction(action);
 		};
 		this.restoreAction = function(action){			
@@ -60,7 +58,7 @@ var studio = function studio(){
 					break;
 				}
 			}
-			resetComponentsSizes();
+			resetComponents();
 		}
 	}
 
@@ -73,6 +71,15 @@ var studio = function studio(){
 		player.playTime = 0;
 		player.isPlaying = false;
 		var p = this;
+
+		this.reset = function(){
+			if(player.isPlaying){
+				p.pause();
+				p.play();
+			}else{
+				p.pause();
+			}
+		}
 
 		this.setTime =  function(playTime){
 			player.playTime = playTime*100;
@@ -184,18 +191,18 @@ var studio = function studio(){
 					if(c>b){ // play after ends
 						return;
 					}
-					console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
+					//console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
 					var st = setTimeout(function(){
-						sample.aud.currentTime = startAt;
+						sample.aud.currentTime = startAt + parseFloat(sample.delay);
 						sample.aud.volume = parseFloat(player.getChannel(sample.channelId).volume * sample.volume);
 						sample.aud.play();
 					},remainToStart*1000);	
 					player.timeouts.push(st);
-					var st = setTimeout(function(){
-						sample.aud.currentTime = 0;
+					var st1 = setTimeout(function(){
+						sample.aud.currentTime = sample.delay;
 						sample.aud.pause();
 					},remainToEnd*1000);	
-					player.timeouts.push(st);
+					player.timeouts.push(st1);
 
 				});
 				//cursor					
@@ -250,38 +257,22 @@ var studio = function studio(){
 	};
 
 	var Sample = class Sample {
-	  constructor(id,channelId,file, time, start,volume,username,userId,type,channel) {
+	  constructor(id,channelId,file,duration,start,volume,channel,delay) {
 	    this.id = id;
 	    this.channelId = channelId;
 	    this.file = file;
-	    this.time = time;
+	    this.time = duration;
+	    this.delay = delay;
 	    this.start = start;
 	    this.aud = new Audio();
 	    this.aud.src = file; 
 	    this.aud.volume = volume;
 	    this.volume = volume;
-	    this.username = username;
-	    this.userId = userId;
-	    this.type = type;	
-	    this.channel = channel;	    
+	    this.username = "USER";
+	    this.userId = "userId";
+	    this.type = "type";	
+	    this.channel = channel;	  
 	  }
-	  /*
-	   get audi(){
-	   	return this.aud;
-	   }
-	   get start_(){
-	   	return this.start;
-	   }
-	   set start_(start){
-	   	 this.start = start;
-	   }
-	   get time_(){
-	   	return this.audi.buffered.end(0);
-	   }
-	   set time_(time){
-	   	 this.time = time;
-	   }
-	   */
 	};
 	var Action = class Action {
 	  constructor(type,state) {
@@ -359,14 +350,14 @@ var studio = function studio(){
 		if(unit_width>20)
 			return;
 		unit_width=unit_width*1.1;
-		resetComponentsSizes();
+		resetComponents();
 	}
 
 	function zoomOut(){
 		if(unit_width<4)
 			return;
 		unit_width = unit_width/1.1;
-		resetComponentsSizes();
+		resetComponents();
 	}
 
 	function drawGrid(data){
@@ -384,7 +375,7 @@ var studio = function studio(){
 				drawChannel(i,cells,data);
 			}	
 			// draw cursorLine
-			resetComponentsSizes();	
+			resetComponents();	
 		}		
 
 	function drawChannel(i,cells,data){
@@ -423,18 +414,23 @@ var studio = function studio(){
 		// create and append, grid sample placeholder to grid row
 		$(row).find('.channel_grid_row').append('<article class="sample_placeholder" id="sample_placeholder_'+ i +'" data-channel="'+ channel.channelId +'"></article>');
 		// create and append samples on placeolder
-		for (var j = 0; j < samples.length; j++) {
-			$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+samples[j].sample.sampleId+'" draggable="true"></article>');
-			$($(row).find('#'+samples[j].sample.sampleId)).resizable({
-		    	handles: 'e, w'
-			});
-			p.addSample(new Sample(samples[j].sample.sampleId,channel.channelId, samples[j].sample.file.path,samples[j].sample.duration,samples[j].sample.start,samples[j].sample.volume,channel.channelId));
+		for (var j = 0; j < samples.length; j++) {		
+			drawSample(row,samples[j].sample.sampleId,channel.channelId, samples[j].sample.file.path,samples[j].sample.duration,samples[j].sample.start,samples[j].sample.volume,samples[j].sample.delay);
 		}	
 		p.addChannel(channel);
 		// append grid row to channel list
 		$('#channels_list').append(row);
 	}	
-	function resetComponentsSizes(){
+
+	function drawSample(row, id,channel,file,duration,start,volume,delay){
+		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+id+'" draggable="true"></article>');
+		$($(row).find('#'+id)).resizable({
+		  	handles: 'e, w'
+		});
+		p.addSample(new Sample(id,channel,file,duration,start,volume,channel,delay));
+	}
+
+	function resetComponents(){
 		$('.channels_grid_title div.time-box').css('width',unit_width*time_units);
 		$('main #channels_list > div').css('height',unit_width*3/4*10);
 		$('.channel_grid_row').find('div.time-box').css('width',unit_width*time_units);
@@ -460,7 +456,7 @@ var studio = function studio(){
 	}
 	function updateSampleComponent(element){
 		var sample = p.getSample(element.id);
-		var width = sample.time*unit_width+ (sample.time/time_units-2);
+		var width = sample.time*unit_width+ (sample.time/time_units);
 		$(element).css('width',width);
 		$(element).css('left',secondsToOffset(sample.start));
 		$('.sample_placeholder[data-channel='+sample.channelId+']').append($('#'+sample.id));
@@ -630,7 +626,6 @@ var studio = function studio(){
 		mouseOffsetSampleClicked = e.pageX - $(e.target).offset().left;
 	}
 	function updateUndoRedoIcons(){
-		console.log(actionController.actions.length);
 		if(actionController.actions.length>0)		
 			$('#toolbox_btn_undo').css('opacity','1');
 		else
@@ -639,6 +634,25 @@ var studio = function studio(){
 	 		$('#toolbox_btn_redo').css('opacity','1');
 		else
 			$('#toolbox_btn_redo').css('opacity','0.5');
+	}
+
+	function cutSample(e){
+		var sample = p.getSample(($(e.target).closest('.sample')).attr("id"));		
+		var time = offsetToSeconds(mouseOffsetSampleClicked);
+
+		var clone = jQuery.extend(true, {}, sample);
+		clone.delay =  parseFloat(parseFloat(sample.delay) +  parseFloat(time)).toFixed(1).toString();
+		clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toFixed(1).toString();//parseFloat(clone.start) + parseFloat(timeToCut);
+		clone.time = parseFloat(parseFloat(sample.time)-parseFloat(time)).toFixed(1).toString();//parseFloat(clone.time) - parseFloat(timeToCut)+1;
+		clone.id = 'newSample'+sampleIndexGenerator++;
+
+		sample.time = time.toFixed(1);
+		
+		drawSample($(e.target).closest('.channels_list_row'), clone.id,clone.channelId,clone.file,clone.time,clone.start,clone.volume,clone.delay);
+		
+		resetComponents();
+		cursorType = 'arrow';
+		changeCursorPlace(e);
 	}
 
 	
@@ -660,6 +674,13 @@ var studio = function studio(){
 	});
 	$(document).on('mousedown', '.sample , * > .sample',function(e){
 	    sampleBringFront(e);
+	    if(cursorType=='cutter'){	    	
+	    	console.debug(player.samples);
+	    	cutSample(e);
+	    	$('.channel_grid_row').removeClass('cutCursor');
+	    }else{
+	   		console.log(cursorType);	
+	    }
 	});
 	$(document).on('mouseup','.ui-resizable-handle',function(e){	
 		resizeSample($(this).closest('.sample'));
@@ -747,6 +768,14 @@ var studio = function studio(){
 	$(document).on('click','#toolbox_btn_zoomout',function(){
 		zoomOut();
 	});
+	$(document).on('click','#toolbox_btn_cursor',function(){
+		cursorType == "arrow";
+		$('.channel_grid_row').removeClass('cutCursor');
+	});
+	$(document).on('click','#toolbox_btn_cutter',function(){
+		cursorType = 'cutter';
+		$('.channel_grid_row').addClass('cutCursor');
+	});
 	$(document).on('click','#toolbox_btn_undo',function(){
 		ac.undo();	
 		updateUndoRedoIcons();
@@ -756,14 +785,3 @@ var studio = function studio(){
 		updateUndoRedoIcons();
 	});
 };
-/*
-var initialize = function(){
-	for (var i = 3 - 1; i >= 0; i--) {
-		samples.push(new Sample('includes/loops/1.wav',16,random(80),1));
-		samples.push(new Sample('includes/loops/2.wav',8,random(80),0.4));
-		samples.push(new Sample('includes/loops/3.wav',9,random(80),1));
-		samples.push(new Sample('includes/loops/4.wav',4,random(80),1));
-		samples.push(new Sample('includes/loops/5.wav',17,random(80),1));
-		samples.push(new Sample('includes/loops/6.wav',9,random(80),1));
-	}
-};*/

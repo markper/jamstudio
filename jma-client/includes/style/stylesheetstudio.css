@@ -107,6 +107,11 @@ header #toolbox ul li{
 	background-position: 0px -2px;
 	background-image: url(../images/studio_icon_cursor.png);
 }
+#toolbox li#toolbox_btn_cutter{
+	background-position: 0px 2px;
+	background-size: 7px;
+	background-image: url(../images/studio_icon_cutter.png);
+}
 #toolbox li#toolbox_btn_undo{
 	background-position: 0px 4px;
 	background-image: url(../images/studio_icon_undo.png);
@@ -116,6 +121,9 @@ header #toolbox ul li{
 	background-position: 0px 4px;
 	background-image: url(../images/studio_icon_redo.png);
 	opacity: 0.5;
+}
+.cutCursor{
+	cursor: url(../images/studio_icon_cutter_32.png), auto;   
 }
 header #searchbox{
 	width: 100px;
@@ -324,12 +332,12 @@ main #cursorLine{
 }
 #channels_list > div:nth-child(3n+2) .channel_grid_row .sample , #channels_list > div:nth-child(3n+2) .player-fill{
 	background-color: #FFB253;
-	border: 1px solid #d68227;
+	border: 1px solid #d68227; 
 	fill: #FFB253;
 }
 #channels_list > div:nth-child(3n+3) .channel_grid_row .sample  , #channels_list > div:nth-child(3n+3) .player-fill{
 	background-color: #00A4D3;
-	border: 1px solid #006e8c;
+	border: 1px solid #006e8c; 
 	fill: #00A4D3;
 }
 .sample_placeholder{
