@@ -1,70 +1,63 @@
+// vars
 var express = require('express');
 var passport = require('passport');
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var Track = require('../model/trackSchema');  // get our mongoose model
 
-var bodyParser  = require('body-parser');
-router.use(bodyParser.urlencoded({ extended: false }));
+// get params from request
+var bodyParser = require('body-parser');
 router.use(bodyParser.json());
 
-/* GET project. */
-router.get('/', ensureLoggedIn, function(req, res, next) {
-    res.send('hello maoz');
+
+/* GET user profile. */
+router.get('/', function(req, res) {
+    //console.log("/");
+    res.send('we really need to change the default routing...');
 });
 
 
-/* get specific request */
-router.get('/track', function(req, res) {
+/* get specific track */
+router.get('/track:_id', function(req, res) {
     // todo - need to implement
-    res.send('hello world');
+    //console.log("/track");
+    res.send('we really need to change the default routing...');
 });
 
 
-/* create new request function */
+/* create new track */
 router.post('/track', function(req, res) {
-    // get params
-    var trackId = req.body.trackid;
-    var name = req.body.name;
-    var description = req.body.des;
-    // request structure
+    var p1 = req.body.trackid;
+    var p2 = req.body.name;
+    var p3 = req.body.description;
     var newTrack = new Track({
-         trackId:'',
-         name:'',
-         description:'',
-         projectId: '',
-         genre: '',
-         version: '',
-         channels: []
+        trackId : p1,
+        name : p2,
+        description : p3
     });
-    //set structure
-    newTrack.trackId = trackId;
-    newTrack.name = name;
-    newTrack.description = description;
     console.log(newTrack);
     // save to database
-    newPlan.save(function(err) {
+    newTrack.save(function(err) {
         if (err) throw err;
         console.log('Track was added successfully');
-        // res.json({ success: true });
-
+        res.json({ success: true });
     });
 });
 
 
-/* delete request */
+/* delete track */
 router.post('/deletePlan', function(req, res) {
     // get params
-    var planId = req.body.planId;
-    Plan.findOne({
-        plan: req.body.planId
-    }, function(err, plan) {
+    var trackId = req.body.trackId;
+    Track.findOne({
+        plan: req.body.trackId
+    }, function(err, track) {
         if (err) throw err;
-        if (!plan) {
+        if (!track) {
             res.json({ success: false, message: 'plan not found.'});
         }
-        if(plan.planId === planId){
-            plan.remove(function(err) {
+        if(track.trackId === trackId){
+            track.remove(function(err) {
                 if (err) throw err;
                 console.log('User was removed successfully');
                 res.json({ success: true });
@@ -77,12 +70,12 @@ router.post('/deletePlan', function(req, res) {
 });
 
 
-/* update request */
+/* update track */
 router.put('jam/updatePlan:_id', function(req, res) {
-    Plan.findOne(req.params.planId, function(err,plan){
+    Track.findOne(req.params.planId, function(err,track){
         if (err) res.send(err);
-        plan.storage_capacity += req.body.storage_capacity;
-        plan.save(function(err){
+        track.storage_capacity += req.body.storage_capacity;
+        track.save(function(err){
             if (err) res.send(err);
             res.json({ message: "update plan"});
         });
