@@ -5,8 +5,7 @@ var router = express.Router();
 
 /* GET project. */
 router.get('/', ensureLoggedIn, function(req, res, next) {
-  currentUser = req.user;
-  res.render('project', { user: req.user });
+  res.send('hello world');
 });
 
 /* GET - Remove user from project. */
