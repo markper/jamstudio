@@ -1,5 +1,4 @@
 var express = require('express');
-var mongoose    = require('mongoose');
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
@@ -9,6 +8,14 @@ var session = require('express-session');
 var dotenv = require('dotenv');
 var passport = require('passport');
 var Auth0Strategy = require('passport-auth0');
+
+//////////////////////////////////////
+//ADDITIONS - put them where you wish
+var mongoose    = require('mongoose');
+var config = require('./config');       // get our config file
+mongoose.connect(config.database);      // connect to database
+//////////////////////////////////////
+
 
 dotenv.load();
 
