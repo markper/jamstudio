@@ -6,7 +6,7 @@ var Request   = require('../model/requestSchema');  // get our mongoose model
 
 /* GET project. */
 router.get('/', ensureLoggedIn, function(req, res, next) {
-    res.send('hello world');
+    res.send('hello mark');
 });
 
 /*
