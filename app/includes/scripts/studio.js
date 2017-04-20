@@ -82,8 +82,8 @@ var studio = function studio(){
 		}
 
 		this.setTime =  function(playTime){
-			player.playTime = playTime*100;
-			$('#time').text(playTime);
+			player.playTime = playTime*100;			
+			updateTimer(playTime*100);
 			$('#cursorLine').css({'left':secondsToOffset(playTime)});
 		}
 
@@ -166,10 +166,11 @@ var studio = function studio(){
 					return;
 				console.log('play');
 				player.isPlaying = true;
-				var st1 =setInterval(function(){						
-					$('#time').text(++player.playTime/100);
+				var st =setInterval(function(){
+					updateTimer(++player.playTime);											
+					//$('#time #min').text(++player.playTime/100/60);
 				},10);
-				player.intervals.push(st1);
+				player.intervals.push(st);
 				$(player.samples).each(function(index){
 					var sample = player.samples[index];
 					var playerTimeSec = parseFloat(player.playTime)/100;
@@ -192,17 +193,17 @@ var studio = function studio(){
 						return;
 					}
 					//console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
-					var st = setTimeout(function(){
+					var st1 = setTimeout(function(){
 						sample.aud.currentTime = startAt + parseFloat(sample.delay);
 						sample.aud.volume = parseFloat(player.getChannel(sample.channelId).volume * sample.volume);
 						sample.aud.play();
 					},remainToStart*1000);	
-					player.timeouts.push(st);
-					var st1 = setTimeout(function(){
+					player.timeouts.push(st1);
+					var st2 = setTimeout(function(){
 						sample.aud.currentTime = sample.delay;
 						sample.aud.pause();
 					},remainToEnd*1000);	
-					player.timeouts.push(st1);
+					player.timeouts.push(st2);
 
 				});
 				//cursor					
@@ -343,6 +344,15 @@ var studio = function studio(){
 			}
 		}
 	}
+	function updateTimer(time){
+		var min = Math.floor(time/60/100),
+			sec = Math.floor((time/100)%60),
+			mil = Math.floor(time%100);	
+		var minInc = (min < 10) ? "0":"";	
+			secInc = (sec < 10) ? "0":"";	
+			milInc = (mil < 10) ? "0":"";	
+		$('#time').text(minInc+min + ':' + secInc+sec + ':' + milInc+mil);		
+	}
 
 	/* UI Functions */
 
@@ -423,7 +433,7 @@ var studio = function studio(){
 	}	
 
 	function drawSample(row, id,channel,file,duration,start,volume,delay){
-		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+id+'" draggable="true"></article>');
+		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+id+'" draggable="true" data-duration="'+duration+'" data-start="'+start+'"></article>');
 		$($(row).find('#'+id)).resizable({
 		  	handles: 'e, w'
 		});
@@ -442,11 +452,11 @@ var studio = function studio(){
 		updateSampleComponents();
 		if(player.isPlaying){
 			p.pause();
-			$('#cursorLine').css('left',secondsToOffset(player.playTime/100));
+			$('#cursorLine').css('left',Math.floor(secondsToOffset(player.playTime/100)));
 			p.play();
 		}
 		else
-			$('#cursorLine').css('left',secondsToOffset(player.playTime/100));
+			$('#cursorLine').css('left',Math.floor(secondsToOffset(player.playTime/100)));
 		$('#cursorLine').css('height',$('.channel_grid_row').length*(unit_width*3/4*10+1)+24);
 	}
 	function updateSampleComponents(){
@@ -457,8 +467,8 @@ var studio = function studio(){
 	function updateSampleComponent(element){
 		var sample = p.getSample(element.id);
 		var width = sample.time*unit_width+ (sample.time/time_units);
-		$(element).css('width',width);
-		$(element).css('left',secondsToOffset(sample.start));
+		$(element).css('width',Math.floor(width));
+		$(element).css('left',Math.floor(secondsToOffset(sample.start)));
 		$('.sample_placeholder[data-channel='+sample.channelId+']').append($('#'+sample.id));
 		//createSoundSpectrum(element,width,(unit_width*3/4*10+1));
 	}
@@ -609,15 +619,17 @@ var studio = function studio(){
 	function changeCursorPlace(e){
 		if(offsetToSeconds($('main').scrollLeft()+ e.pageX  < grid_offset))
 			return;
+		var secTime = offsetToSeconds($('main').scrollLeft()+ e.pageX  - grid_offset);
 		if(player.isPlaying){
 			p.pause();
-			p.setTime(offsetToSeconds($('main').scrollLeft()+ e.pageX  - grid_offset));
+			p.setTime(secTime);
 			p.play();
 		}
 		else
-			p.setTime(offsetToSeconds($('main').scrollLeft()+ e.pageX  - grid_offset));		
+			p.setTime(secTime);		
 		$(this).focusout();
 	}
+
 	function sampleBringFront(e){
 		var sample = $(e.target).closest('.sample');
 		$(sample).css('z-index', z_index++);
@@ -625,6 +637,7 @@ var studio = function studio(){
         $('.channel_list_buttons').css('z-index', z_index++);
 		mouseOffsetSampleClicked = e.pageX - $(e.target).offset().left;
 	}
+
 	function updateUndoRedoIcons(){
 		if(actionController.actions.length>0)		
 			$('#toolbox_btn_undo').css('opacity','1');
@@ -641,9 +654,9 @@ var studio = function studio(){
 		var time = offsetToSeconds(mouseOffsetSampleClicked);
 
 		var clone = jQuery.extend(true, {}, sample);
-		clone.delay =  parseFloat(parseFloat(sample.delay) +  parseFloat(time)).toFixed(1).toString();
-		clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toFixed(1).toString();//parseFloat(clone.start) + parseFloat(timeToCut);
-		clone.time = parseFloat(parseFloat(sample.time)-parseFloat(time)).toFixed(1).toString();//parseFloat(clone.time) - parseFloat(timeToCut)+1;
+		clone.delay =  parseFloat(parseFloat(sample.delay) +  parseFloat(time)).toString();
+		clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toString();//parseFloat(clone.start) + parseFloat(timeToCut);
+		clone.time = parseFloat(parseFloat(sample.time)-parseFloat(time)).toString();//parseFloat(clone.time) - parseFloat(timeToCut)+1;
 		clone.id = 'newSample'+sampleIndexGenerator++;
 
 		sample.time = time.toFixed(1);
@@ -673,6 +686,7 @@ var studio = function studio(){
 		drag(e);
 	});
 	$(document).on('mousedown', '.sample , * > .sample',function(e){
+		$(this).css('border-color','#ff0000');
 	    sampleBringFront(e);
 	    if(cursorType=='cutter'){	    	
 	    	console.debug(player.samples);

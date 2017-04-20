@@ -28,6 +28,10 @@ ul{
 	list-style: none;
 	padding: 0px;
 }
+span{
+	padding: 0px;
+	margin: 0px;
+}
 header li{
 	float: left;
 	height: 50px;
