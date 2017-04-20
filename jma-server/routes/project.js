@@ -22,10 +22,7 @@ router.get('/:projectId/removeUser/:userToDelete',ensureLoggedIn, function(req, 
 });
 
 function isPermissioned(user){
-	if(user=="58b898af734d1d10ff5f4aec"){
-		return true;
-	}
-	return false;
+	return user==="58b898af734d1d10ff5f4aec";
 }
 
 function getUserID(req){
