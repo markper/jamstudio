@@ -25,32 +25,112 @@ var studio = function studio(){
 	};
 
 	function actionController(){
-		actionController.actions = new Array();
+		actionController.actionsUndo = new Array();
 		actionController.actionsRedo = new Array();
 		this.addAction = function(action){
-			actionController.actions.push(action);
+			actionController.actionsUndo.push(action);
 			actionController.actionsRedo = new Array();
 		}
 		this.redo = function(){
 			if(actionController.actionsRedo.length<=0)
 				return;
 			var action = actionController.actionsRedo.pop();
-			var currentSample = p.getSample(action.state.id);
-			actionController.actions.push(new Action('sample',jQuery.extend(true, {}, currentSample)));	
-			this.restoreAction(action);			
+			switch(action.type){
+				case 'sample':{
+					sample(this);
+					break;
+				}
+				case 'sample_delete':{
+					sample_delete(this);
+					break;
+				}
+				case 'sample_new':{
+					sample_new(this);
+					break;
+				}
+				case 'sample_cut':{
+					this.redo();
+					this.redo();
+					actionController.actionsUndo.push(new Action('sample_cut',null));	
+					console.log(actionController.actionsUndo);
+					break;
+				}
+			}
+
+			function sample(parent){
+				var before = p.getSample(action.state.id);
+				actionController.actionsUndo.push(new Action('sample',before));	
+				parent.restoreAction(action);	
+			}
+
+			function sample_delete(parent){
+				actionController.actionsUndo.push(new Action('sample_new',action.state));	
+				parent.restoreAction(action);	
+			}
+
+			function sample_new(parent){
+				actionController.actionsUndo.push(new Action('sample_delete',action.state));	
+				parent.restoreAction(action);	
+			}
+
 		};
 		this.undo = function(){
-			if(actionController.actions.length<=0)
+			if(actionController.actionsUndo.length<=0)
 				return;
-			var action = actionController.actions.pop();
-			var currentSample = p.getSample(action.state.id);
-			actionController.actionsRedo.push(new Action('sample',jQuery.extend(true, {}, currentSample)));	
-			this.restoreAction(action);
+			var action = actionController.actionsUndo.pop();
+			switch(action.type){
+				case 'sample':{
+					sample(this);
+					break;
+				}
+				case 'sample_new':{
+					sample_new(this);
+					break;
+				}
+				case 'sample_delete':{
+					sample_delete(this);
+					break;
+				}
+				case 'sample_cut':{
+					this.undo();
+					this.undo();
+					actionController.actionsRedo.push(new Action('sample_cut',null));	
+					break;
+				}
+			}
+
+			function sample(parent){
+				var before = p.getSample(action.state.id);
+				actionController.actionsRedo.push(new Action('sample',before));	
+				parent.restoreAction(action);
+			}
+
+			function sample_new(parent){
+				actionController.actionsRedo.push(new Action('sample_delete',action.state));	
+				parent.restoreAction(action);
+			}
+
+			function sample_delete(parent){
+				actionController.actionsRedo.push(new Action('sample_new',action.state));	
+				parent.restoreAction(action);
+			}
 		};
 		this.restoreAction = function(action){			
 			switch(action.type){
 				case 'sample':{
-					p.replaceSample(jQuery.extend(true, {}, action.state));
+					p.updateSample(jQuery.extend(true, {}, action.state));
+					break;
+				}
+				case 'sample_new':{
+					$('#'+action.state.id).remove();
+					p.removeSample(jQuery.extend(true, {}, action.state));					
+					break;
+				}
+				case 'sample_delete':{
+					drawSample($('.sample_placeholder[data-channel='+action.state.channel+']').closest('.channels_list_row'), action.state.id,
+						action.state.channel,action.state.file,action.state.time,action.state.start,
+						action.state.volume,action.state.delay);
+					resetComponents();
 					break;
 				}
 				case 'channel':{
@@ -109,7 +189,19 @@ var studio = function studio(){
 		this.addSample = function(sample){
 			player.samples.push(sample);
 		}
-		this.replaceSample = function(sample){
+		this.removeSample = function(sample){
+			var index = -1;
+			for (var i = player.samples.length - 1; i >= 0; i--) {
+				if(player.samples[i].id == sample.id){
+					index = i;
+				}
+			}
+			console.log(index);
+			if (index > -1) {
+			    player.samples.splice(index, 1);
+			}
+		}
+		this.updateSample = function(sample){
 			for (var i = player.samples.length - 1; i >= 0; i--) {
 				if(player.samples[i].id == sample.id){
 					player.samples[i] = sample;
@@ -195,8 +287,9 @@ var studio = function studio(){
 					//console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
 					var st1 = setTimeout(function(){
 						sample.aud.currentTime = startAt + parseFloat(sample.delay);
-						sample.aud.volume = parseFloat(player.getChannel(sample.channelId).volume * sample.volume);
+						sample.aud.volume = parseFloat(player.getChannel(sample.channelId).volume * sample.volume);			;		
 						sample.aud.play();
+						}
 					},remainToStart*1000);	
 					player.timeouts.push(st1);
 					var st2 = setTimeout(function(){
@@ -204,7 +297,11 @@ var studio = function studio(){
 						sample.aud.pause();
 					},remainToEnd*1000);	
 					player.timeouts.push(st2);
-
+					// fadeIn
+					
+					
+					
+					// fadeOut
 				});
 				//cursor					
 		    	$('#cursorLine').animate({'left':unit_width*max_time},max_time*1000, 'linear');
@@ -432,7 +529,8 @@ var studio = function studio(){
 		$('#channels_list').append(row);
 	}	
 
-	function drawSample(row, id,channel,file,duration,start,volume,delay){
+	function drawSample(row, id,channel,file,duration,start,volume,delay){		
+		console.log(row);
 		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+id+'" draggable="true" data-duration="'+duration+'" data-start="'+start+'"></article>');
 		$($(row).find('#'+id)).resizable({
 		  	handles: 'e, w'
@@ -639,7 +737,7 @@ var studio = function studio(){
 	}
 
 	function updateUndoRedoIcons(){
-		if(actionController.actions.length>0)		
+		if(actionController.actionsUndo.length>0)		
 			$('#toolbox_btn_undo').css('opacity','1');
 		else
 			$('#toolbox_btn_undo').css('opacity','0.5');
@@ -650,7 +748,9 @@ var studio = function studio(){
 	}
 
 	function cutSample(e){
-		var sample = p.getSample(($(e.target).closest('.sample')).attr("id"));		
+
+		var sample = p.getSample(($(e.target).closest('.sample')).attr("id"));	
+		ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
 		var time = offsetToSeconds(mouseOffsetSampleClicked);
 
 		var clone = jQuery.extend(true, {}, sample);
@@ -658,6 +758,7 @@ var studio = function studio(){
 		clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toString();//parseFloat(clone.start) + parseFloat(timeToCut);
 		clone.time = parseFloat(parseFloat(sample.time)-parseFloat(time)).toString();//parseFloat(clone.time) - parseFloat(timeToCut)+1;
 		clone.id = 'newSample'+sampleIndexGenerator++;
+		var action_before = sample;	
 
 		sample.time = time.toFixed(1);
 		
@@ -666,6 +767,9 @@ var studio = function studio(){
 		resetComponents();
 		cursorType = 'arrow';
 		changeCursorPlace(e);
+		ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
+		ac.addAction(new Action('sample_cut',null));
+		updateUndoRedoIcons();
 	}
 
 	
@@ -793,9 +897,11 @@ var studio = function studio(){
 	$(document).on('click','#toolbox_btn_undo',function(){
 		ac.undo();	
 		updateUndoRedoIcons();
+		p.pause();
 	});
 	$(document).on('click','#toolbox_btn_redo',function(){
 		ac.redo();
 		updateUndoRedoIcons();
+		p.pause();
 	});
 };

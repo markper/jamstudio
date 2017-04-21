@@ -126,8 +126,18 @@ header #toolbox ul li{
 	background-image: url(../images/studio_icon_redo.png);
 	opacity: 0.5;
 }
+#toolbox li#toolbox_btn_fadeout{
+    background-position: 0px 4px;
+    background-size: 25px;
+	background-image: url(../images/studio_icon_fadeout.png);
+}
+#toolbox li#toolbox_btn_fadein{
+    background-position: -5px 4px;
+    background-size: 25px;
+	background-image: url(../images/studio_icon_fadein.png);
+}
 .cutCursor{
-	cursor: url(../images/studio_icon_cutter_32.png), auto;   
+	cursor: url(../images/studio_icon_cutter_32_6.png), auto;   
 }
 header #searchbox{
 	width: 100px;
