@@ -17,11 +17,14 @@ router.get('/', function(req, res) {
 });
 
 
-/* get specific track */
-router.get('/track:_id', function(req, res) {
-    // todo - need to implement
+/* get specific track
+ * todo - need to implement it to specific param depends on client wish
+ */
+router.get('/track', function(req, res) {
     //console.log("/track");
-    res.send('we really need to change the default routing...');
+    Track.find({}, function(err, tracks) {
+        res.json(tracks);
+    });
 });
 
 
@@ -46,7 +49,7 @@ router.post('/track', function(req, res) {
 
 
 /* delete track */
-router.post('/deletePlan', function(req, res) {
+router.post('/deleteTrack', function(req, res) {
     // get params
     var trackId = req.body.trackId;
     Track.findOne({
@@ -54,33 +57,32 @@ router.post('/deletePlan', function(req, res) {
     }, function(err, track) {
         if (err) throw err;
         if (!track) {
-            res.json({ success: false, message: 'plan not found.'});
+            res.json({ success: false, message: 'track not found.'});
         }
         if(track.trackId === trackId){
             track.remove(function(err) {
                 if (err) throw err;
-                console.log('User was removed successfully');
+                console.log('Track was removed successfully');
                 res.json({ success: true });
-                //res.redirect('http://localhost/jam/request');
+                //res.redirect('http://localhost/track');
             });
         }else{
-            res.json({ success: false, message: 'Can not delete request, call 911.'});
+            res.json({ success: false, message: 'Can not delete track'});
         }
     });
 });
 
 
 /* update track */
-router.put('jam/updatePlan:_id', function(req, res) {
-    Track.findOne(req.params.planId, function(err,track){
+router.put('updateTrack:_id', function(req, res) {
+    Track.findOne(req.params.trackId, function(err,track){
         if (err) res.send(err);
-        track.storage_capacity += req.body.storage_capacity;
+        track.description = req.body.description;
         track.save(function(err){
             if (err) res.send(err);
-            res.json({ message: "update plan"});
+            res.json({ message: "update track"});
         });
     });
 });
-
 
 module.exports = router;
