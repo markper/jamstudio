@@ -74,8 +74,8 @@
 						"samples": [{
 							"sample": {
 								"sampleId": "sample1",
-								"fadein": "3",
-								"fadeout": "3",
+								"fadeIn": "3",
+								"fadeOut": "3",
 								"start": "40",
 								"volume": "1",
 								"duration": "16",
@@ -104,8 +104,8 @@
 						"samples": [{
 							"sample": {
 								"sampleId": "sample2",
-								"fadein": "3",
-								"fadeout": "3",
+								"fadeIn": "3",
+								"fadeOut": "3",
 								"start": "7",
 								"volume": "1",
 								"duration": "8",
@@ -134,8 +134,8 @@
 						"samples": [{
 							"sample": {
 								"sampleId": "sample3",
-								"fadein": "3",
-								"fadeout": "3",
+								"fadeIn": "3",
+								"fadeOut": "3",
 								"start": "9",
 								"volume": "1",
 								"duration": "10",

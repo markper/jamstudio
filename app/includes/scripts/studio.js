@@ -11,6 +11,7 @@ var studio = function studio(){
 	var grid_offset = 160;
 	var cursorType = null;
 	var sampleIndexGenerator = 0;
+	var ss = new selectedSamples();
 
 	this.init = function init(url){
 		var tmp = null;
@@ -25,13 +26,19 @@ var studio = function studio(){
 	};
 
 	function actionController(){
+		actionController.lock = false;
 		actionController.actionsUndo = new Array();
 		actionController.actionsRedo = new Array();
 		this.addAction = function(action){
+			if(actionController.actionsUndo.length==50)
+				actionController.actionsUndo.shift();	
 			actionController.actionsUndo.push(action);
 			actionController.actionsRedo = new Array();
 		}
 		this.redo = function(){
+			if(actionController.lock)
+				return;
+			lock = true;
 			if(actionController.actionsRedo.length<=0)
 				return;
 			var action = actionController.actionsRedo.pop();
@@ -75,6 +82,9 @@ var studio = function studio(){
 
 		};
 		this.undo = function(){
+			if(actionController.lock)
+				return;
+			lock = true;
 			if(actionController.actionsUndo.length<=0)
 				return;
 			var action = actionController.actionsUndo.pop();
@@ -115,7 +125,7 @@ var studio = function studio(){
 				parent.restoreAction(action);
 			}
 		};
-		this.restoreAction = function(action){			
+		this.restoreAction = function(action){	
 			switch(action.type){
 				case 'sample':{
 					p.updateSample(jQuery.extend(true, {}, action.state));
@@ -129,7 +139,7 @@ var studio = function studio(){
 				case 'sample_delete':{
 					drawSample($('.sample_placeholder[data-channel='+action.state.channel+']').closest('.channels_list_row'), action.state.id,
 						action.state.channel,action.state.file,action.state.time,action.state.start,
-						action.state.volume,action.state.delay);
+						action.state.volume,action.state.delay,action.state.fadeIn,action.state.fadeOut);
 					resetComponents();
 					break;
 				}
@@ -138,6 +148,7 @@ var studio = function studio(){
 					break;
 				}
 			}
+			lock = false;
 			resetComponents();
 		}
 	}
@@ -150,6 +161,8 @@ var studio = function studio(){
 		player.channelId = null;
 		player.playTime = 0;
 		player.isPlaying = false;
+		player.fadeIn = 5;
+		player.fadeOut = 5;
 		var p = this;
 
 		this.reset = function(){
@@ -284,24 +297,57 @@ var studio = function studio(){
 					if(c>b){ // play after ends
 						return;
 					}
-					//console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
-					var st1 = setTimeout(function(){
+					console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
+
+					var st1 = setTimeout(function(){						
 						sample.aud.currentTime = startAt + parseFloat(sample.delay);
-						sample.aud.volume = parseFloat(player.getChannel(sample.channelId).volume * sample.volume);			;		
+						sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(player.getChannel(sample.channelId).volume * sample.volume));
 						sample.aud.play();
-						}
 					},remainToStart*1000);	
 					player.timeouts.push(st1);
+
 					var st2 = setTimeout(function(){
 						sample.aud.currentTime = sample.delay;
 						sample.aud.pause();
 					},remainToEnd*1000);	
 					player.timeouts.push(st2);
+
 					// fadeIn
-					
-					
-					
+					if(sample.fadeIn>0){			
+						var stFadeIn = setTimeout(function(){
+							var fadeCounter = 0;
+							var countdown = (parseFloat(c-a) - remainToStart<0?0:parseFloat(c-a) - remainToStart);
+							var fadeVol = parseFloat(parseFloat(player.getChannel(sample.channelId).volume * sample.volume));					
+							var stFadeOutInter = setInterval(function(){
+								if(countdown>sample.fadeIn)	
+									clearInterval(stFadeOutInter);
+								else{
+									console.log('ctd>>'+(countdown +=0.1));
+									sample.aud.volume = (countdown/sample.fadeIn)*fadeVol;
+								}
+							},100);
+							player.intervals.push(stFadeOutInter);
+						},(remainToStart)*1000);
+						player.timeouts.push(stFadeIn);
+					}
+
 					// fadeOut
+					if(sample.fadeOut>0){
+						var stFadeOut = setTimeout(function(){
+							var countdown =  (remainToEnd>sample.fadeOut?sample.fadeOut:remainToEnd);
+							var fadeVol = parseFloat(parseFloat(player.getChannel(sample.channelId).volume * sample.volume));			
+							var stFadeOutInter = setInterval(function(){
+								if(countdown<0)
+									clearInterval(stFadeOutInter);
+								else{
+									sample.aud.volume = countdown/sample.fadeOut*fadeVol;
+									console.log('ctd>>'+(countdown -=0.1));
+								}
+							},100);
+							player.intervals.push(stFadeOutInter);
+						},(remainToEnd-parseFloat(sample.fadeOut))*1000);
+						player.timeouts.push(stFadeOut);
+					}
 				});
 				//cursor					
 		    	$('#cursorLine').animate({'left':unit_width*max_time},max_time*1000, 'linear');
@@ -355,7 +401,7 @@ var studio = function studio(){
 	};
 
 	var Sample = class Sample {
-	  constructor(id,channelId,file,duration,start,volume,channel,delay) {
+	  constructor(id,channelId,file,duration,start,volume,channel,delay,fadeIn,fadeOut) {
 	    this.id = id;
 	    this.channelId = channelId;
 	    this.file = file;
@@ -370,6 +416,8 @@ var studio = function studio(){
 	    this.userId = "userId";
 	    this.type = "type";	
 	    this.channel = channel;	  
+	    this.fadeIn = fadeIn;
+	    this.fadeOut = fadeOut;
 	  }
 	};
 	var Action = class Action {
@@ -522,20 +570,20 @@ var studio = function studio(){
 		$(row).find('.channel_grid_row').append('<article class="sample_placeholder" id="sample_placeholder_'+ i +'" data-channel="'+ channel.channelId +'"></article>');
 		// create and append samples on placeolder
 		for (var j = 0; j < samples.length; j++) {		
-			drawSample(row,samples[j].sample.sampleId,channel.channelId, samples[j].sample.file.path,samples[j].sample.duration,samples[j].sample.start,samples[j].sample.volume,samples[j].sample.delay);
+			drawSample(row,samples[j].sample.sampleId,channel.channelId, samples[j].sample.file.path,samples[j].sample.duration,samples[j].sample.start,samples[j].sample.volume,samples[j].sample.delay,samples[j].sample.fadeIn,samples[j].sample.fadeOut);
 		}	
 		p.addChannel(channel);
 		// append grid row to channel list
 		$('#channels_list').append(row);
 	}	
 
-	function drawSample(row, id,channel,file,duration,start,volume,delay){		
+	function drawSample(row, id,channel,file,duration,start,volume,delay,fadeIn,fadeOut){		
 		console.log(row);
 		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+id+'" draggable="true" data-duration="'+duration+'" data-start="'+start+'"></article>');
 		$($(row).find('#'+id)).resizable({
 		  	handles: 'e, w'
 		});
-		p.addSample(new Sample(id,channel,file,duration,start,volume,channel,delay));
+		p.addSample(new Sample(id,channel,file,duration,start,volume,channel,delay,fadeIn,fadeOut));
 	}
 
 	function resetComponents(){
@@ -762,7 +810,7 @@ var studio = function studio(){
 
 		sample.time = time.toFixed(1);
 		
-		drawSample($(e.target).closest('.channels_list_row'), clone.id,clone.channelId,clone.file,clone.time,clone.start,clone.volume,clone.delay);
+		drawSample($(e.target).closest('.channels_list_row'), clone.id,clone.channelId,clone.file,clone.time,clone.start,clone.volume,clone.delay,clone.fadeIn,clone.fadeOut);
 		
 		resetComponents();
 		cursorType = 'arrow';
@@ -770,6 +818,9 @@ var studio = function studio(){
 		ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
 		ac.addAction(new Action('sample_cut',null));
 		updateUndoRedoIcons();
+	}
+	this.selectSampels = function {
+
 	}
 
 	
