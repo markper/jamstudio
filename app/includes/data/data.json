@@ -134,8 +134,8 @@
 						"samples": [{
 							"sample": {
 								"sampleId": "sample3",
-								"fadeIn": "3",
-								"fadeOut": "3",
+								"fadeIn": "6",
+								"fadeOut": "1",
 								"start": "9",
 								"volume": "1",
 								"duration": "10",

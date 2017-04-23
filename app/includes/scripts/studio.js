@@ -1,6 +1,6 @@
 var studio = function studio(){
 	var max_time = 60*20;
-	var time_units = 20;
+	var time_units = 5;
 	var unit_width = 10;
 	var z_index = 3;
 	var mouseOffsetSampleClicked;
@@ -301,6 +301,7 @@ var studio = function studio(){
 
 					var st1 = setTimeout(function(){						
 						sample.aud.currentTime = startAt + parseFloat(sample.delay);
+						console.log(sample);
 						sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(player.getChannel(sample.channelId).volume * sample.volume));
 						sample.aud.play();
 					},remainToStart*1000);	
@@ -401,7 +402,7 @@ var studio = function studio(){
 	};
 
 	var Sample = class Sample {
-	  constructor(id,channelId,file,duration,start,volume,channel,delay,fadeIn,fadeOut) {
+	  constructor(id,channelId,file,duration,start,volume,delay,fadeIn,fadeOut) {
 	    this.id = id;
 	    this.channelId = channelId;
 	    this.file = file;
@@ -415,7 +416,6 @@ var studio = function studio(){
 	    this.username = "USER";
 	    this.userId = "userId";
 	    this.type = "type";	
-	    this.channel = channel;	  
 	    this.fadeIn = fadeIn;
 	    this.fadeOut = fadeOut;
 	  }
@@ -458,18 +458,46 @@ var studio = function studio(){
 	    throw new Error("Unable to copy obj! Its type isn't supported.");
 	}
 	function createSoundSpectrum(sample,width,height){
-		if($(sample).find('canvas').length==0){
-			var newCanvas   = createCanvas (width, height);
-	 		var context = newCanvas.getContext('2d');
+			newCanvas  = createCanvas (width, height);
+			context = newCanvas.getContext('2d');
+			context = $(newCanvas)[0].getContext('2d');
 	 		function createCanvas ( w, h ) {
 			    var newCanvas = document.createElement('canvas');
 			    newCanvas.width  = w;     newCanvas.height = h;
 			    return newCanvas;
 			};
-			drawSoundFile(function(data){
-			},context,newCanvas,height,width,p.getSample(sample.id).aud.src);
+			//drawSoundFile(function(data){ },context,newCanvas,height,width,p.getSample(sample.id).aud.src);
+			$(sample).find('canvas').remove();
 			$(sample).append(newCanvas);
-		}
+			drawFadeIn(sample);
+			drawFadeOut(sample);
+		
+	}
+	function drawFadeIn(sample){
+ 		var context = ($(sample).find('canvas')).get(0).getContext('2d');
+ 		context.strokeStyle=$(sample).css('border-color'); 
+		context.beginPath();
+		context.moveTo(0, $(sample).height());
+		context.lineTo(secondsToOffset(p.getSample($(sample).attr('id')).fadeIn), 0);
+		context.lineTo(0, 0);
+		context.moveTo(0, $(sample).height());
+		context.fillStyle = $(sample).css('border-color');
+		context.fill();
+		context.stroke();
+	}
+	function drawFadeOut(sample){
+ 		var context = ($(sample).find('canvas')).get(0).getContext('2d');
+ 		context.strokeStyle=$(sample).css('border-color'); 
+ 		context.fillStyle = $(sample).css('border-color'); 
+		context.beginPath();
+		var h = $(sample).height();
+		sample = p.getSample($(sample).attr('id'));
+		var w = sample.fadeOut;
+		context.moveTo(secondsToOffset(sample.time-sample.fadeOut), 0);
+		context.lineTo(secondsToOffset(sample.time),h);
+		context.lineTo(secondsToOffset(sample.time),0);
+		context.fill();
+		context.stroke();
 	}
 	function offsetToSeconds(offset){
 		var borders = Math.floor(offset/((time_units*unit_width)));
@@ -497,6 +525,10 @@ var studio = function studio(){
 			secInc = (sec < 10) ? "0":"";	
 			milInc = (mil < 10) ? "0":"";	
 		$('#time').text(minInc+min + ':' + secInc+sec + ':' + milInc+mil);		
+	}
+
+	function updateTrackName(name){
+		$('#trackName').text(name);
 	}
 
 	/* UI Functions */
@@ -530,6 +562,7 @@ var studio = function studio(){
 				drawChannel(i,cells,data);
 			}	
 			// draw cursorLine
+			updateTrackName(data.project.name);
 			resetComponents();	
 		}		
 
@@ -580,10 +613,22 @@ var studio = function studio(){
 	function drawSample(row, id,channel,file,duration,start,volume,delay,fadeIn,fadeOut){		
 		console.log(row);
 		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+id+'" draggable="true" data-duration="'+duration+'" data-start="'+start+'"></article>');
+		var resizeTimer;
 		$($(row).find('#'+id)).resizable({
 		  	handles: 'e, w'
+		}).on('resize', function (e) {
+			$(e.target).removeClass('selected');
+			clearTimeout(resizeTimer);
+			resizeTimer = setTimeout(function() {
+				resizeSample($(e.target));
+				$(this).find('canvas').fadeIn();
+				resetComponents();
+				$(e.target).addClass('selected');
+				e.stopPropagation(); 			            
+			}, 250);
+			
 		});
-		p.addSample(new Sample(id,channel,file,duration,start,volume,channel,delay,fadeIn,fadeOut));
+		p.addSample(new Sample(id,channel,file,duration,start,volume,delay,fadeIn,fadeOut));
 	}
 
 	function resetComponents(){
@@ -616,7 +661,7 @@ var studio = function studio(){
 		$(element).css('width',Math.floor(width));
 		$(element).css('left',Math.floor(secondsToOffset(sample.start)));
 		$('.sample_placeholder[data-channel='+sample.channelId+']').append($('#'+sample.id));
-		//createSoundSpectrum(element,width,(unit_width*3/4*10+1));
+		createSoundSpectrum(element,width,(unit_width*3/4*10+1));
 	}
 	function lightChannel(channels_list_row){
 		if(channels_list_row){
@@ -702,8 +747,12 @@ var studio = function studio(){
 			$('#'+data).css('left', new_offset);
 	    }
 	    // drop on layer
-	    else{
-	    	target = ($(target).parent()).find('.sample_placeholder');
+	    else{	    	
+	    	target = ($(ev.target).parent()).find('.sample_placeholder');
+	    	if(target.length==0){
+	    		target = $(ev.target).closest('.sample_placeholder');
+	    	}
+			console.log(target);
 	    	target.append(dragged);
 	    	$('#'+data).css('left', new_offset);
 	    }
@@ -715,10 +764,12 @@ var studio = function studio(){
 	    var all = ((new_offset-borders)/(time_units*unit_width))*time_units;
 	    $('#'+data).attr('data-start', all);
 	    var channelId = $(target).closest('.sample_placeholder').attr('data-channel');
-	    //updateSample(data,all,channelId);
 	    p.restoreSampleAction(data);
 	    p.updateSampleStart(data,all);
 	    p.updateSampleChannel(data,channelId);
+	    drawFadeOut($('#'+data));
+	    drawFadeIn($('#'+data));
+	    ss.clean();
 		if(player.isPlaying){
 			p.pause();
 			p.play();
@@ -819,8 +870,50 @@ var studio = function studio(){
 		ac.addAction(new Action('sample_cut',null));
 		updateUndoRedoIcons();
 	}
-	this.selectSampels = function {
 
+	function fadeIn(sec){
+		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
+			var sample = p.getSample(selectedSamples.list[i]);
+			ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
+			sample.fadeIn =sec;
+			updateUndoRedoIcons();
+			resetComponents();
+		}
+	}
+
+	function fadeOut(sec){
+		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
+			var sample = p.getSample(selectedSamples.list[i]);
+			ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
+			sample.fadeOut =sec;
+			updateUndoRedoIcons();
+			resetComponents();
+		}
+	}
+
+	function selectedSamples(){
+		selectedSamples.list = new Array();
+		this.add = function(sample){
+			$('.sample').css('opacity','0.5');
+			if(!$(sample).hasClass('selected')){
+				selectedSamples.list.push($(sample).attr('id'));
+				$(sample).addClass('selected');
+			}else{
+				$(sample).removeClass('selected');
+				var index = selectedSamples.list.indexOf($(sample).attr('id'));
+				if (index > -1) {
+				    selectedSamples.list.splice(index, 1);
+				}
+				$(sample).removeClass('selected');
+			}
+			console.log(selectedSamples.list);
+		}
+		this.clean = function(){
+			selectedSamples.list = new Array();
+			$('.sample').removeClass('selected');
+			$('.sample').css('opacity','1');
+			console.log(selectedSamples.list);
+		}
 	}
 
 	
@@ -834,6 +927,8 @@ var studio = function studio(){
 		drop(e);
 	});
 	$(document).on('click','.channel_grid_row',function(e){
+		if($(e.target).hasClass('time-box'))
+			ss.clean();
 		changeCursorPlace(e);
 	});
 	// Samples
@@ -841,7 +936,7 @@ var studio = function studio(){
 		drag(e);
 	});
 	$(document).on('mousedown', '.sample , * > .sample',function(e){
-		$(this).css('border-color','#ff0000');
+		ss.add($(this));
 	    sampleBringFront(e);
 	    if(cursorType=='cutter'){	    	
 	    	console.debug(player.samples);
@@ -851,13 +946,9 @@ var studio = function studio(){
 	   		console.log(cursorType);	
 	    }
 	});
-	$(document).on('mouseup','.ui-resizable-handle',function(e){	
-		resizeSample($(this).closest('.sample'));
+	$(document).on('mousedown','.sample .ui-resizable-handle',function(e){	
+		$(this).closest('.sample').find('canvas').fadeOut();
 	});
-	// $(document).on('resize','.sample',function(){
-	//         resizeSample(this);
-	// });
-	// Keyboard
 	$(document).on('keydown', function(e){
 		e = e || window.event;
 	    if (e.keyCode == '38') { // up arrow
@@ -954,5 +1045,16 @@ var studio = function studio(){
 		ac.redo();
 		updateUndoRedoIcons();
 		p.pause();
+	});
+	$(document).on('click','#toolbox_btn_fadein',function(){
+		fadeIn(prompt('fadeIn sec'));
+		p.pause();
+		resetComponents();
+	});
+
+	$(document).on('click','#toolbox_btn_fadeout',function(){
+		fadeOut(prompt('fadeOut sec'));
+		p.pause();
+		resetComponents();
 	});
 };

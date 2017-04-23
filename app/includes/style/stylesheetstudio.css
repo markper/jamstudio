@@ -1,6 +1,11 @@
+@font-face {
+    font-family: RobotoThin;
+    src: url(../fonts/Roboto/Roboto-Thin.ttf);
+}
 *{
 	margin: 0px;
 	padding: 0px;
+	font-family: RobotoThin;
 }
 .noselect *{
 	-webkit-touch-callout: none; /* iOS Safari */
@@ -334,6 +339,9 @@ main #cursorLine{
 	z-index: 3;
 	left:0px;
 }
+.sample.selected{
+	opacity: 1 !important;
+}
 .ui-resizable {
      position: absolute !important; 
 }
@@ -421,10 +429,14 @@ footer{
 footer ul{
 	position: relative;
 	margin: 20px auto;
-	width: 500px;
+	width: 350px;
 	list-style: none;
 }
 footer li{
+	width: 50px;
 	float: left;
 	margin-left: 10px;
+}
+footer li#trackName{
+	width: 150px;
 }
