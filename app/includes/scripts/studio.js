@@ -483,7 +483,6 @@ var studio = function studio(){
 		context.moveTo(0, $(sample).height());
 		context.fillStyle = $(sample).css('border-color');
 		context.fill();
-		context.stroke();
 	}
 	function drawFadeOut(sample){
  		var context = ($(sample).find('canvas')).get(0).getContext('2d');
@@ -497,7 +496,6 @@ var studio = function studio(){
 		context.lineTo(secondsToOffset(sample.time),h);
 		context.lineTo(secondsToOffset(sample.time),0);
 		context.fill();
-		context.stroke();
 	}
 	function offsetToSeconds(offset){
 		var borders = Math.floor(offset/((time_units*unit_width)));
@@ -617,15 +615,14 @@ var studio = function studio(){
 		$($(row).find('#'+id)).resizable({
 		  	handles: 'e, w'
 		}).on('resize', function (e) {
-			$(e.target).removeClass('selected');
-			clearTimeout(resizeTimer);
-			resizeTimer = setTimeout(function() {
 				resizeSample($(e.target));
-				$(this).find('canvas').fadeIn();
 				resetComponents();
-				$(e.target).addClass('selected');
-				e.stopPropagation(); 			            
-			}, 250);
+			//	$(e.target).addClass('selected');
+			// clearTimeout(resizeTimer);
+			// resizeTimer = setTimeout(function() {
+
+			// 	e.stopPropagation(); 			            
+			// }, 250);
 			
 		});
 		p.addSample(new Sample(id,channel,file,duration,start,volume,delay,fadeIn,fadeOut));
@@ -857,9 +854,11 @@ var studio = function studio(){
 		clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toString();//parseFloat(clone.start) + parseFloat(timeToCut);
 		clone.time = parseFloat(parseFloat(sample.time)-parseFloat(time)).toString();//parseFloat(clone.time) - parseFloat(timeToCut)+1;
 		clone.id = 'newSample'+sampleIndexGenerator++;
+		clone.fadeIn = 0;
 		var action_before = sample;	
 
 		sample.time = time.toFixed(1);
+		sample.fadeOut = 0;
 		
 		drawSample($(e.target).closest('.channels_list_row'), clone.id,clone.channelId,clone.file,clone.time,clone.start,clone.volume,clone.delay,clone.fadeIn,clone.fadeOut);
 		
@@ -891,10 +890,22 @@ var studio = function studio(){
 		}
 	}
 
+	function moveTime(sec){
+		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
+			var sample = p.getSample(selectedSamples.list[i]);
+			ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
+			console.log();
+			sample.start = parseFloat(parseFloat(sample.start)+parseFloat(sec));
+			updateUndoRedoIcons();
+			resetComponents();
+		}
+	}
+
 	function selectedSamples(){
 		selectedSamples.list = new Array();
+
 		this.add = function(sample){
-			$('.sample').css('opacity','0.5');
+			$('.sample').css('opacity','1');
 			if(!$(sample).hasClass('selected')){
 				selectedSamples.list.push($(sample).attr('id'));
 				$(sample).addClass('selected');
@@ -918,7 +929,9 @@ var studio = function studio(){
 
 	
 	/* Listeners */
-	
+	var isShift  = false;
+	var isControl  = false;
+	var isAlt  = false;
 	// Channels
 	$(document).on('dragover','.channel_grid_row',function(e){
 		allowDrop(e);
@@ -935,8 +948,14 @@ var studio = function studio(){
 	$(document).on('dragstart','.sample',function(e){
 		drag(e);
 	});
+	document.addEventListener('contextmenu', event => event.preventDefault());
 	$(document).on('mousedown', '.sample , * > .sample',function(e){
-		ss.add($(this));
+		if(isControl){
+			if(!isShift){
+				ss.clean();
+			}
+			ss.add($(this));
+		}
 	    sampleBringFront(e);
 	    if(cursorType=='cutter'){	    	
 	    	console.debug(player.samples);
@@ -946,8 +965,10 @@ var studio = function studio(){
 	   		console.log(cursorType);	
 	    }
 	});
-	$(document).on('mousedown','.sample .ui-resizable-handle',function(e){	
-		$(this).closest('.sample').find('canvas').fadeOut();
+	$(document).on('mouseup','.sample .ui-resizable-handle',function(e){	
+		var canvas = $(this).closest('.sample').find('canvas');
+		if($(canvas).css('display') == 'none')
+			$(canvas).fadeIn();
 	});
 	$(document).on('keydown', function(e){
 		e = e || window.event;
@@ -959,17 +980,30 @@ var studio = function studio(){
 	    }
 	    else if (e.keyCode == '37') { // left arrow
 	    	p.move(-0.25);
+	    	moveTime(-0.1);
 	    	e.preventDefault();
 	    }
 	    else if (e.keyCode == '39') { // right arrow
 	    	p.move(0.25);
+	    	moveTime(0.1);
 	    	e.preventDefault();
 	    }else if (e.keyCode == '32') { // space
 	   		playerToggle();
 	    	e.preventDefault();
-	    }  
-	    
+	    }else if (e.keyCode == '17') { // ctrl
+	    	isControl = true;
+	    }else if (e.keyCode == '16') { // shift
+    		isShift = true;
+	    }else if (e.keyCode == '18') { // alt
+    		isAlt = true;
+	    }
 	});
+	$(document).on('keyup', function(e){
+		isShift  = false;
+		isControl  = false;
+		isAlt  = false;
+	});
+
 	// Scrolling
 	$('main').on('scroll',function(){
 	    $('#channels_title').css({
@@ -1022,6 +1056,26 @@ var studio = function studio(){
 		lightChannel(null);
 		resetPlayPause();
 	});
+	var timeout;
+	$(document).on('mousedown','#backward',function(e){
+		var isPlaying = p.isPlaying;
+		if(isPlaying)
+			p.pause();
+		timeout = setInterval(function(){
+        	p.move(-0.25);
+    	}, 100);
+    	if(isPlaying)
+    		p.play();
+	});
+	$(document).on('mousedown','#forward',function(e){
+		timeout = setInterval(function(){
+        	p.move(0.25);
+    	}, 100);
+	});
+	$(document).on('mouseup','#backward , #forward',function(e){
+		clearInterval(timeout);
+	});
+
 	$(document).on('click','#toolbox_btn_zoomin',function(){
 		zoomIn();
 	});

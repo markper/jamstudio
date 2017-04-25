@@ -340,7 +340,7 @@ main #cursorLine{
 	left:0px;
 }
 .sample.selected{
-	opacity: 1 !important;
+	opacity: 0.5 !important;
 }
 .ui-resizable {
      position: absolute !important; 
@@ -382,15 +382,6 @@ main #cursorLine{
 	width:3px;
 	top:-3px;
 	margin-left: 0px;
-}
-#play{
-	
-}
-#pause{
-	display: none;
-}
-#stop{
-
 }
 
 /* Let's get this party started */
@@ -437,6 +428,35 @@ footer li{
 	float: left;
 	margin-left: 10px;
 }
-footer li#trackName{
+.playerButton{
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-color: white;
+	width: 20px;
+	height: 20px;	
+}
+#play{
+    -webkit-mask:  url(../images/studio_icon_play.svg) no-repeat 50% 50%;
+    mask: url(../images/studio_icon_play.svg) no-repeat 50% 50%;
+}
+#pause{
+	display: none;
+    -webkit-mask:  url(../images/studio_icon_pause.svg) no-repeat 50% 50%;
+    mask: url(../images/studio_icon_pause.svg) no-repeat 50% 50%;
+}
+#stop{
+    -webkit-mask:  url(../images/studio_icon_stop.svg) no-repeat 50% 50%;
+    mask: url(../images/studio_icon_stop.svg) no-repeat 50% 50%;
+}
+#forward{
+    -webkit-mask:  url(../images/studio_icon_fast_forward.svg) no-repeat 50% 50%;
+    mask: url(../images/studio_icon_fast_forward.svg) no-repeat 50% 50%;
+}
+#backward{
+    -webkit-mask:  url(../images/studio_icon_fast_backward.svg) no-repeat 50% 50%;
+    mask: url(../images/studio_icon_fast_backward.svg) no-repeat 50% 50%;
+}
+#trackName{
 	width: 150px;
+	text-align: center;
 }
