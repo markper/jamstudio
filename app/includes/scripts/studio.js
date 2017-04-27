@@ -4,14 +4,17 @@ var studio = function studio(){
 	var unit_width = 10;
 	var z_index = 3;
 	var mouseOffsetSampleClicked;
-	var samples = new Array();
-	var p = new player();
-	var ac = new actionController();
 	var data = null;
 	var grid_offset = 160;
 	var cursorType = null;
 	var sampleIndexGenerator = 0;
+	var channelIndexGenerator = 0;
+	//var samples = new Array();
+	var p = new player();
+	var ac = new actionController();
 	var ss = new selectedSamples();
+	var sharedEvent = null;
+
 
 	this.init = function init(url){
 		var tmp = null;
@@ -55,11 +58,15 @@ var studio = function studio(){
 					sample_new(this);
 					break;
 				}
-				case 'sample_cut':{
+				case 'sample_split':{
 					this.redo();
 					this.redo();
-					actionController.actionsUndo.push(new Action('sample_cut',null));	
+					actionController.actionsUndo.push(new Action('sample_split',null));	
 					console.log(actionController.actionsUndo);
+					break;
+				}
+				case 'sample_cut':{
+					sample_cut(this);	
 					break;
 				}
 			}
@@ -78,6 +85,11 @@ var studio = function studio(){
 			function sample_new(parent){
 				actionController.actionsUndo.push(new Action('sample_delete',action.state));	
 				parent.restoreAction(action);	
+			}
+			function sample_cut(parent){
+				actionController.actionsRedo.push(new Action('sample_cut',action.state));	
+				action.type = 'uncut';
+				parent.restoreAction(action);
 			}
 
 		};
@@ -101,10 +113,14 @@ var studio = function studio(){
 					sample_delete(this);
 					break;
 				}
+				case 'sample_split':{
+					this.undo();
+					this.undo();
+					actionController.actionsRedo.push(new Action('sample_split',null));	
+					break;
+				}
 				case 'sample_cut':{
-					this.undo();
-					this.undo();
-					actionController.actionsRedo.push(new Action('sample_cut',null));	
+					sample_cut(this);	
 					break;
 				}
 			}
@@ -124,6 +140,10 @@ var studio = function studio(){
 				actionController.actionsRedo.push(new Action('sample_new',action.state));	
 				parent.restoreAction(action);
 			}
+			function sample_cut(parent){
+				actionController.actionsRedo.push(new Action('sample_cut',action.state));	
+				parent.restoreAction(action);
+			}
 		};
 		this.restoreAction = function(action){	
 			switch(action.type){
@@ -137,10 +157,18 @@ var studio = function studio(){
 					break;
 				}
 				case 'sample_delete':{
-					drawSample($('.sample_placeholder[data-channel='+action.state.channel+']').closest('.channels_list_row'), action.state.id,
-						action.state.channel,action.state.file,action.state.time,action.state.start,
+					drawSample($('.sample_placeholder[data-channel='+action.state.channelId+']').closest('.channels_list_row'), action.state.id,
+						action.state.channelId,action.state.file,action.state.time,action.state.start,
 						action.state.volume,action.state.delay,action.state.fadeIn,action.state.fadeOut);
 					resetComponents();
+					break;
+				}
+				case 'sample_uncut':{
+					$('#'+action.state.id).hide();
+					break;
+				}
+				case 'sample_cut':{
+					$('#'+action.state.id).show();
 					break;
 				}
 				case 'channel':{
@@ -207,12 +235,14 @@ var studio = function studio(){
 			for (var i = player.samples.length - 1; i >= 0; i--) {
 				if(player.samples[i].id == sample.id){
 					index = i;
+					player.samples[index].aud.pause();				
 				}
 			}
 			console.log(index);
 			if (index > -1) {
 			    player.samples.splice(index, 1);
 			}
+	
 		}
 		this.updateSample = function(sample){
 			for (var i = player.samples.length - 1; i >= 0; i--) {
@@ -429,34 +459,6 @@ var studio = function studio(){
 	function random(max){
 		return Math.floor((Math.random() * max) + 1);
 	}
-	function clone(obj) {
-	    var copy;
-	    // Handle the 3 simple types, and null or undefined
-	    if (null == obj || "object" != typeof obj) return obj;
-	    // Handle Date
-	    if (obj instanceof Date) {
-	        copy = new Date();
-	        copy.setTime(obj.getTime());
-	        return copy;
-	    }
-	    // Handle Array
-	    if (obj instanceof Array) {
-	        copy = [];
-	        for (var i = 0, len = obj.length; i < len; i++) {
-	            copy[i] = clone(obj[i]);
-	        }
-	        return copy;
-	    }
-	    // Handle Object
-	    if (obj instanceof Object) {
-	        copy = {};
-	        for (var attr in obj) {
-	            if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
-	        }
-	        return copy;
-	    }
-	    throw new Error("Unable to copy obj! Its type isn't supported.");
-	}
 	function createSoundSpectrum(sample,width,height){
 			newCanvas  = createCanvas (width, height);
 			context = newCanvas.getContext('2d');
@@ -475,19 +477,17 @@ var studio = function studio(){
 	}
 	function drawFadeIn(sample){
  		var context = ($(sample).find('canvas')).get(0).getContext('2d');
- 		context.strokeStyle=$(sample).css('border-color'); 
-		context.beginPath();
+ 		context.beginPath();
 		context.moveTo(0, $(sample).height());
 		context.lineTo(secondsToOffset(p.getSample($(sample).attr('id')).fadeIn), 0);
 		context.lineTo(0, 0);
 		context.moveTo(0, $(sample).height());
-		context.fillStyle = $(sample).css('border-color');
+		context.fillStyle = $(sample).css("border-right-color");
 		context.fill();
 	}
 	function drawFadeOut(sample){
  		var context = ($(sample).find('canvas')).get(0).getContext('2d');
- 		context.strokeStyle=$(sample).css('border-color'); 
- 		context.fillStyle = $(sample).css('border-color'); 
+ 		context.fillStyle = $(sample).css("border-right-color");
 		context.beginPath();
 		var h = $(sample).height();
 		sample = p.getSample($(sample).attr('id'));
@@ -557,19 +557,18 @@ var studio = function studio(){
 				}
 			// generate grid rows
 			for (var i = 0; i < data.project.tracks[0].track.channels.length; i++) {
-				drawChannel(i,cells,data);
+				drawChannel(data.project.tracks[0].track.channels[i].channel);
 			}	
 			// draw cursorLine
 			updateTrackName(data.project.name);
 			resetComponents();	
-		}		
+		}
 
-	function drawChannel(i,cells,data){
-		var samples = data.project.tracks[0].track.channels[i].channel.samples;
-		var channelObject = data.project.tracks[0].track.channels[i].channel;
+	function drawChannel(channelObject){
+		var cells = Math.round(max_time/time_units);						
 		var channel = new Channel(channelObject.channelId,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument);
 		// create grid row
-		var row = $('<div class="channels_list_row"><article class="channel_list_row" ></article><article class="channel_grid_row" id="channel_grid_row_'+i+'"></article></article></div>');
+		var row = $('<div class="channels_list_row" data-channel="'+ channel.channelId +'"><article class="channel_list_row" ></article><article class="channel_grid_row" id="channel_grid_row_'+channelObject.channelId+'"></article></article></div>');
 		// create and append, grid cells to grid row
 		var svg = '<?xml version="1.0" ?><svg  class="channel_play player-icon" data-channel="'+ channelObject.channelId +'" version="1.1" viewBox="0 0 20 20" width="20px" xmlns="http://www.w3.org/2000/svg" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns" xmlns:xlink="http://www.w3.org/1999/xlink"><title/><desc/><defs/><g fill="none" fill-rule="evenodd" id="Page-1" stroke="none" stroke-width="1"><g  id="Icons-AV" transform="translate(-126.000000, -85.000000)"><g class="player-fill" transform="translate(126.000000, 85.000000)"><path d="M10,0 C4.5,0 0,4.5 0,10 C0,15.5 4.5,20 10,20 C15.5,20 20,15.5 20,10 C20,4.5 15.5,0 10,0 L10,0 Z M8,14.5 L8,5.5 L14,10 L8,14.5 L8,14.5 Z" id="Shape"/></g></g></g></svg>';
 		//
@@ -590,7 +589,7 @@ var studio = function studio(){
 	 			p.changeChannelVolume(channel.channelId,ui.value*0.01);
 	  	    }
 		});
-		var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_name">'+ channelObject.name +'<div><div class="channel_details">'+channelObject.userId+' - '+ channelObject.instrument +'<div></article><article class="channel_list_row_btns"><ul><li></li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
+		var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channelObject.name +'</span><div><div class="channel_details"><span class="channel_user">'+channelObject.userId+'</span> - <span class="channel_instrument">'+ channelObject.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li></li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
 		$(list_item).find('.volume_placeholder').append(slider);
 		$(row).find('.channel_list_row').append(list_item);
 		// create and append, grid cells to grid row
@@ -598,8 +597,9 @@ var studio = function studio(){
 			$(row).find('.channel_grid_row').append('<div class="time-box"></div><div class="time-box-border"></div>');
 		}
 		// create and append, grid sample placeholder to grid row
-		$(row).find('.channel_grid_row').append('<article class="sample_placeholder" id="sample_placeholder_'+ i +'" data-channel="'+ channel.channelId +'"></article>');
+		$(row).find('.channel_grid_row').append('<article class="sample_placeholder" id="sample_placeholder_'+ channelObject.channelId +'" data-channel="'+ channel.channelId +'"></article>');
 		// create and append samples on placeolder
+		var samples = channelObject.samples;
 		for (var j = 0; j < samples.length; j++) {		
 			drawSample(row,samples[j].sample.sampleId,channel.channelId, samples[j].sample.file.path,samples[j].sample.duration,samples[j].sample.start,samples[j].sample.volume,samples[j].sample.delay,samples[j].sample.fadeIn,samples[j].sample.fadeOut);
 		}	
@@ -729,7 +729,11 @@ var studio = function studio(){
 	}
 	function drop(ev) {
 	    ev.preventDefault();
-	    var data = ev.originalEvent.dataTransfer.getData("text");
+	    moveSample(ev,ev.originalEvent.dataTransfer.getData("text"));
+	}
+
+	function moveSample(ev,data){
+		console.log('>>>>>>>>>>>>>>>');
 	    var dragged = document.getElementById(data);		   
 	    var target = ev.target;
 	    var new_offset = $('main').scrollLeft()+ ev.pageX - mouseOffsetSampleClicked - grid_offset;
@@ -751,11 +755,15 @@ var studio = function studio(){
 	    	}
 			console.log(target);
 	    	target.append(dragged);
+	    	console.log(dragged);
 	    	$('#'+data).css('left', new_offset);
 	    }
+
+	    console.log('sssssssssss');
 	    // z-index up
 	    $('#'+data).css('z-index', z_index++);
 	    $('#channels_title').css('z-index', z_index++);
+	    $('.channel_list_buttons').css('z-index', z_index++);
 	    // define new start
 	    var borders = Math.floor(new_offset/((time_units*unit_width)));
 	    var all = ((new_offset-borders)/(time_units*unit_width))*time_units;
@@ -766,7 +774,7 @@ var studio = function studio(){
 	    p.updateSampleChannel(data,channelId);
 	    drawFadeOut($('#'+data));
 	    drawFadeIn($('#'+data));
-	    ss.clean();
+	   // ss.clean();
 		if(player.isPlaying){
 			p.pause();
 			p.play();
@@ -866,7 +874,7 @@ var studio = function studio(){
 		cursorType = 'arrow';
 		changeCursorPlace(e);
 		ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
-		ac.addAction(new Action('sample_cut',null));
+		ac.addAction(new Action('sample_split',null));
 		updateUndoRedoIcons();
 	}
 
@@ -903,6 +911,7 @@ var studio = function studio(){
 
 	function selectedSamples(){
 		selectedSamples.list = new Array();
+		selectedSamples.operation = null;
 
 		this.add = function(sample){
 			$('.sample').css('opacity','1');
@@ -925,9 +934,44 @@ var studio = function studio(){
 			$('.sample').css('opacity','1');
 			console.log(selectedSamples.list);
 		}
+		this.executeAndSaveAction = function(callback,operation){
+			selectedSamples.operation = operation;
+			for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
+				var sample = p.getSample(selectedSamples.list[i]);
+				ac.addAction(new Action(operation,jQuery.extend(true, {}, sample)));
+				callback(sample);
+			}
+			updateUndoRedoIcons();
+			resetComponents();
+		}
 	}
 
-	
+	function cut(e){
+		ss.executeAndSaveAction(function(sample){
+			$('#'+sample.id).hide();//.css('opacity','0.2');
+		},'cut');
+	}
+	function copy(e){
+
+	}
+	function paste(e){
+		ss.executeAndSaveAction(function(sample){
+			console.log(sample.id);
+			moveSample(e,sample.id);
+			$('#'+sample.id).show();
+			console.log('paste executed..');
+		},'paste');
+		ss.clean();
+	}
+
+	function deleteSample(e){
+		ss.executeAndSaveAction(function(sample){
+			//ac.addAction(new Action('sample_delete',sample))
+			p.removeSample(sample);			
+			$('#'+sample.id).remove();
+		},'sample_delete');
+	}
+
 	/* Listeners */
 	var isShift  = false;
 	var isControl  = false;
@@ -940,8 +984,11 @@ var studio = function studio(){
 		drop(e);
 	});
 	$(document).on('click','.channel_grid_row',function(e){
-		if($(e.target).hasClass('time-box'))
+		sharedEvent = jQuery.extend(true, {}, e);
+		console.log('click channel' + selectedSamples.list.length);
+		if($(e.target).hasClass('time-box') && selectedSamples.operation!='cut'){
 			ss.clean();
+		}
 		changeCursorPlace(e);
 	});
 	// Samples
@@ -973,7 +1020,6 @@ var studio = function studio(){
 	$(document).on('keydown', function(e){
 		e = e || window.event;
 	    if (e.keyCode == '38') { // up arrow
-	        
 	    }
 	    else if (e.keyCode == '40') { // down arrow
 	        
@@ -1037,6 +1083,41 @@ var studio = function studio(){
 		modePlaying();
 		modePlayingChannel(player.channelId);
 	});
+	$(document).on('click','.channel_name',function(e){
+		var channelName = $(this);
+		var channelId = $(this).closest('.channels_list_row').attr('data-channel');
+		var input = $('<input type="text" value="'+$(this).text()+'">');
+		$(channelName).parent().prepend(input);
+		$(channelName).hide();
+		$(input).focus().focusout(function() {
+			update();
+		}).select();
+
+
+		$(input).keydown(function( event ) {
+		  if ( event.which == 13 ) {
+		  	///update();
+		  	$(input).blur();
+		   	event.preventDefault();
+		  }
+		});
+		function update(){
+			var channel = player.getChannel(channelId);
+			channel.name = $(input).val();
+			console.log(channel.name);
+			
+			$(channelName).html($(input).val());
+		  	$(channelName).show();
+		  	$(input).hide();		  	
+		}
+	});
+
+// 	<select>
+//   <option value="volvo">Volvo</option>
+//   <option value="saab">Saab</option>
+//   <option value="opel">Opel</option>
+//   <option value="audi">Audi</option>
+// </select>
 	$(document).on('click','#play',function(e){
 		lightChannel(null);
 		p.setChannel(null);
@@ -1111,4 +1192,40 @@ var studio = function studio(){
 		p.pause();
 		resetComponents();
 	});
+	$(document).on('click','#toolbox_btn_cut',function(e){
+		cut(e);
+	});
+	$(document).on('click','#toolbox_btn_copy',function(e){
+		copy(e);
+	});
+	$(document).on('click','#toolbox_btn_paste',function(e){
+		selectedSamples.operation = 'paste';
+		if(selectedSamples.operation == 'paste'){
+			console.log('paste click screen' + selectedSamples.list.length);
+			paste(sharedEvent);
+		}
+		console.log('paste clicked..');
+	});
+	$(document).on('click','#toolbox_btn_delete',function(e){
+		deleteSample();
+	});
+	$(document).on('click','#add_channel',function(e){
+		var newChannel = {			
+				"channelId": "channel_newchannel_" + channelIndexGenerator++,
+				"trackId": "track1",
+				"userId": "user1",
+				"name": "New Channel",
+				"instrument": "",
+				"volume":"0.6",
+				"lock": false,
+				"visible": false,
+				"samples": []
+		};
+		drawChannel(newChannel);
+	    $('.channel_list_row , .channel_list_buttons').css({
+	        'left': $('main').scrollLeft() 
+	    });
+		resetComponents();
+	});
+
 };

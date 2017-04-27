@@ -141,6 +141,26 @@ header #toolbox ul li{
     background-size: 25px;
 	background-image: url(../images/studio_icon_fadein.png);
 }
+#toolbox li#toolbox_btn_cut{
+    background-position: 0px 5px;
+    background-size: 13px;
+	background-image: url(../images/studio_icon_cut.png);
+}
+#toolbox li#toolbox_btn_copy{
+    background-position: 0px 4px;
+    background-size: 13px;
+	background-image: url(../images/studio_icon_copy.png);
+}
+#toolbox li#toolbox_btn_paste{
+    background-position: 0px 3px;
+    background-size: 13px;
+	background-image: url(../images/studio_icon_paste.png);
+}
+#toolbox li#toolbox_btn_delete{
+    background-position: 0px 3px;
+    background-size: 13px;
+	background-image: url(../images/studio_icon_delete.png);
+}
 .cutCursor{
 	cursor: url(../images/studio_icon_cutter_32_6.png), auto;   
 }
@@ -162,7 +182,7 @@ main #channels_title{
 	top: 0px;
     left: 0px;
     position: absolute;
-    z-index: 4;
+    z-index: 9999999999;
 }
 main #channels_title:after{
 	clear: both;
@@ -237,7 +257,13 @@ main .channel_list_row_info{
 	width: 130px;
 	padding: 5px;
 }
-main .channel_list_row_info .channel_name{
+main .channel_list_row_info .channel_info > input{
+	font-size: 15px;
+	color: #ffffff;
+	background-color: #000000;
+	border: 0px;
+}
+main .channel_list_row_info .channel_info{
 	font-family: Helvetica, sans-serif;
 	font-weight: 200;
 	font-size: 15px;
@@ -431,30 +457,25 @@ footer li{
 .playerButton{
 	background-size: contain;
 	background-repeat: no-repeat;
-	background-color: white;
+	
 	width: 20px;
 	height: 20px;	
 }
-#play{
-    -webkit-mask:  url(../images/studio_icon_play.svg) no-repeat 50% 50%;
-    mask: url(../images/studio_icon_play.svg) no-repeat 50% 50%;
+#play{    
+    background-image: url(../images/studio_icon_play.svg);
 }
 #pause{
 	display: none;
-    -webkit-mask:  url(../images/studio_icon_pause.svg) no-repeat 50% 50%;
-    mask: url(../images/studio_icon_pause.svg) no-repeat 50% 50%;
+    background-image:  url(../images/studio_icon_pause.svg);
 }
 #stop{
-    -webkit-mask:  url(../images/studio_icon_stop.svg) no-repeat 50% 50%;
-    mask: url(../images/studio_icon_stop.svg) no-repeat 50% 50%;
+    background-image:  url(../images/studio_icon_stop.svg);
 }
 #forward{
-    -webkit-mask:  url(../images/studio_icon_fast_forward.svg) no-repeat 50% 50%;
-    mask: url(../images/studio_icon_fast_forward.svg) no-repeat 50% 50%;
+    background-image:  url(../images/studio_icon_fast_forward.svg);
 }
 #backward{
-    -webkit-mask:  url(../images/studio_icon_fast_backward.svg) no-repeat 50% 50%;
-    mask: url(../images/studio_icon_fast_backward.svg) no-repeat 50% 50%;
+    background-image:  url(../images/studio_icon_fast_backward.svg);
 }
 #trackName{
 	width: 150px;
