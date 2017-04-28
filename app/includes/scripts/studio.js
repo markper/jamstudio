@@ -186,6 +186,8 @@ var studio = function studio(){
 		player.channels = new Array();
 		player.timeouts = new Array();
 		player.intervals = new Array();
+		player.mutedChannels = new Array();
+		player.mutedChannelsFlag=false;
 		player.channelId = null;
 		player.playTime = 0;
 		player.isPlaying = false;
@@ -315,7 +317,10 @@ var studio = function studio(){
 					var remainToStart = a-c;
 					var remainToEnd = b-c;
 					var startAt = c-a;
-					if(player.channelId && player.channelId != sample.channelId)
+					console.log('check:');
+					console.log(sample.channelId);
+					console.log(player.mutedChannels.indexOf(sample.channelId));
+					if((player.channelId && player.channelId != sample.channelId )|| (player.mutedChannels.indexOf(sample.channelId)>-1&&player.mutedChannelsFlag))
 						return; // sample channel muted
 					if(c<a){ // play from start
 						startAt = 0;
@@ -589,7 +594,7 @@ var studio = function studio(){
 	 			p.changeChannelVolume(channel.channelId,ui.value*0.01);
 	  	    }
 		});
-		var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channelObject.name +'</span><div><div class="channel_details"><span class="channel_user">'+channelObject.userId+'</span> - <span class="channel_instrument">'+ channelObject.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li></li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
+		var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channelObject.name +'</span><div><div class="channel_details"><span class="channel_user">'+channelObject.userId+'</span> - <span class="channel_instrument">'+ channelObject.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="checkbox"><input type="checkbox" name="channel_checkbox"></li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
 		$(list_item).find('.volume_placeholder').append(slider);
 		$(row).find('.channel_list_row').append(list_item);
 		// create and append, grid cells to grid row
@@ -645,7 +650,7 @@ var studio = function studio(){
 		}
 		else
 			$('#cursorLine').css('left',Math.floor(secondsToOffset(player.playTime/100)));
-		$('#cursorLine').css('height',$('.channel_grid_row').length*(unit_width*3/4*10+1)+24);
+		$('#cursorLine').css('height',$('.channel_grid_row:visible').length*(unit_width*3/4*10+1)+24);
 	}
 	function updateSampleComponents(){
 		$('.sample').each(function(data){
@@ -1209,7 +1214,7 @@ var studio = function studio(){
 	$(document).on('click','#toolbox_btn_delete',function(e){
 		deleteSample();
 	});
-	$(document).on('click','#add_channel',function(e){
+	$(document).on('click','#btn_channel_new',function(e){
 		var newChannel = {			
 				"channelId": "channel_newchannel_" + channelIndexGenerator++,
 				"trackId": "track1",
@@ -1227,5 +1232,50 @@ var studio = function studio(){
 	    });
 		resetComponents();
 	});
+	$(document).on('click','.btn_eye',function(e){
+		var channel = $(this).closest('.channels_list_row');
+		var channelId = $(channel).attr('data-channel');
+		var index = -1;
+		for (var i = player.mutedChannels.length - 1; i >= 0; i--) {
+			if(player.mutedChannels[i] == channelId){
+				index = i;
+			}
+		}
+		if (index > -1) {
+			$(this).css('opacity','1');
+		    player.mutedChannels.splice(index, 1);			
+		}
+		else{
+			$(this).css('opacity','0.5');
+			player.mutedChannels.push(channelId);
+		}
+		if(player.mutedChannelsFlag){
+			$(channel).hide();
+			
+		}
+		else{
+
+			$(channel).show();
+		}
+		console.log(player.mutedChannels);
+		p.reset();
+	});
+	$(document).on('click','#btn_channel_eye',function(e){
+		player.mutedChannelsFlag = !player.mutedChannelsFlag;
+		for (var i = player.mutedChannels.length - 1; i >= 0; i--) {
+			var c = $('.channels_list_row[data-channel='+player.mutedChannels[i]+']');//.closest('.channels_list_row');
+			if(player.mutedChannelsFlag)
+				$(c).hide();
+			else
+				$(c).show();
+		}
+		if(player.mutedChannelsFlag)
+			$(this).css('opacity','0.5');
+		else
+			$(this).css('opacity','1');
+		p.reset();	
+		resetComponents();
+	});
+	
 
 };

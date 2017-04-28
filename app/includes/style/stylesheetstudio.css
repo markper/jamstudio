@@ -194,6 +194,34 @@ main .channel_list_buttons{
 	width: 160px;
 	background-color: #606060;
 }
+main .channel_list_buttons ul{
+	right: 0px;
+	top:0px;
+	position: absolute;
+	clear: both;
+}
+main .channel_list_buttons li{
+	float: left;
+	width: 15px;
+	height: 15px;
+	background-repeat: no-repeat;
+	margin: 5px 2px 2px;
+	opacity: 1;
+}
+#btn_channel_new{
+    background-size: 10px;
+	background-image: url(../images/studio_icon_new_mini.png);
+}
+#btn_channel_delete{
+    background-size: 10px;
+	background-image: url(../images/studio_icon_delete_mini.png);
+}
+#btn_channel_eye{
+	width: 20px;
+	background-position: 0px 2px;
+    background-size: 15px;
+	background-image: url(../images/studio_icon_eye.png);
+}
 main .channels_grid_title{
 	margin-left: 160px;
 	float: left;
@@ -309,14 +337,23 @@ main .channel_list_row_btns li{
 	float: left;
 }
 main .channel_list_row_btns .btn_mic{
-	background-image: url(../images/studio_icon_eye.png);
+	background-image: url(../images/studio_icon_mic.png);
 	background-size: contain;
 	background-repeat: no-repeat;
 }
 main .channel_list_row_btns .btn_eye{
-	background-image: url(../images/studio_icon_mic.png);
+	background-image: url(../images/studio_icon_eye.png);
 	background-size: contain;
 	background-repeat: no-repeat;
+}
+main .channel_list_row_btns .checkbox{
+	position: relative;
+}
+main .channel_list_row_btns .checkbox input{
+	position: absolute;
+	background-color: #000000;
+	top:0px;
+	left:2px;
 }
 main .channel_grid_row{
 	float: left;
