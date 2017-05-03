@@ -182,7 +182,7 @@ main #channels_title{
 	top: 0px;
     left: 0px;
     position: absolute;
-    z-index: 9999999999;
+	z-index: 2147483647;
 }
 main #channels_title:after{
 	clear: both;
@@ -336,6 +336,9 @@ main .channel_list_row_btns li{
 	margin-top: 5px;
 	float: left;
 }
+.channel_list_row_btns .checkbox input{
+	display: none;
+}
 main .channel_list_row_btns .btn_mic{
 	background-image: url(../images/studio_icon_mic.png);
 	background-size: contain;
@@ -447,13 +450,16 @@ main #cursorLine{
 	margin-left: 0px;
 }
 
-/* Let's get this party started */
+/* File explorer */
+
+
+
+/* Scrollers  */
+
 ::-webkit-scrollbar {
-    width: 12px;
+    width: 14px;
 }
- 
-/* Track */
-::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {/* scrollers track */
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
     -webkit-border-radius: 10px;
     border-radius: 10px;
@@ -461,8 +467,7 @@ main #cursorLine{
 ::-webkit-scrollbar-corner {
 	display: none;
 }
-/* Handle */
-::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {/* scrollers handle */
     -webkit-border-radius: 10px;
     border-radius: 10px;
     background: rgba(195,187,56,0.8); 
@@ -471,6 +476,10 @@ main #cursorLine{
 ::-webkit-scrollbar-thumb:window-inactive {
 	background: rgba(195,187,56,0.4); 
 }
+
+
+/* Footer */
+
 footer{
 	z-index:1;
 	position: fixed;
@@ -491,10 +500,101 @@ footer li{
 	float: left;
 	margin-left: 10px;
 }
+#volume{
+	position: absolute;
+    top: 30px;
+    height:1px;
+    width:100px;
+    right: 100px;
+	margin-left: 5px;
+	margin-right: 5px; 
+}
+#volume .ui-slider-range.ui-corner-all.ui-widget-header.ui-slider-range-min , .metronome_placeholder .ui-slider.ui-corner-all.ui-slider-horizontal.ui-widget.ui-widget-content{
+	height:1px;
+	width: 100px;
+}
+#volume .ui-slider-handle.ui-corner-all.ui-state-default{
+    height: 3px;
+    width: 3px;
+    top: -2px;
+    margin-left: -5px;
+}
+.metronome_placeholder{
+	position: absolute;
+    left: 80px;
+    top: -10px;
+    padding: 30px;
+    position: absolute;
+    clear: both;
+}
+.metronome_placeholder{
+}
+#metronome{
+    display: none;
+    position: absolute;
+    top: -25px;
+    left: -30px;
+    float: left;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin: 40px;
+}
+.metronome_placeholder .ui-slider-range.ui-corner-all.ui-widget-header.ui-slider-range-min , .metronome_placeholder .ui-slider.ui-corner-all.ui-slider-horizontal.ui-widget.ui-widget-content{
+	height:6px;
+	width: 100px;
+}
+.metronome_placeholder .ui-slider-handle.ui-corner-all.ui-state-default{
+	height:7px;
+	width:6px;
+	top:-2px;
+	margin-left: -5px;
+}
+#metronome_start{
+	float: left;
+}
+#metronome_stop{
+	display: none;
+	float: left;
+}
+#bpm{
+	margin-left: 5px;
+	width:100px;
+	float: left;
+}
+#bpmButtons{
+	float: left;
+	text-align: center;
+	clear: both;
+	width: 70px;
+	margin-top:1px;
+}
+#bpmButtonsPluse {
+	text-align: center;
+	width: 20px;
+	float: left;
+	border: 1px solid #ffffff;
+	border-radius: 0px 5px 5px 0px;
+	height: 15px;
+	line-height: 15px;
+}
+.bpmButtonsStartStop {
+	width: 20px;
+	float: left;
+	border: 1px solid #ffffff;
+	height: 15px;
+	line-height: 15px;
+}
+#bpmButtonsMinuse {
+	width: 20px;
+	float: left;
+	border-radius: 5px 0px 0px 5px;
+	border: 1px solid #ffffff;
+	height: 15px;
+	line-height: 15px;
+}
 .playerButton{
 	background-size: contain;
 	background-repeat: no-repeat;
-	
 	width: 20px;
 	height: 20px;	
 }

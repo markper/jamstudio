@@ -15,7 +15,6 @@ var studio = function studio(){
 	var ss = new selectedSamples();
 	var sharedEvent = null;
 
-
 	this.init = function init(url){
 		var tmp = null;
 		$.ajax({
@@ -65,12 +64,25 @@ var studio = function studio(){
 					console.log(actionController.actionsUndo);
 					break;
 				}
-				case 'sample_cut':{
-					sample_cut(this);	
+				case 'sample_hide':{
+					sample_hide(this);	
+					break;
+				}
+				case 'sample_show':{
+					sample_show(this);	
 					break;
 				}
 			}
-
+			function sample_show(parent){
+				var before = p.getSample(action.state.id);
+				actionController.actionsUndo.push(new Action('sample_hide',before));	
+				parent.restoreAction(action);	
+			}
+			function sample_hide(parent){
+				var before = p.getSample(action.state.id);
+				actionController.actionsUndo.push(new Action('sample_show',before));	
+				parent.restoreAction(action);	
+			}
 			function sample(parent){
 				var before = p.getSample(action.state.id);
 				actionController.actionsUndo.push(new Action('sample',before));	
@@ -85,11 +97,6 @@ var studio = function studio(){
 			function sample_new(parent){
 				actionController.actionsUndo.push(new Action('sample_delete',action.state));	
 				parent.restoreAction(action);	
-			}
-			function sample_cut(parent){
-				actionController.actionsRedo.push(new Action('sample_cut',action.state));	
-				action.type = 'uncut';
-				parent.restoreAction(action);
 			}
 
 		};
@@ -119,12 +126,25 @@ var studio = function studio(){
 					actionController.actionsRedo.push(new Action('sample_split',null));	
 					break;
 				}
-				case 'sample_cut':{
-					sample_cut(this);	
+				case 'sample_hide':{
+					sample_hide(this);	
+					break;
+				}
+				case 'sample_show':{
+					sample_show(this);	
 					break;
 				}
 			}
-
+			function sample_show(parent){
+				var before = p.getSample(action.state.id);
+				actionController.actionsRedo.push(new Action('sample_hide',before));	
+				parent.restoreAction(action);	
+			}
+			function sample_hide(parent){
+				var before = p.getSample(action.state.id);
+				actionController.actionsRedo.push(new Action('sample_show',before));	
+				parent.restoreAction(action);	
+			}
 			function sample(parent){
 				var before = p.getSample(action.state.id);
 				actionController.actionsRedo.push(new Action('sample',before));	
@@ -140,10 +160,7 @@ var studio = function studio(){
 				actionController.actionsRedo.push(new Action('sample_new',action.state));	
 				parent.restoreAction(action);
 			}
-			function sample_cut(parent){
-				actionController.actionsRedo.push(new Action('sample_cut',action.state));	
-				parent.restoreAction(action);
-			}
+	
 		};
 		this.restoreAction = function(action){	
 			switch(action.type){
@@ -163,11 +180,11 @@ var studio = function studio(){
 					resetComponents();
 					break;
 				}
-				case 'sample_uncut':{
+				case 'sample_show':{
 					$('#'+action.state.id).hide();
 					break;
 				}
-				case 'sample_cut':{
+				case 'sample_hide':{
 					$('#'+action.state.id).show();
 					break;
 				}
@@ -182,6 +199,7 @@ var studio = function studio(){
 	}
 
 	function player(data){
+		player.volume = 1;
 		player.samples = new Array();
 		player.channels = new Array();
 		player.timeouts = new Array();
@@ -203,7 +221,13 @@ var studio = function studio(){
 				p.pause();
 			}
 		}
-
+		this.setVolume = function(volume){
+			player.volume = volume;
+			for (var i = player.samples.length - 1; i >= 0; i--) {
+				var channelVolume = player.getChannel(player.samples[i].channelId).volume;
+				player.samples[i].aud.volume = channelVolume*volume*player.samples[i].volume;
+			}
+		};
 		this.setTime =  function(playTime){
 			player.playTime = playTime*100;			
 			updateTimer(playTime*100);
@@ -336,8 +360,8 @@ var studio = function studio(){
 
 					var st1 = setTimeout(function(){						
 						sample.aud.currentTime = startAt + parseFloat(sample.delay);
-						console.log(sample);
-						sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(player.getChannel(sample.channelId).volume * sample.volume));
+						console.log(player.getChannel(sample.channelId).volume);						
+						sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(player.getChannel(sample.channelId).volume * sample.volume * player.volume));
 						sample.aud.play();
 					},remainToStart*1000);	
 					player.timeouts.push(st1);
@@ -353,13 +377,14 @@ var studio = function studio(){
 						var stFadeIn = setTimeout(function(){
 							var fadeCounter = 0;
 							var countdown = (parseFloat(c-a) - remainToStart<0?0:parseFloat(c-a) - remainToStart);
-							var fadeVol = parseFloat(parseFloat(player.getChannel(sample.channelId).volume * sample.volume));					
 							var stFadeOutInter = setInterval(function(){
+								var channelVol = parseFloat(player.getChannel(sample.channelId).volume);
 								if(countdown>sample.fadeIn)	
 									clearInterval(stFadeOutInter);
 								else{
-									console.log('ctd>>'+(countdown +=0.1));
-									sample.aud.volume = (countdown/sample.fadeIn)*fadeVol;
+									countdown +=0.1;
+									sample.aud.volume = (countdown/sample.fadeIn)*sample.volume*channelVol*player.volume;
+									console.log('volume:'+sample.aud.volume);
 								}
 							},100);
 							player.intervals.push(stFadeOutInter);
@@ -371,13 +396,14 @@ var studio = function studio(){
 					if(sample.fadeOut>0){
 						var stFadeOut = setTimeout(function(){
 							var countdown =  (remainToEnd>sample.fadeOut?sample.fadeOut:remainToEnd);
-							var fadeVol = parseFloat(parseFloat(player.getChannel(sample.channelId).volume * sample.volume));			
 							var stFadeOutInter = setInterval(function(){
+								var channelVol = parseFloat(player.getChannel(sample.channelId).volume);
 								if(countdown<0)
 									clearInterval(stFadeOutInter);
 								else{
-									sample.aud.volume = countdown/sample.fadeOut*fadeVol;
-									console.log('ctd>>'+(countdown -=0.1));
+									sample.aud.volume = countdown/sample.fadeOut*sample.volume*channelVol*player.volume;
+									(countdown -=0.1)
+									console.log('ctd>>'+countdown);
 								}
 							},100);
 							player.intervals.push(stFadeOutInter);
@@ -423,6 +449,35 @@ var studio = function studio(){
 				clearTimeout(player.timeouts[i]);
 			}
 			player.timeouts = new Array()
+		}
+	}
+
+	function metronome(){
+		metronome.st = null;
+		metronome.rounds = 100;
+		metronome.isPlaying = false;
+		this.start = function(){
+			metronome.st =setInterval(function(){
+				console.log('tick..');
+				var aud = new Audio();
+			    aud.src = 'includes/loops/tick.mp3'; 
+			    aud.volume = 1;
+			    aud.play();
+			    metronome.isPlaying = true;
+			},60000/metronome.rounds);
+		};
+		this.rounds = function(rounds){
+			metronome.rounds=rounds;
+		};
+		this.stop = function(){
+			clearInterval(metronome.st);
+			metronome.isPlaying = false;
+		};
+		this.reset = function(){
+			if(metronome.isPlaying){
+				this.stop();
+ 				this.start();
+ 			}
 		}
 	}
 
@@ -481,7 +536,9 @@ var studio = function studio(){
 		
 	}
 	function drawFadeIn(sample){
- 		var context = ($(sample).find('canvas')).get(0).getContext('2d');
+		var canvas = $(sample).find('canvas');
+ 		var context = (canvas).get(0).getContext('2d');
+ 		context.clearRect(0, 0, canvas.width, canvas.height);
  		context.beginPath();
 		context.moveTo(0, $(sample).height());
 		context.lineTo(secondsToOffset(p.getSample($(sample).attr('id')).fadeIn), 0);
@@ -491,7 +548,9 @@ var studio = function studio(){
 		context.fill();
 	}
 	function drawFadeOut(sample){
- 		var context = ($(sample).find('canvas')).get(0).getContext('2d');
+		var canvas = $(sample).find('canvas');
+ 		var context = (canvas).get(0).getContext('2d');
+ 		context.clearRect(0, 0, canvas.width, canvas.height);
  		context.fillStyle = $(sample).css("border-right-color");
 		context.beginPath();
 		var h = $(sample).height();
@@ -589,7 +648,7 @@ var studio = function studio(){
 		    range: "min",
 		    min: 0,
 		    max: 100,
-		    value: 60,
+		    value: parseFloat(channelObject.volume*100),
 		    slide: function( event, ui ) {
 	 			p.changeChannelVolume(channel.channelId,ui.value*0.01);
 	  	    }
@@ -612,7 +671,6 @@ var studio = function studio(){
 		// append grid row to channel list
 		$('#channels_list').append(row);
 	}	
-
 	function drawSample(row, id,channel,file,duration,start,volume,delay,fadeIn,fadeOut){		
 		console.log(row);
 		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+id+'" draggable="true" data-duration="'+duration+'" data-start="'+start+'"></article>');
@@ -621,14 +679,7 @@ var studio = function studio(){
 		  	handles: 'e, w'
 		}).on('resize', function (e) {
 				resizeSample($(e.target));
-				resetComponents();
-			//	$(e.target).addClass('selected');
-			// clearTimeout(resizeTimer);
-			// resizeTimer = setTimeout(function() {
-
-			// 	e.stopPropagation(); 			            
-			// }, 250);
-			
+				resetComponents();			
 		});
 		p.addSample(new Sample(id,channel,file,duration,start,volume,delay,fadeIn,fadeOut));
 	}
@@ -738,7 +789,6 @@ var studio = function studio(){
 	}
 
 	function moveSample(ev,data){
-		console.log('>>>>>>>>>>>>>>>');
 	    var dragged = document.getElementById(data);		   
 	    var target = ev.target;
 	    var new_offset = $('main').scrollLeft()+ ev.pageX - mouseOffsetSampleClicked - grid_offset;
@@ -763,12 +813,8 @@ var studio = function studio(){
 	    	console.log(dragged);
 	    	$('#'+data).css('left', new_offset);
 	    }
-
-	    console.log('sssssssssss');
 	    // z-index up
 	    $('#'+data).css('z-index', z_index++);
-	    $('#channels_title').css('z-index', z_index++);
-	    $('.channel_list_buttons').css('z-index', z_index++);
 	    // define new start
 	    var borders = Math.floor(new_offset/((time_units*unit_width)));
 	    var all = ((new_offset-borders)/(time_units*unit_width))*time_units;
@@ -799,28 +845,28 @@ var studio = function studio(){
 
 	function playerToggle(){
 		if(player.channelId){ // playing only one channel
-	    		if(player.isPlaying){
-					modePausing();
-					modePausingChannel(player.channelId);
-					p.pause();
-	    		}
-		    	else {
-		    		modePlaying();
-		    		modePlayingChannel(player.channelId);
-		    		p.play();
-		    	}
-		    	lightChannel($('.channel_play[data-channel=\''+player.channelId+'\']').closest('.channels_list_row'));
-	    	}else{	// playing all channels
-	    		if(player.isPlaying){
-	    			modePausing();
-	    			p.pause();
-	    		}
-	    		else{
-	    			modePlaying(); 
-	    			p.play();   		
-	    		}
-	    		lightChannel();
+    		if(player.isPlaying){
+				modePausing();
+				modePausingChannel(player.channelId);
+				p.pause();
+    		}
+	    	else {
+	    		modePlaying();
+	    		modePlayingChannel(player.channelId);
+	    		p.play();
 	    	}
+	    	lightChannel($('.channel_play[data-channel=\''+player.channelId+'\']').closest('.channels_list_row'));
+    	}else{	// playing all channels
+    		if(player.isPlaying){
+    			modePausing();
+    			p.pause();
+    		}
+    		else{
+    			modePlaying(); 
+    			p.play();   		
+    		}
+    		lightChannel();
+    	}
 	}
 
 	function changeCursorPlace(e){
@@ -840,8 +886,6 @@ var studio = function studio(){
 	function sampleBringFront(e){
 		var sample = $(e.target).closest('.sample');
 		$(sample).css('z-index', z_index++);
-        $('#channels_title').css('z-index', z_index++);
-        $('.channel_list_buttons').css('z-index', z_index++);
 		mouseOffsetSampleClicked = e.pageX - $(e.target).offset().left;
 	}
 
@@ -939,6 +983,15 @@ var studio = function studio(){
 			$('.sample').css('opacity','1');
 			console.log(selectedSamples.list);
 		}
+		this.execute = function(callback,operation){
+			selectedSamples.operation = operation;
+			for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
+				var sample = p.getSample(selectedSamples.list[i]);
+				callback(sample);
+			}
+			updateUndoRedoIcons();
+			resetComponents();
+		}
 		this.executeAndSaveAction = function(callback,operation){
 			selectedSamples.operation = operation;
 			for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
@@ -950,22 +1003,37 @@ var studio = function studio(){
 			resetComponents();
 		}
 	}
-
 	function cut(e){
-		ss.executeAndSaveAction(function(sample){
-			$('#'+sample.id).hide();//.css('opacity','0.2');
+		ss.execute(function(sample){
+			$('#'+sample.id).hide();
+			ac.addAction(new Action('sample_hide',jQuery.extend(true, {}, sample)));
+			console.log('cut....');
 		},'cut');
 	}
 	function copy(e){
-
+		ss.execute(function(sample){	
+			console.log('copy....');
+		},'copy');
 	}
 	function paste(e){
 		ss.executeAndSaveAction(function(sample){
-			console.log(sample.id);
+			console.log('past....: ');
 			moveSample(e,sample.id);
 			$('#'+sample.id).show();
-			console.log('paste executed..');
 		},'paste');
+		ss.clean();
+	}
+	function copypaste(e){
+		ss.executeAndSaveAction(function(sample){
+			console.log('copypaste....: ');
+			var row = $('#'+sample.id).closest('.channels_list_row');
+			console.log('row....: '+row);
+
+
+			drawSample(row,sampleIndexGenerator++,sample.channelId, sample.file,sample.time,sample.start,
+				sample.volume,sample.delay,sample.fadeIn,sample.fadeOut);
+			paste(e);
+		},'copypaste');
 		ss.clean();
 	}
 
@@ -991,7 +1059,7 @@ var studio = function studio(){
 	$(document).on('click','.channel_grid_row',function(e){
 		sharedEvent = jQuery.extend(true, {}, e);
 		console.log('click channel' + selectedSamples.list.length);
-		if($(e.target).hasClass('time-box') && selectedSamples.operation!='cut'){
+		if($(e.target).hasClass('time-box') && selectedSamples.operation!='cut' && selectedSamples.operation!='copy'){
 			ss.clean();
 		}
 		changeCursorPlace(e);
@@ -1000,12 +1068,13 @@ var studio = function studio(){
 	$(document).on('dragstart','.sample',function(e){
 		drag(e);
 	});
-	document.addEventListener('contextmenu', event => event.preventDefault());
+	$(document).on('contextmenu',function(e){
+		event.preventDefault()
+	});
+
 	$(document).on('mousedown', '.sample , * > .sample',function(e){
 		if(isControl){
-			if(!isShift){
-				ss.clean();
-			}
+			
 			ss.add($(this));
 		}
 	    sampleBringFront(e);
@@ -1057,12 +1126,18 @@ var studio = function studio(){
 
 	// Scrolling
 	$('main').on('scroll',function(){
+		var top  = $(this).scrollTop();
 	    $('#channels_title').css({
-	        'top': $(this).scrollTop() 
+	        'top': 0
 	    });
 	    $('.channel_list_row , .channel_list_buttons').css({
-	        'left': $(this).scrollLeft() 
+	        'left': $(this).scrollLeft()
 	    });
+	    clearTimeout($.data(this, 'scrollTimer'));
+		$.data(this, 'scrollTimer', setTimeout(function() {
+			if(top!=0)
+		    	$('#channels_title').hide().fadeIn().css({'top':top});
+		}, 250));
 	});
 	// Icons
 	$(document).on('click','.channel_pause',function(e){
@@ -1117,12 +1192,6 @@ var studio = function studio(){
 		}
 	});
 
-// 	<select>
-//   <option value="volvo">Volvo</option>
-//   <option value="saab">Saab</option>
-//   <option value="opel">Opel</option>
-//   <option value="audi">Audi</option>
-// </select>
 	$(document).on('click','#play',function(e){
 		lightChannel(null);
 		p.setChannel(null);
@@ -1204,12 +1273,15 @@ var studio = function studio(){
 		copy(e);
 	});
 	$(document).on('click','#toolbox_btn_paste',function(e){
-		selectedSamples.operation = 'paste';
-		if(selectedSamples.operation == 'paste'){
-			console.log('paste click screen' + selectedSamples.list.length);
+		if(selectedSamples.operation == 'cut'){
 			paste(sharedEvent);
+			console.log('paste clicked..');
+
 		}
-		console.log('paste clicked..');
+		if(selectedSamples.operation == 'copy'){
+			copypaste(sharedEvent);
+			console.log('copypaste clicked..');
+		}
 	});
 	$(document).on('click','#toolbox_btn_delete',function(e){
 		deleteSample();
@@ -1250,20 +1322,21 @@ var studio = function studio(){
 			player.mutedChannels.push(channelId);
 		}
 		if(player.mutedChannelsFlag){
-			$(channel).hide();
-			
+			$(channel).hide();	
 		}
 		else{
 
 			$(channel).show();
 		}
 		console.log(player.mutedChannels);
-		p.reset();
+		p.reset();	
+		resetComponents();			
 	});
+
 	$(document).on('click','#btn_channel_eye',function(e){
 		player.mutedChannelsFlag = !player.mutedChannelsFlag;
 		for (var i = player.mutedChannels.length - 1; i >= 0; i--) {
-			var c = $('.channels_list_row[data-channel='+player.mutedChannels[i]+']');//.closest('.channels_list_row');
+			var c = $('.channels_list_row[data-channel='+player.mutedChannels[i]+']');
 			if(player.mutedChannelsFlag)
 				$(c).hide();
 			else
@@ -1276,6 +1349,64 @@ var studio = function studio(){
 		p.reset();	
 		resetComponents();
 	});
-	
 
+	var m = new metronome();
+	$('#metronome_start').click(function(){
+		$(this).hide();
+		$('#metronome_stop').show();
+		m.start();
+		$('#metronome').fadeIn(1000);
+	});
+	$('#metronome_stop').click(function(){		
+		$(this).hide();
+		$('#metronome_start').show();
+		m.stop();
+	});
+	$(document).on('mousedown','#bpmButtonsPluse',function(){
+		var bpm = (metronome.rounds+10<218?metronome.rounds+5:218);
+		m.rounds(bpm);	
+		$('#bpm').html(bpm + 'bpm');
+		$('#metronome').slider({value: metronome.rounds});
+		$('#metronome').fadeIn(1000);
+		m.reset();
+	});
+	$(document).on('mousedown','#bpmButtonsMinuse',function(){
+		console.log(metronome.rounds);
+		var bpm = (metronome.rounds-10>40?metronome.rounds-5:40);
+		m.rounds(bpm);	
+		$('#bpm').html(bpm + 'bpm');
+		$('#metronome').slider({value: metronome.rounds});	
+		$('#metronome').fadeIn(1000);
+		m.reset();
+	});
+	$('#volume').slider({
+	    orientation: "horizontal",
+	    range: "min",
+	    min: 0,
+	    max: 100,
+	    value: 100,
+	    slide: function( event, ui ) {
+	    	p.setVolume(ui.value/100);
+  	    }
+	});
+	$(document).on('mouseleave','.metronome_placeholder',function(){
+		$('#metronome').fadeOut(1000);
+	});
+	$('#metronome').slider({
+	    orientation: "horizontal",
+	    range: "min",
+	    min: 40,
+	    max: 218,
+	    value: metronome.rounds,
+	    slide: function( event, ui ) {
+ 			console.log(ui.value);
+ 			$('#bpm').html(ui.value + 'bpm');
+ 			$('#metronome_start').hide();
+ 			$('#metronome_stop').show();
+ 			m.rounds(ui.value);		
+ 			m.stop();
+ 			m.start();
+  	    }
+	});
+	
 };

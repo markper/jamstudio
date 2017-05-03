@@ -65,8 +65,10 @@
 			<article class="channels_grid_title"></article>
 		</section>
 		<div id="cursorLine"></div>
+
 	</main>
 	<footer>
+		<div id="volume"></div>
 		<ul>
 			<li id="backward"  class="playerButton"></li>
 			<li id="play"  class="playerButton"></li>
@@ -75,7 +77,17 @@
 			<li id="forward"  class="playerButton"></li>		
 			<li id="trackName"></li>
 			<li id="time">00:00:00</li>
-		</ul>
+		</ul>		
+		<div class="metronome_placeholder">
+			<div id="bpmButtons">
+				<div id="bpmButtonsMinuse">-</div>
+				<div id="metronome_start" class="bpmButtonsStartStop">&#9656;</div>	
+				<div id="metronome_stop" class="bpmButtonsStartStop">&#9632;</div>				
+				<div id="bpmButtonsPluse">+</div>
+			</div>
+			<div id="bpm">100bpm</div> 
+			<div id="metronome"></div>
+		</div>	
 	</footer>
 	<script>
 		(function(){

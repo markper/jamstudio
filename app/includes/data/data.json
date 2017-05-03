@@ -68,7 +68,7 @@
 						"userId": "user1",
 						"name": "playing guitar",
 						"instrument": "guitar",
-						"volume":"0.6",
+						"volume":"0.8",
 						"lock": false,
 						"visible": false,
 						"samples": [{
@@ -90,10 +90,967 @@
 							}
 						}]
 					}
+				},{
+					"channel": {
+						"channelId": "channel2",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample2",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel3",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample3",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel4",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample4",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel5",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample5",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel6",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample6",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel7",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample7",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel8",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample8",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel9",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample9",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel10",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample10",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel11",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample11",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel12",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample12",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel13",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample13",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel14",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample14",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel15",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample15",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel16",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample16",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel17",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample17",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel18",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample18",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel19",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample19",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel20",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample20",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel21",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample21",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel22",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample22",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel23",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample23",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel24",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample24",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel25",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample25",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel26",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample26",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel27",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample27",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel28",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample28",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel29",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample29",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel30",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample30",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel31",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample31",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel32",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample32",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel33",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample33",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},{
+					"channel": {
+						"channelId": "channel34",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample34",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "0",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
 				},
 				{
 					"channel": {
-						"channelId": "channel2",
+						"channelId": "channel35",
 						"trackId": "track1",
 						"userId": "user2",
 						"name": "playing bass",
@@ -103,7 +1060,7 @@
 						"visible": false,
 						"samples": [{
 							"sample": {
-								"sampleId": "sample2",
+								"sampleId": "sample35",
 								"fadeIn": "3",
 								"fadeOut": "3",
 								"start": "7",
@@ -123,7 +1080,7 @@
 				},
 				{
 					"channel": {
-						"channelId": "channel3",
+						"channelId": "channel36",
 						"trackId": "track1",
 						"userId": "user3",
 						"name": "playing piano",
@@ -133,7 +1090,7 @@
 						"visible": false,
 						"samples": [{
 							"sample": {
-								"sampleId": "sample3",
+								"sampleId": "sample336",
 								"fadeIn": "6",
 								"fadeOut": "1",
 								"start": "9",
