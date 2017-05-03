@@ -14,6 +14,7 @@ var studio = function studio(){
 	var ac = new actionController();
 	var ss = new selectedSamples();
 	var sharedEvent = null;
+	var flist = null;
 
 	this.init = function init(url){
 		var tmp = null;
@@ -25,12 +26,23 @@ var studio = function studio(){
 				data = result;
 			}
 		});	
+		$.ajax({
+			dataType: "json",
+			url: 'includes/data/dataFiles.json',
+			success:  function(result){
+				flist = new files(result);
+			}
+		});	
 	};
 
 	function actionController(){
 		actionController.lock = false;
 		actionController.actionsUndo = new Array();
 		actionController.actionsRedo = new Array();
+		this.removeAction = function(){
+			actionController.actionsUndo.pop();
+			actionController.actionsRedo.pop();
+		}
 		this.addAction = function(action){
 			if(actionController.actionsUndo.length==50)
 				actionController.actionsUndo.shift();	
@@ -608,6 +620,40 @@ var studio = function studio(){
 		unit_width = unit_width/1.1;
 		resetComponents();
 	}
+	var files = function(data){
+		files.list = {};
+		for (var i = 0; i < data.files.length; i++) {
+			$('#files').append('<li class="file" draggable="true" id="file'+data.files[i].file.fileId+'">'+ data.files[i].file.name+'</li>');
+			files.list['file'+data.files[i].file.fileId]=data.files[i].file;
+		}
+		for (var i = 0; i < data.sharedFiles.length; i++) {
+			$('#sharedFiles').append('<li  class="file" draggable="true" id="file'+data.files[i].file.fileId+'">'+ data.files[i].file.name+'</li>');
+			files.list['file'+data.sharedFiles[i].file.fileId]=data.files[i].file;
+		}
+	};
+
+	function dropFile(ev){
+		ev.preventDefault();
+		var file = files.list[ev.originalEvent.dataTransfer.getData("text")];
+		var sampleId = 'newSample'+sampleIndexGenerator++;
+		drawSample($(ev.target).closest('.channels_list_row'), sampleId,$(ev.target).closest('.channels_list_row').attr('data-channel'),file.path,file.duration,"0","1","0","0","0");
+		resetComponents();
+		mouseOffsetSampleClicked=0;		
+		moveSample(ev,sampleId);
+		ac.removeAction();
+		console.log(ac);
+		ac.addAction(new Action('sample_new',jQuery.extend(true, {}, p.getSample(sampleId))));
+		console.log(ac);
+	}
+
+	function getFile(id){
+		for (var i = 0; i < data.files.length; i++) {
+			data.files[i].file.fileId
+		}
+		for (var i = 0; i < data.sharedFiles.length; i++) {
+			$('#sharedFiles').append('<li  class="file" draggable="true" id="file'+data.files[i].file.fileId+'">'+ data.files[i].file.name+'</li>');
+		}
+	}
 
 	function drawGrid(data){
 			var cells = Math.round(max_time/time_units);				
@@ -672,7 +718,7 @@ var studio = function studio(){
 		$('#channels_list').append(row);
 	}	
 	function drawSample(row, id,channel,file,duration,start,volume,delay,fadeIn,fadeOut){		
-		console.log(row);
+		console.log($(row).find('.channel_grid_row .sample_placeholder'));
 		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+id+'" draggable="true" data-duration="'+duration+'" data-start="'+start+'"></article>');
 		var resizeTimer;
 		$($(row).find('#'+id)).resizable({
@@ -681,7 +727,9 @@ var studio = function studio(){
 				resizeSample($(e.target));
 				resetComponents();			
 		});
-		p.addSample(new Sample(id,channel,file,duration,start,volume,delay,fadeIn,fadeOut));
+		var sample = new Sample(id,channel,file,duration,start,volume,delay,fadeIn,fadeOut);
+		console.log(sample);
+		p.addSample(sample);
 	}
 
 	function resetComponents(){
@@ -792,6 +840,8 @@ var studio = function studio(){
 	    var dragged = document.getElementById(data);		   
 	    var target = ev.target;
 	    var new_offset = $('main').scrollLeft()+ ev.pageX - mouseOffsetSampleClicked - grid_offset;
+	    	    console.log(mouseOffsetSampleClicked);
+
 		if(new_offset<0)
 			new_offset = 0;
 		// drop on sample
@@ -1054,7 +1104,10 @@ var studio = function studio(){
 		allowDrop(e);
 	});
 	$(document).on('drop','.channel_grid_row',function(e){
-		drop(e);
+		if(!$('#'+e.originalEvent.dataTransfer.getData("text")).hasClass('file'))
+			drop(e);
+		else
+			dropFile(e);
 	});
 	$(document).on('click','.channel_grid_row',function(e){
 		sharedEvent = jQuery.extend(true, {}, e);
@@ -1065,7 +1118,7 @@ var studio = function studio(){
 		changeCursorPlace(e);
 	});
 	// Samples
-	$(document).on('dragstart','.sample',function(e){
+	$(document).on('dragstart','.sample , .file',function(e){
 		drag(e);
 	});
 	$(document).on('contextmenu',function(e){
@@ -1408,5 +1461,16 @@ var studio = function studio(){
  			m.start();
   	    }
 	});
-	
+	$(document).on('click','.file_explorer_files div',function(e){
+		var ul = $(e.target).parent().find('ul');
+		console.log($(ul).css('display'));
+		if($(ul).css('display')!="none"){
+			$(ul).hide();
+			$(e.target).find('span').html('+');
+		}
+		else{
+			$(ul).show();
+			$(e.target).find('span').html('-');
+		}
+	});
 };

@@ -452,8 +452,46 @@ main #cursorLine{
 
 /* File explorer */
 
+#file_explorer{
+	position: fixed;
+	top:50px;
+	right: 14px;
+	width: 200px;
+	height:calc(100vh - 115px);
+	z-index: 2147483647;
+	background-color: #ffffff;
+	font-family: Tahoma !important;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+	overflow: auto;
+}
+#file_explorer article.file_explorer_title{
+	padding: 10px;
+	padding-bottom: 0px;
+	height:24px;
+	text-align: left;
+	font-size: 14px;
+	font-family:Helvetica;
+}
 
-
+#file_explorer article{
+	padding-left: 20px;
+}
+#file_explorer article div{
+    font-family:Helvetica;
+	font-size: 12px;
+	padding: 5px;
+	padding-left: 0px;
+}
+#file_explorer article span{
+	padding-right: 5px;
+}
+#file_explorer ul li{
+    font-family: Helvetica;
+	font-weight: 200;
+	padding: 4px;
+	padding-left: 15px;
+	font-size: 13px;
+}
 /* Scrollers  */
 
 ::-webkit-scrollbar {
@@ -524,6 +562,8 @@ footer li{
     left: 80px;
     top: -10px;
     padding: 30px;
+    padding-top: 20px;
+    margin-top: 10px;
     position: absolute;
     clear: both;
 }
