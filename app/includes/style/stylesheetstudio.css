@@ -340,7 +340,12 @@ main .channel_list_row_btns li{
 	display: none;
 }
 main .channel_list_row_btns .btn_mic{
-	background-image: url(../images/studio_icon_mic.png);
+	background-image: url(../images/studio_microphone.svg);
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+main .channel_list_row_btns .btn_mic_recording{
+	background-image: url(../images/studio_microphone_recording.svg);
 	background-size: contain;
 	background-repeat: no-repeat;
 }
@@ -453,7 +458,7 @@ main #cursorLine{
 /* File explorer */
 
 #file_explorer{
-	position: fixed;
+	position: fixed !important;
 	top:50px;
 	right: 14px;
 	width: 200px;
@@ -464,6 +469,11 @@ main #cursorLine{
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 	overflow: auto;
 }
+#file_explorer.minimize{
+	height: 34px;
+	top:calc(100vh - 100px);
+	overflow: hidden;	
+}
 #file_explorer article.file_explorer_title{
 	padding: 10px;
 	padding-bottom: 0px;
@@ -472,7 +482,18 @@ main #cursorLine{
 	font-size: 14px;
 	font-family:Helvetica;
 }
-
+#file_explorer article.file_explorer_title span{
+	right: 10px;
+	position: absolute;
+}
+#file_explorer span.minimize{
+	
+}
+#file_explorer span.maximize{
+	display: none;	
+	top:3px;
+	font-size: 20px;
+}
 #file_explorer article{
 	padding-left: 20px;
 }
@@ -484,6 +505,8 @@ main #cursorLine{
 }
 #file_explorer article span{
 	padding-right: 5px;
+	font-weight: bold;
+	font-family: Tahoma;
 }
 #file_explorer ul li{
     font-family: Helvetica;
@@ -540,10 +563,10 @@ footer li{
 }
 #volume{
 	position: absolute;
-    top: 30px;
+    top: 5px;
+    left:15px;
     height:1px;
     width:100px;
-    right: 100px;
 	margin-left: 5px;
 	margin-right: 5px; 
 }
@@ -557,13 +580,35 @@ footer li{
     top: -2px;
     margin-left: -5px;
 }
+#volume-master{
+	width:100px;
+	height:30px;
+	position: absolute; 
+	right: 100px;
+	top: 20px;
+}
+.volume-icon{
+	background-size: contain;
+	background-repeat: no-repeat;
+	width: 12px;
+	height: 12px;	 
+	position: absolute; 
+}
+.volume-on{
+	width: 14px;
+	height: 14px;	
+    background-image: url(../images/studio_volume_on.svg);
+}
+.volume-off{
+    background-image: url(../images/studio_volume_off.svg);
+}
 .metronome_placeholder{
 	position: absolute;
     left: 80px;
-    top: -10px;
+    top: 0px;
     padding: 30px;
     padding-top: 20px;
-    margin-top: 10px;
+    margin-top: 0px;
     position: absolute;
     clear: both;
 }
@@ -572,7 +617,7 @@ footer li{
 #metronome{
     display: none;
     position: absolute;
-    top: -25px;
+    top: -30px;
     left: -30px;
     float: left;
     margin-left: 5px;
@@ -582,6 +627,7 @@ footer li{
 .metronome_placeholder .ui-slider-range.ui-corner-all.ui-widget-header.ui-slider-range-min , .metronome_placeholder .ui-slider.ui-corner-all.ui-slider-horizontal.ui-widget.ui-widget-content{
 	height:6px;
 	width: 100px;
+	background-color: #000000;
 }
 .metronome_placeholder .ui-slider-handle.ui-corner-all.ui-state-default{
 	height:7px;

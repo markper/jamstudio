@@ -9,6 +9,7 @@ var studio = function studio(){
 	var cursorType = null;
 	var sampleIndexGenerator = 0;
 	var channelIndexGenerator = 0;
+	var fileIndexGenerator = 0;
 	//var samples = new Array();
 	var p = new player();
 	var ac = new actionController();
@@ -84,6 +85,18 @@ var studio = function studio(){
 					sample_show(this);	
 					break;
 				}
+				case 'sample_paste':{
+					this.redo();
+					this.redo();
+					actionController.actionsUndo.push(new Action('sample_paste',null));	
+					break;
+				}
+				case 'sample_cut_copy':{
+					this.redo();
+					this.redo();
+					actionController.actionsUndo.push(new Action('sample_cut_copy',null));	
+					break;
+				}
 			}
 			function sample_show(parent){
 				var before = p.getSample(action.state.id);
@@ -144,6 +157,18 @@ var studio = function studio(){
 				}
 				case 'sample_show':{
 					sample_show(this);	
+					break;
+				}
+				case 'sample_paste':{
+					this.undo();
+					this.undo();
+					actionController.actionsRedo.push(new Action('sample_paste',null));	
+					break;
+				}
+				case 'sample_cut_copy':{
+					this.undo();
+					this.undo();
+					actionController.actionsRedo.push(new Action('sample_cut_copy',null));	
 					break;
 				}
 			}
@@ -207,6 +232,10 @@ var studio = function studio(){
 			}
 			lock = false;
 			resetComponents();
+
+			console.log(actionController.actionsUndo);
+			console.log(actionController.actionsRedo);
+
 		}
 	}
 
@@ -241,24 +270,35 @@ var studio = function studio(){
 			}
 		};
 		this.setTime =  function(playTime){
-			player.playTime = playTime*100;			
-			updateTimer(playTime*100);
-			$('#cursorLine').css({'left':secondsToOffset(playTime)});
+			if(player.isPlaying){
+				p.pause();
+				setTime();	
+				p.play();
+			}
+			else
+				setTime();	
+			function setTime(){
+				player.playTime = playTime*1000;	
+				updateTimer(player.playTime);
+			}
+
 		}
 
 		this.move =  function(playTime){
+			console.log((player.playTime+playTime)/1000 + ' ' + secondsToOffset(playTime));
 			var isPlaying = player.isPlaying;
 			if(isPlaying)
 				this.pause();
-			if(playTime+player.playTime/100 <=max_time && playTime+player.playTime/100>=0){
+			if(playTime+player.playTime/1000 <=max_time && playTime+player.playTime/1000>=0){
 				$('main').animate({scrollLeft: ($('main').scrollLeft() + secondsToOffset(playTime)) + 'px'}, 0);
-				this.setTime(player.playTime/100 + playTime);
-			}else if(!(playTime+player.playTime/100>=0))
+				this.setTime(player.playTime/1000 + playTime);
+			}else if(!(playTime+player.playTime/1000>=0))
 				this.setTime(0);
 			else
 				this.setTime(max_time);
 			if(isPlaying)
 				this.play();
+			setCursorOnSec(player.playTime/1000);
 		}
 
 		this.setChannel = function(channelId){
@@ -330,32 +370,35 @@ var studio = function studio(){
 			player.getChannel(channelId).volume = volume;
 			for (var i = player.samples.length - 1; i >= 0; i--) {
 				if(player.samples[i].channelId == channelId){
-					player.samples[i].aud.volume = volume * player.samples[i].volume;
+					player.samples[i].aud.volume = volume * player.samples[i].volume * player.volume;
 				}
 			}
 		};
-		this.play = function(playTime){
+		this.play = function(){
 				if(player.isPlaying)
 					return;
-				console.log('play');
+				console.log('play: '+ player.playTime);
 				player.isPlaying = true;
-				var st =setInterval(function(){
-					updateTimer(++player.playTime);											
-					//$('#time #min').text(++player.playTime/100/60);
-				},10);
-				player.intervals.push(st);
+				var a = 0;
+				var startTime =  new Date();
+				var playSecond = player.playTime;
+				startTimer();
+				function startTimer(){
+					var countingMS =  (Math.abs(new Date()-startTime) +parseInt(playSecond));
+					player.playTime=countingMS									
+					updateTimer(countingMS);	
+					var t = setTimeout(startTimer, 10);
+					player.timeouts.push(t);
+				}
 				$(player.samples).each(function(index){
 					var sample = player.samples[index];
-					var playerTimeSec = parseFloat(player.playTime)/100;
+					var playerTimeSec = parseFloat(player.playTime)/1000;
 					var a = parseFloat(player.samples[index].start);  // second of start sample
 					var b = parseFloat(player.samples[index].start) + parseFloat(player.samples[index].time); // second of end sample
 					var c = playerTimeSec; // second of cursor position
 					var remainToStart = a-c;
 					var remainToEnd = b-c;
 					var startAt = c-a;
-					console.log('check:');
-					console.log(sample.channelId);
-					console.log(player.mutedChannels.indexOf(sample.channelId));
 					if((player.channelId && player.channelId != sample.channelId )|| (player.mutedChannels.indexOf(sample.channelId)>-1&&player.mutedChannelsFlag))
 						return; // sample channel muted
 					if(c<a){ // play from start
@@ -372,7 +415,6 @@ var studio = function studio(){
 
 					var st1 = setTimeout(function(){						
 						sample.aud.currentTime = startAt + parseFloat(sample.delay);
-						console.log(player.getChannel(sample.channelId).volume);						
 						sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(player.getChannel(sample.channelId).volume * sample.volume * player.volume));
 						sample.aud.play();
 					},remainToStart*1000);	
@@ -396,7 +438,6 @@ var studio = function studio(){
 								else{
 									countdown +=0.1;
 									sample.aud.volume = (countdown/sample.fadeIn)*sample.volume*channelVol*player.volume;
-									console.log('volume:'+sample.aud.volume);
 								}
 							},100);
 							player.intervals.push(stFadeOutInter);
@@ -415,7 +456,6 @@ var studio = function studio(){
 								else{
 									sample.aud.volume = countdown/sample.fadeOut*sample.volume*channelVol*player.volume;
 									(countdown -=0.1)
-									console.log('ctd>>'+countdown);
 								}
 							},100);
 							player.intervals.push(stFadeOutInter);
@@ -423,11 +463,13 @@ var studio = function studio(){
 						player.timeouts.push(stFadeOut);
 					}
 				});
-				//cursor					
-		    	$('#cursorLine').animate({'left':unit_width*max_time},max_time*1000, 'linear');
-		};
+				// cursor
+				$('#cursorLine').stop();
+				$('#cursorLine').css({'left':secondsToOffset(player.playTime/1000)});
+				$('#cursorLine').animate({'left':secondsToOffset(max_time)},(max_time*1000-player.playTime), 'linear');
+			};
 		this.pause = function(){
-			console.log('pause');
+			console.log('pause: '+player.playTime);
 			player.isPlaying = false;
 			// music
 				$(player.samples).each(function(index){
@@ -531,6 +573,17 @@ var studio = function studio(){
 	function random(max){
 		return Math.floor((Math.random() * max) + 1);
 	}
+	function setCursorOnSec(sec){
+		if(player.isPlaying){
+			p.pause();
+			$('#cursorLine').stop();
+			$('#cursorLine').css({'left':secondsToOffset(sec)});
+			$('#cursorLine').animate({'left':secondsToOffset(max_time)},max_time*1000, 'linear');
+			p.play();
+		}else{
+			$('#cursorLine').css({'left':secondsToOffset(sec)});
+		}
+	}
 	function createSoundSpectrum(sample,width,height){
 			newCanvas  = createCanvas (width, height);
 			context = newCanvas.getContext('2d');
@@ -592,6 +645,7 @@ var studio = function studio(){
 		}
 	}
 	function updateTimer(time){
+		time= time/10;
 		var min = Math.floor(time/60/100),
 			sec = Math.floor((time/100)%60),
 			mil = Math.floor(time%100);	
@@ -630,6 +684,11 @@ var studio = function studio(){
 			$('#sharedFiles').append('<li  class="file" draggable="true" id="file'+data.files[i].file.fileId+'">'+ data.files[i].file.name+'</li>');
 			files.list['file'+data.sharedFiles[i].file.fileId]=data.files[i].file;
 		}
+
+		this.add = function(file){
+			$('#files').append('<li class="file" draggable="true" id="file'+file.fileId+'">'+ file.name+'</li>');
+			files.list['file'+file.fileId]=file;
+		}
 	};
 
 	function dropFile(ev){
@@ -646,13 +705,13 @@ var studio = function studio(){
 		console.log(ac);
 	}
 
-	function getFile(id){
-		for (var i = 0; i < data.files.length; i++) {
-			data.files[i].file.fileId
-		}
-		for (var i = 0; i < data.sharedFiles.length; i++) {
-			$('#sharedFiles').append('<li  class="file" draggable="true" id="file'+data.files[i].file.fileId+'">'+ data.files[i].file.name+'</li>');
-		}
+	function drawRecord(file,channel,start){
+		console.log('>'+player.playTime);
+		var sampleId = 'newSample'+sampleIndexGenerator++;
+		drawSample($('.channels_list_row[data-channel='+channel+']'), sampleId,channel,file.path,file.duration,start,"1","0","0","0");	
+		ac.addAction(new Action('sample_new',jQuery.extend(true, {}, p.getSample(sampleId))));
+		updateUndoRedoIcons();
+		resetComponents();
 	}
 
 	function drawGrid(data){
@@ -718,7 +777,6 @@ var studio = function studio(){
 		$('#channels_list').append(row);
 	}	
 	function drawSample(row, id,channel,file,duration,start,volume,delay,fadeIn,fadeOut){		
-		console.log($(row).find('.channel_grid_row .sample_placeholder'));
 		$(row).find('.channel_grid_row .sample_placeholder').append('<article class="sample" id="'+id+'" draggable="true" data-duration="'+duration+'" data-start="'+start+'"></article>');
 		var resizeTimer;
 		$($(row).find('#'+id)).resizable({
@@ -728,7 +786,6 @@ var studio = function studio(){
 				resetComponents();			
 		});
 		var sample = new Sample(id,channel,file,duration,start,volume,delay,fadeIn,fadeOut);
-		console.log(sample);
 		p.addSample(sample);
 	}
 
@@ -742,14 +799,9 @@ var studio = function studio(){
 		$('#channels_list').css('width',time_offset+grid_offset);
 		$('#channels_title').css('width',time_offset+grid_offset);
 		updateSampleComponents();
-		if(player.isPlaying){
-			p.pause();
-			$('#cursorLine').css('left',Math.floor(secondsToOffset(player.playTime/100)));
-			p.play();
-		}
-		else
-			$('#cursorLine').css('left',Math.floor(secondsToOffset(player.playTime/100)));
+		setCursorOnSec(player.playTime/1000);
 		$('#cursorLine').css('height',$('.channel_grid_row:visible').length*(unit_width*3/4*10+1)+24);
+		console.log(player.playTime);
 	}
 	function updateSampleComponents(){
 		$('.sample').each(function(data){
@@ -917,19 +969,15 @@ var studio = function studio(){
     		}
     		lightChannel();
     	}
+    	//setCursorOnSec(player.playTime/1000);
 	}
 
 	function changeCursorPlace(e){
 		if(offsetToSeconds($('main').scrollLeft()+ e.pageX  < grid_offset))
 			return;
 		var secTime = offsetToSeconds($('main').scrollLeft()+ e.pageX  - grid_offset);
-		if(player.isPlaying){
-			p.pause();
-			p.setTime(secTime);
-			p.play();
-		}
-		else
-			p.setTime(secTime);		
+		p.setTime(secTime);	
+		setCursorOnSec(secTime);
 		$(this).focusout();
 	}
 
@@ -1025,13 +1073,13 @@ var studio = function studio(){
 				}
 				$(sample).removeClass('selected');
 			}
-			console.log(selectedSamples.list);
+			//console.log(selectedSamples.list);
 		}
 		this.clean = function(){
 			selectedSamples.list = new Array();
 			$('.sample').removeClass('selected');
 			$('.sample').css('opacity','1');
-			console.log(selectedSamples.list);
+			//console.log(selectedSamples.list);
 		}
 		this.execute = function(callback,operation){
 			selectedSamples.operation = operation;
@@ -1039,14 +1087,12 @@ var studio = function studio(){
 				var sample = p.getSample(selectedSamples.list[i]);
 				callback(sample);
 			}
-			updateUndoRedoIcons();
 			resetComponents();
 		}
 		this.executeAndSaveAction = function(callback,operation){
 			selectedSamples.operation = operation;
 			for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
 				var sample = p.getSample(selectedSamples.list[i]);
-				ac.addAction(new Action(operation,jQuery.extend(true, {}, sample)));
 				callback(sample);
 			}
 			updateUndoRedoIcons();
@@ -1054,37 +1100,51 @@ var studio = function studio(){
 		}
 	}
 	function cut(e){
-		ss.execute(function(sample){
+		ss.executeAndSaveAction(function(sample){
 			$('#'+sample.id).hide();
-			ac.addAction(new Action('sample_hide',jQuery.extend(true, {}, sample)));
 			console.log('cut....');
+			ac.addAction(new Action('sample_hide',jQuery.extend(true, {}, sample)));
 		},'cut');
 	}
 	function copy(e){
 		ss.execute(function(sample){	
 			console.log('copy....');
 		},'copy');
+
 	}
 	function paste(e){
 		ss.executeAndSaveAction(function(sample){
 			console.log('past....: ');
-			moveSample(e,sample.id);
+			moveSample(e,sample.id);						
 			$('#'+sample.id).show();
+			ac.addAction(new Action('sample_show',jQuery.extend(true, {}, sample)));
+			ac.addAction(new Action('sample_cut_copy',null));
 		},'paste');
 		ss.clean();
+		console.log(actionController.actionsUndo);
+		console.log(actionController.actionsRedo);
+
 	}
 	function copypaste(e){
-		ss.executeAndSaveAction(function(sample){
+		ss.execute(function(sample){
 			console.log('copypaste....: ');
-			var row = $('#'+sample.id).closest('.channels_list_row');
-			console.log('row....: '+row);
-
-
-			drawSample(row,sampleIndexGenerator++,sample.channelId, sample.file,sample.time,sample.start,
-				sample.volume,sample.delay,sample.fadeIn,sample.fadeOut);
-			paste(e);
+			var time = offsetToSeconds(mouseOffsetSampleClicked);
+			var clone = jQuery.extend(true, {}, sample);
+			clone.delay =  parseFloat(parseFloat(sample.delay) +  parseFloat(time)).toString();
+			clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toString();//parseFloat(clone.start) + parseFloat(timeToCut);
+			clone.id = 'newSample'+sampleIndexGenerator++;
+			var action_before = sample;	
+			drawSample($(e.target).closest('.channels_list_row'), clone.id,clone.channelId,clone.file,clone.time,clone.start,clone.volume,clone.delay,clone.fadeIn,clone.fadeOut);
+			resetComponents();
+			cursorType = 'arrow';
+			changeCursorPlace(e);
+			ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
+			moveSample(e,clone.id);
+			ac.addAction(new Action('sample_paste',null));
+			updateUndoRedoIcons();
 		},'copypaste');
-		ss.clean();
+		//console.log(actionController.actionsUndo);
+		//ss.clean();
 	}
 
 	function deleteSample(e){
@@ -1093,6 +1153,7 @@ var studio = function studio(){
 			p.removeSample(sample);			
 			$('#'+sample.id).remove();
 		},'sample_delete');
+
 	}
 
 	/* Listeners */
@@ -1111,8 +1172,7 @@ var studio = function studio(){
 	});
 	$(document).on('click','.channel_grid_row',function(e){
 		sharedEvent = jQuery.extend(true, {}, e);
-		console.log('click channel' + selectedSamples.list.length);
-		if($(e.target).hasClass('time-box') && selectedSamples.operation!='cut' && selectedSamples.operation!='copy'){
+		if($(e.target).hasClass('time-box') && selectedSamples.operation!='cut' && selectedSamples.operation!='copy' && selectedSamples.operation!='copypaste'){
 			ss.clean();
 		}
 		changeCursorPlace(e);
@@ -1132,11 +1192,11 @@ var studio = function studio(){
 		}
 	    sampleBringFront(e);
 	    if(cursorType=='cutter'){	    	
-	    	console.debug(player.samples);
+	    	//console.debug(player.samples);
 	    	cutSample(e);
 	    	$('.channel_grid_row').removeClass('cutCursor');
 	    }else{
-	   		console.log(cursorType);	
+	   		//console.log(cursorType);	
 	    }
 	});
 	$(document).on('mouseup','.sample .ui-resizable-handle',function(e){	
@@ -1152,16 +1212,17 @@ var studio = function studio(){
 	        
 	    }
 	    else if (e.keyCode == '37') { // left arrow
-	    	p.move(-0.25);
-	    	moveTime(-0.1);
+	    	p.move(isShift?-0.1:-0.25);
+	    	moveTime(isShift?-0.1:-0.25);
 	    	e.preventDefault();
 	    }
 	    else if (e.keyCode == '39') { // right arrow
-	    	p.move(0.25);
-	    	moveTime(0.1);
+	    	p.move(isShift?0.1:0.25);
+	    	moveTime(isShift?0.1:0.25);
 	    	e.preventDefault();
 	    }else if (e.keyCode == '32') { // space
 	   		playerToggle();
+	   		recordStop();
 	    	e.preventDefault();
 	    }else if (e.keyCode == '17') { // ctrl
 	    	isControl = true;
@@ -1172,9 +1233,13 @@ var studio = function studio(){
 	    }
 	});
 	$(document).on('keyup', function(e){
-		isShift  = false;
-		isControl  = false;
-		isAlt  = false;
+		if (e.keyCode == '17') { // ctrl
+	    	isControl = false;
+	    }else if (e.keyCode == '16') { // shift
+    		isShift = false;
+	    }else if (e.keyCode == '18') { // alt
+    		isAlt = false;
+	    }
 	});
 
 	// Scrolling
@@ -1215,6 +1280,7 @@ var studio = function studio(){
 		}
 		modePlaying();
 		modePlayingChannel(player.channelId);
+		//setCursorOnSec(player.playTime/1000);
 	});
 	$(document).on('click','.channel_name',function(e){
 		var channelName = $(this);
@@ -1270,7 +1336,7 @@ var studio = function studio(){
 		if(isPlaying)
 			p.pause();
 		timeout = setInterval(function(){
-        	p.move(-0.25);
+        	p.move(-0.35);
     	}, 100);
     	if(isPlaying)
     		p.play();
@@ -1329,9 +1395,8 @@ var studio = function studio(){
 		if(selectedSamples.operation == 'cut'){
 			paste(sharedEvent);
 			console.log('paste clicked..');
-
 		}
-		if(selectedSamples.operation == 'copy'){
+		if(selectedSamples.operation == 'copy' || selectedSamples.operation == 'copypaste'){
 			copypaste(sharedEvent);
 			console.log('copypaste clicked..');
 		}
@@ -1461,6 +1526,24 @@ var studio = function studio(){
  			m.start();
   	    }
 	});
+
+	$("#file_explorer" ).resizable({ handles: 'w', minWidth: 200	 }).on('resize', function (e) {
+			// if($(e.target).css('width').replace(/[^-\d\.]/g, '')<100){
+			// 	$(e.target).css('width','100px');	
+			// 	console.log($(e.target).css('width'));	
+			// }
+			
+		});;
+	$(document).on("mousedown","#file_explorer .minimize",function(){
+		$('#file_explorer').addClass('minimize');
+		$('#file_explorer .minimize').hide();
+		$('#file_explorer .maximize').show();
+	});
+	$(document).on("mousedown","#file_explorer .maximize",function(){
+		$('#file_explorer').removeClass('minimize');
+		$('#file_explorer .minimize').show();
+		$('#file_explorer .maximize').hide();
+	});
 	$(document).on('click','.file_explorer_files div',function(e){
 		var ul = $(e.target).parent().find('ul');
 		console.log($(ul).css('display'));
@@ -1473,4 +1556,151 @@ var studio = function studio(){
 			$(e.target).find('span').html('-');
 		}
 	});
+	var masterVol = 0;
+	$(document).on('mousedown','div.volume-icon',function(e){
+		e.preventDefault();
+		if($(this).hasClass('volume-on')){
+			$(this).removeClass('volume-on');
+			$(this).addClass('volume-off');
+			masterVol=player.volume*100;
+			p.setVolume(0);
+			$('#volume').slider({value: 0});			
+		}else{
+			$(this).removeClass('volume-off');
+			$(this).addClass('volume-on');
+			p.setVolume(masterVol/100);
+			$('#volume').slider({value: masterVol});
+		}
+	});
+
+	/* Sound Recorder */
+	var audio_context;
+	var recorder;
+	var time_record=0;
+	var startAt = 0;	
+	var timer = null;
+	var recordChannelId = null;
+	function startUserMedia(stream) {
+	    var input = audio_context.createMediaStreamSource(stream);
+
+	    // Uncomment if you want the audio to feedback directly
+	    //input.connect(audio_context.destination);
+	    //__log('Input connected to audio context destination.');
+	    
+	    recorder = new Recorder(input);
+	}
+
+	$(document).on('mousedown','.btn_mic , .btn_mic_recording',function(e){
+		recordChannelId = $(this).closest('.channels_list_row').attr('data-channel');
+	    if(timer==null){	    		    
+			recordStart(recordChannelId);
+	    }else if($(this).hasClass('btn_mic_recording')){
+	    	recordStop();
+	    }
+	});
+
+	function recordStart(recordChannelId){
+		var gohst = $('<article class="sample" id="ghostsample" style="background-color:red;width:0px;left:'+ secondsToOffset(player.playTime/1000)+'px"></article>');
+		startAt = player.playTime;
+    	recorder && recorder.record();
+	    $('#startRecord').hide();
+	    $('#stopRecord').show();
+	    $('.sample_placeholder[data-channel='+recordChannelId+']').append(gohst);
+	    time_record=0;
+	    timer = setInterval(function(){
+			time_record+=0.1;
+			$(gohst).css('width',secondsToOffset(time_record));
+		},100);
+		var element = $('.channels_list_row[data-channel='+recordChannelId+'] .btn_mic');
+		$(element).addClass('btn_mic_recording');
+		$(element).removeClass('btn_mic');
+		p.play()
+	}
+	function recordStop(){
+		if(timer==null)
+			return;
+		recorder && recorder.stop();
+	    $('#startRecord').show();
+	    $('#stopRecord').hide();
+	    createDownloadLink();
+	  	clearInterval(timer);
+	  	timer=null;
+	    recorder.clear();		    
+	    $('#ghostsample').remove();
+	    var element = $('.channels_list_row[data-channel='+recordChannelId+'] .btn_mic_recording');
+	   	$(element).addClass('btn_mic');
+		$(element).removeClass('btn_mic_recording');
+		p.pause()
+	}
+	$(document).on('mousedown','#startRecord',function(e){
+	    recorder && recorder.record();
+	    $('#startRecord').hide();
+	    $('#stopRecord').show();
+	    timer = setInterval(function(){
+			time_record+=0.1;
+		},100);
+	});
+
+	$(document).on('mousedown','#stopRecord',function(e){
+	    recorder && recorder.stop();
+	    $('#startRecord').show();
+	    $('#stopRecord').hide();
+	    createDownloadLink();
+	  	clearInterval(timer);
+	    recorder.clear();
+	});
+
+	function createDownloadLink() {
+	    recorder && recorder.exportWAV(function(blob) {
+	      var url = URL.createObjectURL(blob);
+	      var li = document.createElement('li');
+	      var au = document.createElement('audio');
+	      var hf = document.createElement('a');
+	      
+	      au.controls = true;
+	      au.src = url;
+	      hf.href = url;
+	      hf.download = new Date().toISOString() + '.wav';
+	      hf.innerHTML = hf.download;
+	      li.appendChild(au);
+	      li.appendChild(hf);
+	      var file = {
+			"fileId": 'newFile'+ (++fileIndexGenerator),
+			"userId": "",
+			"privacy": "",
+			"name": hf.download,
+			"path": url,
+			"size":"3000000",
+			"duration":time_record+'',
+			"shared":["user2"]	
+			};
+
+		   flist.add(file);
+		  
+		 	// draw
+		 	drawRecord(file,recordChannelId,startAt/1000);
+
+	    });
+	}
+
+	window.onload = function init() {
+	    try {
+	      // webkit shim
+	      window.AudioContext = window.AudioContext || window.webkitAudioContext;
+	      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+	      window.URL = window.URL || window.webkitURL;
+	      
+	      audio_context = new AudioContext;
+	      //console.log('Audio context set up.');
+	      //console.log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+	    } catch (e) {
+	     // console.log('No web audio support in this browser!');
+	    }
+	    
+	    navigator.getUserMedia({audio: true}, startUserMedia, function(e) {
+	     // console.log('No live audio input: ' + e);
+	    });
+	};
+		
 };

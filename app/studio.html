@@ -12,6 +12,7 @@
 	<script src="includes/scripts/studio.js"></script>
 	<link rel="stylesheet" href="includes/style/jquery-ui.min.css">
 	<script src="includes/scripts/jquery-ui.min.js"></script>
+	<script src="includes/scripts/recorder.js"></script>
 </head>
 <body class="noselect">
 	<header>
@@ -67,7 +68,9 @@
 		<div id="cursorLine"></div>
 		<section id="file_explorer">
 			<article class="file_explorer_title">
-				File Explorer
+				File Explorer		
+				<span class="minimize">&#95;</span>					
+				<span class="maximize">&square;</span>					
 			</article>
 			<section class="file_explorer_files">
 				<article>
@@ -86,7 +89,12 @@
 		</section>
 	</main>
 	<footer>
-		<div id="volume"></div>
+		<div id="volume-master">
+			<div class="volume-on volume-icon"></div>
+			<div id="volume">
+			</div>
+		</div>
+
 		<ul>
 			<li id="backward"  class="playerButton"></li>
 			<li id="play"  class="playerButton"></li>
