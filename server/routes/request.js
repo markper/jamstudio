@@ -39,13 +39,14 @@ router.put('/:requestId',/* ensureLoggedIn,*/ function(req, res, next) {
 
 router.post('/', function(req, res, next) {
   var request = new Request(req.body);
-  request.save(function (err, createdTodoObject) {
+  res.send(req.body);
+  request.save(function (err, createdRequestObject) {
       if (err) {
           res.send(err);
       }
-      // This createdTodoObject is the same one we saved, but after Mongo
+      // This createdRequestObject is the same one we saved, but after Mongo
       // added its additional properties like _id.
-      res.send(createdTodoObject);
+      res.send(createdRequestObject);
   });
 });
 
