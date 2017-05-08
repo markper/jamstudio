@@ -26,6 +26,7 @@ var track = require('./routes/track');
 var channel = require('./routes/channel');
 var plan = require('./routes/plan');
 var request = require('./routes/request');
+var issue = require('./routes/issue');
 
 // This will configure Passport to use Auth0
 var strategy = new Auth0Strategy({
@@ -79,6 +80,7 @@ app.use('/track', track);
 app.use('/channel', channel);
 app.use('/plan', plan);
 app.use('/request', request);
+app.use('/issue', issue);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
