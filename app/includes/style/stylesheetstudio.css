@@ -2,20 +2,20 @@
     font-family: RobotoThin;
     src: url(../fonts/Roboto/Roboto-Thin.ttf);
 }
+
+@font-face {
+  font-family: Berkshire Swash;
+  font-style: normal;
+  font-weight: 400;
+  src: url(../fonts/Berkshire_Swash/BerkshireSwash-Regular.ttf);
+}
+
 *{
 	margin: 0px;
 	padding: 0px;
 	font-family: RobotoThin;
 }
-.noselect *{
-	-webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome and Opera */
-}
+
 html,body{
 	height: 100%;
 }
@@ -37,6 +37,7 @@ span{
 	padding: 0px;
 	margin: 0px;
 }
+
 header li{
 	float: left;
 	height: 50px;
@@ -86,8 +87,10 @@ header #connected_user .username{
 }
 header #toolbox{
 	width: calc(100% - 500px);
+	overflow: hidden;
 }
 header #toolbox ul{
+	overflow: hidden;
 	color: #ffffff;
 	background-color: #606060;
 	border: 1px solid #000000;
@@ -106,6 +109,79 @@ header #toolbox ul li{
 	margin-left: 7px;
 	background-repeat: no-repeat;
 }
+
+/* Nav */
+
+.sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 2147483647;
+    top: 50px;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+.sidenav a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidenav a:hover, .offcanvas a:focus{
+    color: #f1f1f1;
+}
+
+.sidenav .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+#black_screen{
+	display: none;
+	top: 0px;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	z-index: 2147483647;
+	background-color: rgba(0,0,0,0.50);
+}
+#black_screen section{
+	display: none;
+	border-radius: 5px;
+	position: relative;
+	width: 500px;
+	height: 200px;
+	background-color: #ffffff;
+	background-size: 100px;
+	top: calc(50% - 250px);
+	left: calc(50% - 250px);
+}
+#black_screen section #close_white_window{
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	font-size: 20px;
+	width:20px;
+	height: 20px;
+	z-index: 2;
+}
+ #black_screen > section > #white_window_title{
+ 	position: relative;
+ 	top: 20px;
+ 	left: 20px;
+	font-family: Helvetica;
+	z-index: 1;
+ }
+/* Tool Box */
 #toolbox li#toolbox_btn_zoomin{
 	background-image: url(../images/studio_icon_zoomin.png);
 }
@@ -161,6 +237,16 @@ header #toolbox ul li{
     background-size: 13px;
 	background-image: url(../images/studio_icon_delete.png);
 }
+#toolbox li#toolbox_btn_export{
+    background-position: 0px 3px;
+    background-size: 15px;
+	background-image: url(../images/studio_icon_disk.svg);
+}
+/*#toolbox li#toolbox_btn_wav{
+    background-position: 0px 3px;
+    background-size: 13px;
+	background-image: url(../images/studio_icon_wav.svg);
+}*/
 .cutCursor{
 	cursor: url(../images/studio_icon_cutter_32_6.png), auto;   
 }
@@ -188,6 +274,7 @@ main #channels_title:after{
 	clear: both;
 }
 main .channel_list_buttons{
+	color: #ffffff;
 	left: 0px;
 	position: absolute;
 	height: 24px;
@@ -208,6 +295,13 @@ main .channel_list_buttons li{
 	margin: 5px 2px 2px;
 	opacity: 1;
 }
+main .channel_list_buttons #open_nav{
+	position: absolute;
+	float: initial;
+	top:2px;
+	left: 3px;
+	font-size: 14px;
+}
 #btn_channel_new{
     background-size: 10px;
 	background-image: url(../images/studio_icon_new_mini.png);
@@ -222,6 +316,7 @@ main .channel_list_buttons li{
     background-size: 15px;
 	background-image: url(../images/studio_icon_eye.png);
 }
+
 main .channels_grid_title{
 	margin-left: 160px;
 	float: left;
@@ -269,7 +364,7 @@ main #channels_list > div{
 main .channel_list_row{
 	position: absolute;
 	left: 0px;
-	z-index: 9999999999999;
+	z-index: 2147483647;
 	height: 100%;
 	width: 160px;
 	background-color: #232323;
@@ -391,16 +486,21 @@ main #cursorLine{
 	left: 0px;
 	top: 0px;
 	margin-left: 160px;
-	z-index: 99999999999;
+	z-index: 2147483646;
+}
+.noselect *{
+	-webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }
 .row_pressed{
 	background-color: #00a4d3;
 }
-.scrolls { 
-    overflow-x: scroll;
-    overflow-y: scroll;
-    white-space:nowrap;
- } 
+
 .sample{
 	position: absolute;
 	width: 200px;
@@ -409,6 +509,7 @@ main #cursorLine{
 	height: calc(100% - 2px);
 	z-index: 3;
 	left:0px;
+	cursor: move;
 }
 .sample.selected{
 	opacity: 0.5 !important;
@@ -458,6 +559,7 @@ main #cursorLine{
 /* File explorer */
 
 #file_explorer{
+	cursor: default;
 	position: fixed !important;
 	top:50px;
 	right: 14px;
@@ -468,6 +570,7 @@ main #cursorLine{
 	font-family: Tahoma !important;
 	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 	overflow: auto;
+	border-left: 1px solid silver;
 }
 #file_explorer.minimize{
 	height: 34px;
@@ -515,7 +618,15 @@ main #cursorLine{
 	padding-left: 15px;
 	font-size: 13px;
 }
+
+
 /* Scrollers  */
+
+.scrolls { 
+    overflow-x: scroll;
+    overflow-y: scroll;
+    white-space:nowrap;
+ } 
 
 ::-webkit-scrollbar {
     width: 14px;
@@ -703,4 +814,25 @@ footer li{
 #trackName{
 	width: 150px;
 	text-align: center;
+}
+.loading{
+	background-image: url('../images/studio_icon_loader.gif') !important;
+}
+#loader{
+	display: none;
+	top: 0px;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	z-index: 2147483646;
+	background-color: rgba(255,255,255,0.95);
+}
+#loader div{
+	position: absolute;;
+	background-image: url('../images/studio_icon_loader.gif');
+	width: 100px;
+	height: 100px;
+	background-size: 100px;
+	top: calc(50% - 50px);
+	left: calc(50% - 50px);
 }

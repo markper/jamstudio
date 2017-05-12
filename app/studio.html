@@ -5,11 +5,10 @@
 	<title>Studio</title>
 	<link rel="icon" type="image/png" href="includes/images/favicon.png">
 	<link rel="stylesheet" type="text/css" href="includes/style/stylesheetstudio.css">
-	<link href="https://fonts.googleapis.com/css?family=Berkshire+Swash" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<script src="includes/scripts/spectrum.js"></script>
 	<script src="includes/scripts/studio.js"></script>
+	<script src="includes/scripts/studioUI.js"></script>
 	<link rel="stylesheet" href="includes/style/jquery-ui.min.css">
 	<script src="includes/scripts/jquery-ui.min.js"></script>
 	<script src="includes/scripts/recorder.js"></script>
@@ -47,6 +46,10 @@
 				<ul>
 					<li id="toolbox_btn_delete"></li>
 				</ul>
+				<ul>
+					<li id="toolbox_btn_export"></li>
+					<li id="toolbox_btn_wav"></li>
+				</ul>
 			</li>
 			<li id="searchbox">
 			</li>
@@ -57,6 +60,9 @@
 		</section>
 		<section id="channels_title">
 			<article class="channel_list_buttons">		
+				<div id="open_nav">
+					 &#9776; 
+				</div>
 				<ul>
 					<li id="btn_channel_new" class="btn_channel"></li>
 					<li id="btn_channel_delete" class="btn_channel"></li>
@@ -87,6 +93,24 @@
 				<article>
 			</section>
 		</section>
+		<section id="black_screen">
+			<section>
+				<div id="close_white_window" href="#">&times;</div>
+				<div id="white_window_title"></div>
+			</section>
+		</section>
+		<nav id="mySidenav" class="sidenav">
+			<ul>
+			  	<li>
+			  		<a href="javascript:void(0)" id="close_nav" class="closebtn" onclick="closeNav()">&times;</a>
+			  	</li>
+				<li id="nav_settings"><a href="#">Settings</a></li>
+				<li id="nav_versions"><a href="#">Versions</a></li>
+				<li id="nav_contributors"><a href="#">Contributors</a></li>
+				<li id="nav_issues"><a href="#">Issues</a></li>
+				<li id="nav_exit"><a href="#">Exit</a></li>
+			</ul>
+		</nav>
 	</main>
 	<footer>
 		<div id="volume-master">
@@ -94,7 +118,6 @@
 			<div id="volume">
 			</div>
 		</div>
-
 		<ul>
 			<li id="backward"  class="playerButton"></li>
 			<li id="play"  class="playerButton"></li>
@@ -115,6 +138,9 @@
 			<div id="metronome"></div>
 		</div>	
 	</footer>
+	<section id="loader">
+		<div></div>
+	</section>
 	<script>
 		(function(){
 			var s = new studio();

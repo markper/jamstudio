@@ -1,0 +1,160 @@
+{
+
+	"project": {
+		"projectId":"project1",
+		"userId": "user1",
+		"name": "New project",
+		"description": "Write a poem to Meir Einstein",
+		"genre": "Alternative",
+		"track_version": "1.0",
+		"users": 
+			[{
+				"user": {
+					"userId": "user1",
+					"firstName": "Israel",
+					"lastName": "Israeli",
+					"email": "israel@gmail.com",
+					"picture": "https://scontent.fhfa2-1.fna.fbcdn.net/v/t1.0-1/c26.7.40.40/p74x74/1374206_…529017929_1400551419_n.jpg?oh=d2a7b83d1a19fb557fb09fc50bc5b760&oe=5929F59B",
+					"planId": "plan1",
+					"storage_usage": 0
+				}
+			},
+			{
+				"user": {
+					"userId": "user2",
+					"firstName": "Israel2",
+					"lastName": "Israeli",
+					"email": "israel@gmail.com",
+					"picture": "https://scontent.fhfa2-1.fna.fbcdn.net/v/t1.0-1/c26.7.40.40/p74x74/1374206_…529017929_1400551419_n.jpg?oh=d2a7b83d1a19fb557fb09fc50bc5b760&oe=5929F59B",
+					"planId": "plan1",
+					"storage_usage": 0
+				}
+			},
+			{
+				"user": {
+					"userId": "user3",
+					"firstName": "Israel3",
+					"lastName": "Israeli",
+					"email": "israel@gmail.com",
+					"password": "1234",
+					"picture": "https://scontent.fhfa2-1.fna.fbcdn.net/v/t1.0-1/c26.7.40.40/p74x74/1374206_…529017929_1400551419_n.jpg?oh=d2a7b83d1a19fb557fb09fc50bc5b760&oe=5929F59B",
+					"planId": "plan1",
+					"storage_usage": 0
+				}
+			}]
+		,
+		"issues": [{
+			"issue": {
+				"issueId": "Issue1",
+				"fromUserId": "user1",
+				"toUserId": "user1",
+				"name": "play me sothing..",
+				"description": "a new task..",
+				"status": 0
+			}
+		}],
+		"tracks": [{
+			"track": {
+				"trackId": "track1",
+				"projectId": "project1",
+				"name": "New project",
+				"description": "Write a poem to Meir Einstein",
+				"genre": "Alternative",
+				"version": "1.0",
+				"channels": [{
+					"channel": {
+						"channelId": "channel34",
+						"trackId": "track1",
+						"userId": "user1",
+						"name": "playing guitar",
+						"instrument": "guitar",
+						"volume":"0.8",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample34",
+								"fadeIn": "8",
+								"fadeOut": "8",
+								"start": "40",
+								"volume": "1",
+								"duration": "16",
+								"delay": "5",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/1.wav"
+								}							
+							}
+						}]
+					}
+				},
+				{
+					"channel": {
+						"channelId": "channel35",
+						"trackId": "track1",
+						"userId": "user2",
+						"name": "playing bass",
+						"instrument": "bass",
+						"volume":"0.6",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample35",
+								"fadeIn": "3",
+								"fadeOut": "3",
+								"start": "7",
+								"volume": "1",
+								"duration": "8",
+								"delay": "5",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/2.wav"
+								}							
+							}
+						}]
+					}
+				},
+				{
+					"channel": {
+						"channelId": "channel36",
+						"trackId": "track1",
+						"userId": "user3",
+						"name": "playing piano",
+						"instrument": "piano",
+						"volume":"0.6",
+						"lock": false,
+						"visible": false,
+						"samples": [{
+							"sample": {
+								"sampleId": "sample336",
+								"fadeIn": "6",
+								"fadeOut": "1",
+								"start": "9",
+								"volume": "1",
+								"duration": "10",
+								"delay": "5",
+								"file": {
+									"fileId": "",
+									"userId": "",
+									"privacy": "",
+									"name": "",
+									"path": "includes/loops/3.wav"
+								}
+							}
+						}]
+					}
+				}]
+
+			}
+		}]
+	}
+
+}
+
