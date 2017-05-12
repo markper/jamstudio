@@ -1419,6 +1419,9 @@ var studio = function studio(){
 		
 	});
 	$(document).on('keydown', function(e){
+		if($('#black_screen').css('display')!='none')
+			return;
+
 		e = e || window.event;
 	    if (e.keyCode == '38') { // up arrow
 	    }
