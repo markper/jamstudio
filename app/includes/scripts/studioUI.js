@@ -5,8 +5,8 @@ function openWhiteWindow(_width,_height,_title){
 	setTimeout(function(){
 		var _top =50,_left=250;
 		if(!(_width>0 && _height>0)){
-			_width = $('main').width()-350;
-			_height = $('main').height() -50;
+			_width = $('main').width()-303;
+			_height = $('main').height() -57;
 		}else{
 
 			_left = 'calc(50% - '+_width/2+'px)';
@@ -113,7 +113,7 @@ $(document).on('click','#nav_issues',function(){
 });
 
 $(document).on('click','#nav_versions',function(){		
-	openWhiteWindow('500','200','Versions');
+	openWhiteWindow('500','230','Versions');
 	var form = createInput('form');
 	var username = createInput('text');
 
@@ -133,7 +133,7 @@ $(document).on('click','#nav_versions',function(){
 });
 
 $(document).on('click','#nav_contributors',function(e){
-	openWhiteWindow('600','200','Track Contributors');
+	openWhiteWindow('600','230','Track Contributors');
 	var form = createInput('form');
 	var username = createInput('text');
 	var list = createInput('list');

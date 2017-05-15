@@ -1815,22 +1815,28 @@ var studio = function studio(){
 
 	/* Export file */
 	$(document).on('click','#toolbox_btn_export',function(e){
+		var heroku = 'https://oran1.herokuapp.com';
+		var local = 'http://localhost:3000';
+		var url = heroku;//
 		if($(e.target).hasClass('loading'))
 			return;
 		else
 			$(e.target).addClass('loading');
 		$.ajax({
 			method: "POST",
-			url: 'https://oran1.herokuapp.com/export/mp3/'+prompt('sec to start')+'/'+prompt('sec to end'),
+			//url: '/export/mp3/'+prompt('sec to start')+'/'+prompt('sec to end'),
+			url: url+'/export/mp3/'+prompt('sec to start')+'/'+prompt('sec to end'),
 			data:JSON.stringify(ctlProject.toJson()),
-			error: function(e) {},
+			error: function(e) {
+				$(e.target).removeClass('loading');
+			},
 			success: function(e){}
 		})
 		.done(function( msg ) {
-			console.log('https://oran1.herokuapp.com/'+msg);
+			console.log(url+'/'+msg);
 			var link = document.createElement("a");
 		    link.download = msg;
-		    link.href = 'https://oran1.herokuapp.com/'+msg;
+		    link.href = url+'/'+msg;
 		    link.click();
 		    $(e.target).removeClass('loading');
 		});
