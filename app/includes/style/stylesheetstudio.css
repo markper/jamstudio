@@ -271,7 +271,8 @@ ul{
 	background-image: url(../images/studio_icon_cursor.png);
 }
 #toolbox li#toolbox_btn_cutter{
-	background-position: 0px 2px;
+	width: 10px;
+	background-position: 2px 2px;
 	background-size: 7px;
 	background-image: url(../images/studio_icon_cutter.png);
 }

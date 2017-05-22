@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<form  enctype=multipart/form-data method="POST">
+  <input type="file" name="file">
+  <input type="submit">
+</form>
+<script>
+	var heroku = 'https://oran1.herokuapp.com/uploads/123433';
+	var local = 'http://localhost:3000/uploads/123433';
+	var url = heroku;//
+	var form = document.getElementsByTagName('form')[0];
+	form.setAttribute('action',url);
+</script>
+<p><strong>Note:</strong> The accept attribute of the input tag is not supported in Internet Explorer 9 (and earlier versions), and Safari 5 (and earlier).</p>
+<p><strong>Note:</strong> Because of security issues, this example will not allow you to upload files.</p>
+
+</body>
+</html>

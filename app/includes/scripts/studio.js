@@ -485,7 +485,8 @@ var studio = function studio(){
 					sample.aud.pause();
 					sample.aud.currentTime = 0;
 				});		
-				$('#time').text(player.playTime=0);	
+				player.playTime=0;
+				$('#time').text('00:00:00');	
 				this.clear();	
 			// cursor
 			$('#cursorLine').stop().css({'left':0});
@@ -1565,7 +1566,7 @@ var studio = function studio(){
 	$(document).on('mouseleave mouseup','#backward , #forward',function(e){
 		clearInterval(timeout);
 		//$('#cursorLine').stop()
-		p.play();
+		p.reset();
 	});
 
 	$(document).on('click','#toolbox_btn_zoomin',function(){
@@ -1817,7 +1818,7 @@ var studio = function studio(){
 	$(document).on('click','#toolbox_btn_export',function(e){
 		var heroku = 'https://oran1.herokuapp.com';
 		var local = 'http://localhost:3000';
-		var url = heroku;//
+		var url = local;//
 		if($(e.target).hasClass('loading'))
 			return;
 		else

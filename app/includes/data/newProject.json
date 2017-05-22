@@ -1,0 +1,23 @@
+{
+	"project": {
+		"userId": "",
+		"name": "",
+		"description": "",
+		"genre": "",
+		"track_version": "1.0",
+		"users": [],
+		"issues": [],
+		"tracks": [{
+			"track": {
+				"trackId": "",
+				"projectId": "",
+				"name": "",
+				"description": "",
+				"genre": "",
+				"version": "",
+				"channels": []
+			}
+		}]
+	}
+}
+
