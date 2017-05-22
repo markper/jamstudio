@@ -3,6 +3,7 @@ var passport = require('passport');
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var Issue = require('../model/issueSchema');  // get our mongoose model
+var Project = require('../model/projectSchema');  // get our mongoose model
 
 /* GET project. */
 router.get('/:issueId', ensureLoggedIn, function(req, res, next) {
@@ -19,16 +20,16 @@ router.get('/:issueId', ensureLoggedIn, function(req, res, next) {
 });
 
 router.post('/', function(req, res, next) {
-  var issue = new Issue(req.body);
-  issue.save(function (err, createdIssueObject) {
-      if (err) {
-          res.send(err);
-      }
-      // This createdIssueObject is the same one we saved, but after Mongo
-      // added its additional properties like _id.
-      res.send(createdIssueObject);
-  });
+    Project.findOne({_id:req.body.issue.projectId},function(err,project){
+        project.issues.push(req.body);
+        project.save(function(err){
+            if(err)
+                console.log(err);
+        });
+        res.json({ success: true });
+    });
 });
+
 
 router.put('/:issueId',/* ensureLoggedIn,*/ function(req, res, next) {
     var id = req.params.issueId;

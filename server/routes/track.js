@@ -10,11 +10,19 @@ var bodyParser = require('body-parser');
 router.use(bodyParser.json());
 
 
-/* GET user profile. */
-router.get('/', function(req, res) {
-    //console.log("/");
-    res.send('we really need to change the default routing...');
+/* Post track profile. */
+router.post('/', function(req, res) {
+    var newTrack = new Track(req.body);
+    newTrack.save(function(err) {
+        if (err) throw err;
+        Project.findOne({_id:newTrack.projectId},function(err,project){
+            project.tracks.push(newTrack._id);
+            project.save();
+            res.json(newTrack);
+        });
+    });
 });
+
 
 
 /* get specific track

@@ -5,20 +5,41 @@ var router = express.Router();
 var Project   = require('../model/projectSchema');  // get our mongoose model
 
 
-/* GET project. */
-router.get('/', ensureLoggedIn, function(req, res, next) {
-  res.send('hello world');
+/* POST project. */
+router.post('/', function(req, res, next) {
+    var project = new Project(req.body);
+    project.save();
+    res.send(project);
 });
 
+/* GET project. */
+router.get('/:projectId', function(req, res, next) {
+    var projectId = req.params.projectId;
+    console.log(projectId);
+    Project
+        .findOne({_id:projectId})
+        .populate({path:'adminUser',select: ['firstName','lastName']})
+        .populate({path:'tracks'})
+        .populate({path:'issues'})
+        .populate({path:'users',select:['_id','firstName','lastName']})
+        .exec(function (err, project) {
+            if (!err)
+                res.send(project);
+            else
+                res.send('error');
+        });
 
+});
+
+/* permission function */
 function isPermission(user){
     return user==="58b898af734d1d10ff5f4aec";
 }
 
+
 function getUserID(req){
     return req.user.identities[0].user_id;
 }
-
 
 /* GET - Remove user from project. */
 router.get('/:projectId/removeUser/:userToDelete',ensureLoggedIn, function(req, res, next) {
@@ -32,8 +53,5 @@ router.get('/:projectId/removeUser/:userToDelete',ensureLoggedIn, function(req, 
 		res.render('error', { error: {stack: getUserID(req) + ' not auth'} });
 	}
 });
-
-
-/* todo - Will be implemented by maoz, need to touch oran's code so its on hold. */
 
 module.exports = router;

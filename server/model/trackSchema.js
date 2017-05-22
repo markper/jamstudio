@@ -10,5 +10,5 @@ module.exports = mongoose.model('Track', new Schema({
     description: String,
     genre: String,
     version: String,
-    channels: [String]
+    channels: [{type: String, ref: 'Channel' }]
 }));
