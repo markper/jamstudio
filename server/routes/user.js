@@ -28,14 +28,14 @@ router.put('/:userId',/* ensureLoggedIn, */function(req, res, next) {
 		if (err) 
         	res.send(err);
 
-		user.userId = userJson.userId
-		user.firstName = userJson.firstName
-		user.lastName = userJson.lastName
-		user.email = userJson.email
-		user.password = userJson.password
-		user.picture = userJson.picture
-		user.planId = userJson.planId
-		user.storage_usage = userJson.storage_usage
+		user.userId = userJson.userId;
+		user.firstName = userJson.firstName;
+		user.lastName = userJson.lastName;
+		user.email = userJson.email;
+		user.password = userJson.password;
+		user.picture = userJson.picture;
+		user.planId = userJson.planId;
+		user.storage_usage = userJson.storage_usage;
 		user.save();
 		res.send(user);
 

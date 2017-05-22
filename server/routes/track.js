@@ -24,10 +24,6 @@ router.post('/', function(req, res) {
 });
 
 
-
-/* get specific track
- * todo - need to implement it to specific param depends on client wish
- */
 router.get('/track', function(req, res) {
     //console.log("/track");
     Track.find({}, function(err, tracks) {

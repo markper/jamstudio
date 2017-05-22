@@ -4,16 +4,7 @@ var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var Channel   = require('../model/channelSchema');  // get our mongoose model
 
-/* GET project. */
-router.get('/', ensureLoggedIn, function(req, res, next) {
-    //console.log("/");
-    res.send('we really need to change the default routing...');
-});
 
-
-/* get specific track
- * todo - need to implement it to specific param depends on client wish
- */
 router.get('/channel', function(req, res) {
     //console.log("/track");
     Channel.find({}, function(err, channels) {
