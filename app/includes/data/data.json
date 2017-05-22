@@ -17,7 +17,8 @@
 					"picture": "https://scontent.fhfa2-1.fna.fbcdn.net/v/t1.0-1/c26.7.40.40/p74x74/1374206_…529017929_1400551419_n.jpg?oh=d2a7b83d1a19fb557fb09fc50bc5b760&oe=5929F59B",
 					"planId": "plan1",
 					"storage_usage": 0
-				}
+				},
+				"access":""
 			},
 			{
 				"user": {
@@ -28,7 +29,8 @@
 					"picture": "https://scontent.fhfa2-1.fna.fbcdn.net/v/t1.0-1/c26.7.40.40/p74x74/1374206_…529017929_1400551419_n.jpg?oh=d2a7b83d1a19fb557fb09fc50bc5b760&oe=5929F59B",
 					"planId": "plan1",
 					"storage_usage": 0
-				}
+				},
+				"access":""
 			},
 			{
 				"user": {
@@ -40,7 +42,8 @@
 					"picture": "https://scontent.fhfa2-1.fna.fbcdn.net/v/t1.0-1/c26.7.40.40/p74x74/1374206_…529017929_1400551419_n.jpg?oh=d2a7b83d1a19fb557fb09fc50bc5b760&oe=5929F59B",
 					"planId": "plan1",
 					"storage_usage": 0
-				}
+				},
+				"access":""
 			}]
 		,
 		"issues": [{
