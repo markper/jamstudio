@@ -11,9 +11,8 @@ module.exports = mongoose.model('Project', new Schema({
     description: String,
     genre: String,
     track_version: String,
-    users: [{ type: String, ref: 'User' }],
+    users: [{user:{ type: String, ref: 'User' },access:String}],
     issues: [{
-        issue:{
             issueId: Schema.Types.ObjectId,
             projectId: String,
             fromUserId: { type: String, ref: 'User' },
@@ -21,7 +20,6 @@ module.exports = mongoose.model('Project', new Schema({
             name: String,
             description: String,
             status: 0
-        }
     }],
     tracks: [{ type: String, ref: 'Track' }]
 }));

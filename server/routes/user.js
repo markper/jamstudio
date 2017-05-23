@@ -8,10 +8,25 @@ var User = require('../model/userSchema');
 /* GET user by id */
 router.get('/:userId',/* ensureLoggedIn, */function(req, res, next) {
     var id = req.params.userId;
-	User.find({_id: id}, function(err, user) {
+	User.findOne({_id: id}, function(err, user) {
 		if (err) 
 			res.send("error");
 		res.send(user);
+  	});
+});
+
+/* GET user list */
+router.get('/GetList/:prefix',/* ensureLoggedIn, */function(req, res, next) {
+    var prefix = req.params.prefix;
+    var regex = '/'+ prefix +'/i';
+	User.find({$or:[
+		{"firstName": new RegExp('^'+prefix, "i")},
+		{"lastName": new RegExp('^'+prefix, "i")}
+		]}
+		, function(err, users) {
+		if (err) 
+			res.send("error");
+		res.send(users);
   	});
 });
 
@@ -22,13 +37,12 @@ router.get('/getId',/* ensureLoggedIn, */ function(req, res, next) {
 
 /* PUT user by id */
 router.put('/:userId',/* ensureLoggedIn, */function(req, res, next) {
-    var id = req.params.userId;
+    var userId = req.params.userId;
     var userJson = req.body;
-    User.findOne({_id: id}, function(err, user) {	
-		if (err) 
-        	res.send(err);
 
-		user.userId = userJson.userId;
+    User.findOne({_id: userId}, function(err, user) {	
+		if (err) 
+        	return res.send(err);
 		user.firstName = userJson.firstName;
 		user.lastName = userJson.lastName;
 		user.email = userJson.email;
@@ -37,8 +51,7 @@ router.put('/:userId',/* ensureLoggedIn, */function(req, res, next) {
 		user.planId = userJson.planId;
 		user.storage_usage = userJson.storage_usage;
 		user.save();
-		res.send(user);
-
+		return res.send(user);
 	});
 });
 
