@@ -2,7 +2,6 @@ var express = require('express');
 var passport = require('passport');
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
-var File = require('../model/fileSchema');
 var fileCtrl = require('../controllers/files');
 
 /* GET file by id */
