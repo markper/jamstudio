@@ -3,12 +3,12 @@ var passport = require('passport');
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var User = require('../model/userSchema');
-var users = require('../controllers/users');
+var userCtrl = require('../controllers/users');
 
 
 /* GET user by id */
 router.get('/:userId',/* ensureLoggedIn, */function(req, res, next) {
- 	users.getUser(req.params.userId,function(data){
+ 	userCtrl.getUser(req.params.userId,function(data){
  		res.send(data);
  	});
 });

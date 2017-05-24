@@ -3,68 +3,59 @@ var passport = require('passport');
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var File = require('../model/fileSchema');
-var files = require('../controllers/files');
+var fileCtrl = require('../controllers/files');
 
 /* GET file by id */
 router.get('/:fileId',/* ensureLoggedIn, */function(req, res, next) {
 
-	files.getFile(req.params.fileId,function(data){
-		res.send(data);
+	fileCtrl.getFile(req.params.fileId,function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);	
+		else
+			res.status(200).send(data);
 	});	
 
 });
 
 /* GET file list */
 router.get('/GetList/:userId',/* ensureLoggedIn, */function(req, res, next) {
-    var userId = req.params.userId;
-	File.find({userOwner: userId}
-		, function(err, files) {
-		if (err) 
-			res.send("error");
-		res.send(files);
-  	});
+	fileCtrl.getListByUser(req.params.userId,function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);	
+		else
+			res.status(200).send(data);
+	});
 });
 
 
 /* PUT user by id */
 router.put('/:fileId',/* ensureLoggedIn, */function(req, res, next) {
-    var fileId = req.params.fileId;
-    var fileJson = req.body;
-
-    File.findOne({_id: fileId}, function(err, file) {	
-		if (err) 
-        	return res.send(err);
-		file.userOwner = fileJson.userOwner;
-		file.privacy = fileJson.privacy;
-		file.name = fileJson.name;
-		file.path = fileJson.path;
-		file.size = fileJson.size;
-		file.duration = fileJson.duration;
-		file.sharedUsers = fileJson.sharedUsers;
-
-		file.save();
-		return res.send(file);
-	});
+    fileCtrl.updateFile(req.params.fileId,req.body,function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);	
+		else
+			res.status(200).send(data);
+    });
 });
 
 /* POST file */
 router.post('/',function(req, res, next) {
-	var file = new File(req.body);
-	file.save(function (err, savedFile) {
-		if (err)
-			res.send(err);
-		res.send(savedFile);
-	});
+    fileCtrl.createFile(req.body,function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);	
+		else
+			res.status(200).send(data);
+    });
 });
 
 /* DELETE file */
-
 router.delete('/:fileId', /* ensureLoggedIn, */function(req, res, next) {
-	File.findByIdAndRemove({_id: req.params.fileId}, function (err, plan) {
-		if(err)
-			res.send('failed');
-		res.send('file deleted');
-	});
+    fileCtrl.deleteFile(req.params.fileId,function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);	
+		else
+			res.status(200).send(data);
+    });
 });
 
 module.exports = router;
