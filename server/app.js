@@ -26,7 +26,6 @@ var track = require('./routes/track');
 var channel = require('./routes/channel');
 var plan = require('./routes/plan');
 var request = require('./routes/request');
-var issue = require('./routes/issue');
 var file = require('./routes/file');
 
 
@@ -82,7 +81,6 @@ app.use('/track', track);
 app.use('/channel', channel);
 app.use('/plan', plan);
 app.use('/request', request);
-app.use('/issue', issue);
 app.use('/file', file);
 
 // catch 404 and forward to error handler

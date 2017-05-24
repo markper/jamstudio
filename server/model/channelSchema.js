@@ -14,12 +14,13 @@ module.exports = mongoose.model('Channel', new Schema({
     visible: Boolean,
     samples: [{
         sampleId: String,
+        channelId: { type: String, ref: 'Channel' },
         fadein: String,
         fadeout: String,
         start: String,
         volume: String,
         duration: String,
-        fileId: String
+        fileId: { type: String, ref: 'File' }
     }]
 }));
 

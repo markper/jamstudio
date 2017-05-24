@@ -3,79 +3,129 @@ var passport = require('passport');
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var Channel   = require('../model/channelSchema');  // get our mongoose model
+var Track = require('../model/trackSchema');  // get our mongoose model
 
-
-router.get('/channel', function(req, res) {
-    //console.log("/track");
-    Channel.find({}, function(err, channels) {
-        res.json(channels);
+/* GET a channel */
+router.get('/:channelId', function(req, res) {
+    Channel.findOne({_id: req.params.channelId}, function(err, channel) {
+        res.json(channel);
     });
 });
 
-
-/* create new track */
-router.post('/channel', function(req, res) {
-    var p1 = req.body.channelId;
-    var p2 = req.body.trackId;
-    var p3 = req.body.userId;
-    var p4 = req.body.name;
-    var p5 = req.body.instrument;
-    var newChannel = new Channel({
-        channelId : p1,
-        trackId : p2,
-        userId : p3,
-        name : p4,
-        instrument : p5,
-        volume : "1.0",
-        lock : false,
-        visible : false,
-        samples : "[]"
-    });
-    console.log(newChannel);
-    // save to database
-    newChannel.save(function(err) {
+/* POST a new channel */
+router.post('/', function(req, res) {
+    var newChannel = new Channel(req.body);
+    newChannel.save(function(err,channel) {
         if (err) throw err;
-        console.log('Track was added successfully');
-        res.json({ success: true });
-    });
-});
-
-
-/* delete track */
-router.post('/deleteChannel', function(req, res) {
-    // get params
-    var channelId = req.body.channelId;
-    Channel.findOne({
-        plan: req.body.channelId
-    }, function(err, channel) {
-        if (err) throw err;
-        if (!channel) {
-            res.json({ success: false, message: 'channel not found.'});
-        }
-        if(channel.channelId === channelId){
-            channel.remove(function(err) {
-                if (err) throw err;
-                console.log('Channel was removed successfully');
-                res.json({ success: true });
-                //res.redirect('http://localhost/channel');
+            Track.update( {_id:channel.trackId}, {$push: {channels: channel._id}}, function(err, data){
+                if(err) return res.status(500).json({'error' : 'error in deleting address'});
+                else return res.json(data);
             });
-        }else{
-            res.json({ success: false, message: 'Can not delete channel'});
-        }
     });
 });
 
+/* DELETE channel */
+router.delete('/:channelId', function(req, res) {
+    // get params
+    var channelId = req.params.channelId;
+    Channel.findOne({
+        _id: channelId
+    }, function(err, channel) {
+            if(channel){
+                Track.update( {_id:channel.trackId}, {$pull: {channels: channelId}}, function(err, data){
+                });
+                channel.remove(function(err){
+                    if(err) return res.status(500).json({'error' : 'error in deleting address'});
+                    else return res.json({'success' : 'channel deleting'});
+                });
+             }else return res.status(500).json({'error' : 'error in deleting address'});
 
-/* update track */
-router.put('updateChannel:_id', function(req, res) {
-    Channel.findOne(req.params.channelId, function(err,channel){
+    });
+});
+
+/* PUT channel */
+router.put('/:channelId', function(req, res) {
+    var newChannel = req.body;
+    Channel.findOne({_id:req.params.channelId}, function(err,channel){
         if (err) res.send(err);
-        Channel.visible = req.body.visible;
+        if(!channel) return res.json({ message: 'channel does not found..'});
+        channel.trackId = newChannel.trackId
+        channel.userId = newChannel.userId
+        channel.name = newChannel.name
+        channel.instrument = newChannel.instrument
+        channel.volume = newChannel.volume
+        channel.lock = newChannel.lock
+        channel.visible = newChannel.visible
+        channel.samples = newChannel.samples
         channel.save(function(err){
             if (err) res.send(err);
             res.json({ message: "update channel"});
         });
     });
+});
+
+//
+/* SAMPLES */
+//
+
+/* POST add sample to project */
+router.post('/:channelId/Sample', function(req, res, next) {
+    Channel.
+    findOne({_id:req.params.channelId},function(err,channel){
+        if(err)
+            return res.json({ success: false });
+        channel.samples.push(req.body);
+        channel.save(function(err,issue){
+            if(err)
+                return res.json({ success: false });
+            else
+                return res.json({ success: true });
+        });
+    });
+});
+
+/* GET issue from project */
+router.get('/:channelId/Sample/:sampleId'/*, ensureLoggedIn*/, function(req, res, next) {
+  var channelId = req.params.channelId;
+  var sampleId = req.params.sampleId;
+  Channel
+  .findOne({_id:channelId,'samples._id':sampleId})
+  .populate({path:'samples'})
+  .exec(function (err, channel) {
+    if (!err)
+     res.send(channel.samples[0]);  
+    else
+      res.send('error');
+  });
+});
+
+/* DELETE issue from project */
+router.delete('/:channelId/Sample/:sampleId'/*, ensureLoggedIn*/, function(req, res, next) {
+    var channelId = req.params.channelId;
+    var sampleId = req.params.sampleId;
+    Channel.update( {_id:channelId}, {$pull: {samples: {_id:sampleId}}}, function(err, data){
+        if(err) {
+            return res.status(500).json({'error' : 'error in deleting address'});
+        }
+        res.json(data);
+    });
+});
+
+/* PUT update issue */
+router.put('/:channelId/Sample/:sampleId'/*,ensureLoggedIn*/, function(req, res, next) {
+    
+    var channelId = req.params.channelId;
+    var sampleId = req.params.sampleId;
+    req.body._id = sampleId;
+
+    Channel.update( {_id:channelId,samples: { $elemMatch: { _id:sampleId } }},  { $set:{ "samples.$":req.body }}, function(err, data){
+        if(err) {
+            return res.status(500).json({'error' : 'error in adding user'});
+        }
+        res.json(data);
+
+    });
+
 });
 
 
