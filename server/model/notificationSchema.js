@@ -10,5 +10,5 @@ module.exports = mongoose.model('Notification', new Schema({
     type: String,
     typeId: String,
     action: String,
-    subscribes: [{user:{ type: String, ref: 'User' },read:Boolean}]
+    subscribes: [{user: {type: String, ref: 'User'}, read: Boolean}]
 }));
