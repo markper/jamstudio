@@ -12,7 +12,9 @@ router.get('/:requestId', ensureLoggedIn, function(req, res, next) {
     //res.send('hello mark');
     // we're connected!
     var id = req.params.requestId;
-    Request.find({_id: id}, function(err, requests) {
+    Request.findOne({_id: id})
+    .populate({path: 'user', select: ['firstName','lastName', 'picture', 'userId'] })
+    .exec(function(err, requests) {
       if (err) {
         res.send("error");
       } else {
@@ -59,4 +61,14 @@ router.delete('/:requestId', function(req, res, next) {
   });
 });
 
+router.put('/:requestId/SetStatus/:status', function(req, res, next) {
+    var requestId = req.params.requestId;
+    var status = req.params.status;
+    Request.update( {_id: requestId}, {status: status}, function(err, request){
+        if(err) {
+            return res.status(500).json({'error' : 'error in in setting status'});
+        }
+        res.json(request);
+    });
+});
 module.exports = router;
