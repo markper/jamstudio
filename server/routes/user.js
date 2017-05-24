@@ -3,16 +3,14 @@ var passport = require('passport');
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var User = require('../model/userSchema');
+var users = require('../controllers/users');
 
 
 /* GET user by id */
 router.get('/:userId',/* ensureLoggedIn, */function(req, res, next) {
-    var id = req.params.userId;
-	User.findOne({_id: id}, function(err, user) {
-		if (err) 
-			res.send("error");
-		res.send(user);
-  	});
+ 	users.getUser(req.params.userId,function(data){
+ 		res.send(data);
+ 	});
 });
 
 /* GET user list */

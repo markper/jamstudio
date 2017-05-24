@@ -3,16 +3,15 @@ var passport = require('passport');
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var File = require('../model/fileSchema');
-
+var files = require('../controllers/files');
 
 /* GET file by id */
 router.get('/:fileId',/* ensureLoggedIn, */function(req, res, next) {
-    var id = req.params.fileId;
-	File.findOne({_id: id}, function(err, file) {
-		if (err) 
-			res.send("error");
-		res.send(file);
-  	});
+
+	files.getFile(req.params.fileId,function(data){
+		res.send(data);
+	});	
+
 });
 
 /* GET file list */
