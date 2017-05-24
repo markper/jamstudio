@@ -4,84 +4,61 @@ var passport = require('passport');
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var Track = require('../model/trackSchema');  // get our mongoose model
+var Project = require('../model/projectSchema');  // get our mongoose model
 
 // get params from request
 var bodyParser = require('body-parser');
 router.use(bodyParser.json());
 
 
-/* Post track profile. */
+/* POST track  */
 router.post('/', function(req, res) {
-    var newTrack = new Track(req.body);
-    newTrack.save(function(err) {
-        if (err) throw err;
-        Project.findOne({_id:newTrack.projectId},function(err,project){
+     var newTrack = new Track(req.body);
+     Project.findOne({_id:newTrack.projectId},function(err,project){
+        if (err) return res.json({'message': err});
+        newTrack.save(function(err) {
+            if (err) 
+                return res.json({'message': err});
             project.tracks.push(newTrack._id);
             project.save();
-            res.json(newTrack);
+            return res.json(newTrack);
         });
     });
 });
 
-
-router.get('/track', function(req, res) {
+/* GET track  */
+router.get('/:trackId', function(req, res) {
     //console.log("/track");
-    Track.find({}, function(err, tracks) {
-        res.json(tracks);
+    Track.findOne({_id:req.params.trackId}, function(err, track) {
+        res.json(track);
     });
 });
 
-
-/* create new track */
-router.post('/track', function(req, res) {
-    var p1 = req.body.trackid;
-    var p2 = req.body.name;
-    var p3 = req.body.description;
-    var newTrack = new Track({
-        trackId : p1,
-        name : p2,
-        description : p3
-    });
-    console.log(newTrack);
-    // save to database
-    newTrack.save(function(err) {
-        if (err) throw err;
-        console.log('Track was added successfully');
-        res.json({ success: true });
-    });
-});
-
-
-/* delete track */
-router.post('/deleteTrack', function(req, res) {
-    // get params
-    var trackId = req.body.trackId;
-    Track.findOne({
-        plan: req.body.trackId
-    }, function(err, track) {
-        if (err) throw err;
-        if (!track) {
-            res.json({ success: false, message: 'track not found.'});
-        }
-        if(track.trackId === trackId){
-            track.remove(function(err) {
-                if (err) throw err;
-                console.log('Track was removed successfully');
-                res.json({ success: true });
-                //res.redirect('http://localhost/track');
-            });
-        }else{
-            res.json({ success: false, message: 'Can not delete track'});
-        }
+/* DELETE track */
+router.delete('/:trackId', function(req, res) {
+    Track.findOne({_id:req.params.trackId}, function(err, track) {
+        if(track)
+        Project.update( {_id:track.projectId}, {$pull: {tracks: req.params.trackId}}, function(err, data){
+        });
+    }).remove().exec(function(err,data){
+        if(!err) return res.json({'message':'track deleted successfully..'});
+        else return res.json({'message':'falid..'});
     });
 });
 
 
 /* update track */
-router.put('updateTrack:_id', function(req, res) {
-    Track.findOne(req.params.trackId, function(err,track){
+router.put('/:trackId', function(req, res) {
+    var newTrack = req.body;
+    Track.findOne({_id:req.params.trackId}, function(err,track){
         if (err) res.send(err);
-        track.description = req.body.description;
+        if(!track) return res.json({ message: 'track does not found..'});
+        track.projectId = newTrack.projectId
+        track.name = newTrack.name
+        track.description = newTrack.description
+        track.genre = newTrack.genre
+        track.version = newTrack.version
+        track.channels = newTrack.channels
         track.save(function(err){
             if (err) res.send(err);
             res.json({ message: "update track"});
