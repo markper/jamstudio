@@ -1,19 +1,19 @@
-exports.errorPermitions = function(){
-	return new Error('error: you are not permited to do this action..');
+exports.errorPermitions = function(info){
+	return new Error('error: you are not permited to do this action.\n '+ info);
 };
 
-exports.errorNotFound = function(){
-	return new Error('error: object not found');
+exports.errorNotFound = function(info){
+	return new Error('error: object not found.\n '+ info);
 };
 
-exports.errorUpdate = function(){
-	return new Error('error: object not updated');
+exports.errorUpdate = function(info){
+	return new Error('error: object not updated.\n '+ info);
 };
 
-exports.errorDelete = function(){
-	return new Error('error: object not deleted');
+exports.errorDelete = function(info){
+	return new Error('error: object not deleted.\n '+ info);
 };
 
-exports.errorCreate = function(){
-	return new Error('error: object not created');
+exports.errorCreate = function(info){
+	return new Error('error: object not created.\n '+ info);
 };
