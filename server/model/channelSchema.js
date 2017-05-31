@@ -13,7 +13,7 @@ module.exports = mongoose.model('Channel', new Schema({
     lock: Boolean,
     visible: Boolean,
     samples: [{
-        sampleId: String,
+        sampleId: Schema.Types.ObjectId,
         channelId: { type: String, ref: 'Channel' },
         fadein: String,
         fadeout: String,

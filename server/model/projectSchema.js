@@ -14,7 +14,7 @@ module.exports = mongoose.model('Project', new Schema({
     users: [{user:{ type: String, ref: 'User' },access:String}],
     issues: [{
             issueId: Schema.Types.ObjectId,
-            projectId: String,
+            projectId: {type: String, ref: 'Project' },
             fromUserId: { type: String, ref: 'User' },
             toUserId: { type: String, ref: 'User' },
             name: String,

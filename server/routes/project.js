@@ -4,94 +4,69 @@ var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var Project   = require('../model/projectSchema');  // get our mongoose model
 var Track   = require('../model/trackSchema');  // get our mongoose model
-
+var projectCtrl = require('../controllers/projects');
 //
 /* PROJECT */
 //
 
 /* POST project. */
 router.post('/', function(req, res, next) {
-    var project = new Project(req.body);
-    project.save(function(err) {
-        if (err) throw err;
+    projectCtrl.createProject(req.body,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);
     });
-    res.send(project);
 });
 
 /* GET project. */
 router.get('/:projectId', function(req, res, next) {
-    var projectId = req.params.projectId;
-    console.log(projectId);
-    Project
-        .findOne({_id:projectId})
-        .populate({path:'adminUser',select: ['firstName','lastName']})
-        .populate({path:'tracks'})
-        .populate({path:'issues'})
-        .populate({path:'users',select:['_id','firstName','lastName']})
-        .exec(function (err, project) {
-            if (!err)
-                res.send(project);
-            else
-                res.send('error');
-        });
+    projectCtrl.getProject(req.params.projectId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);
+    });
+});
+
+/* PUT - update project  */
+router.put('/:projectId', function(req, res, next) {
+    projectCtrl.updateProject(req.params.projectId,req.body,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);
+    });
 });
 
 /* PUT - set project version */
 router.put('/:projectId/SetVersion/:trackId', function(req, res, next) {
-    var projectId = req.params.projectId;
-    var trackId = req.params.trackId;
-    Project.update( {_id:projectId}, {track_version:trackId}, function(err, project){
-        if(err) {
-            return res.status(500).json({'error' : 'error in deleting address'});
-        }
-        res.json(project);
+    projectCtrl.updateProjectVersion(req.params.projectId,req.params.trackId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);
     });
 });
 
-
 /* GET project versions. */
 router.get('/:projectId/GetVersions', function(req, res, next) {
-    var projectId = req.params.projectId;
-    Project
-        .findOne({_id:projectId})
-        .select(["tracks"])
-        .populate({path:'tracks',select:['trackId','projectId','name','description','genre','version']})
-        .exec(function (err, versions) {
-            if (!err){
-                res.send({"versions": versions.tracks});
-            }
-            else
-                res.send('error');
-        });
+    projectCtrl.getVersions(req.params.projectId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);       
+    });
 });
 
 /* GET project list by user. */
 router.get('/GetList/:userId', function(req, res, next) {
-    var userId = req.params.userId;
-    Project
-        .find({adminUser:userId})
-        .select(["name","_id","description","adminUser","users","genre"])
-        .populate({path:'adminUser',select: ['firstName','lastName']})
-        .populate({path:'users',select:['_id','firstName','lastName']})
-        .exec(function (err, adminProjects) {
-            if (!err){
-                console.log(adminProjects);
-                 Project
-                .find({ adminUser:{ $ne: userId },users: { $elemMatch: { user:userId } } })
-                .select(["name","_id","description","adminUser","users","genre"])
-                .populate({path:'adminUser',select: ['firstName','lastName']})
-                .populate({path:'users',select:['_id','firstName','lastName']})
-                .exec(function (err, contributorProject) {
-                    if (!err)
-                        res.send({'admin':adminProjects, 'contributor': contributorProject});
-                    else
-                        res.send('error');
-                });
-                //res.send(adminProjects);
-            }
-            else
-                res.send('error');
-        });
+    projectCtrl.getListOfUser(req.params.userId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);       
+    });
 });
 
 
@@ -101,21 +76,12 @@ function getUserID(req){
 
 /* DELETE - Remove project. */
 router.delete('/:projectId'/*,ensureLoggedIn*/, function(req, res, next) {
-    
-    var projectId = req.params.projectId;
-    var userToDelete = req.params.userToDelete;
-    console.log(projectId);
-    console.log(userToDelete);
 
-    Project.findOne( {_id:projectId}, function(err, data){
-        if(err) {
-            return res.status(500).json({'error' : 'error could not find project'});
-        }
-    }).remove().exec(function(err,data){
-        if(!err)
-            return res.json({'message':'project deleted successfully..'});
+    projectCtrl.deleteProject(req.params.projectId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
         else
-            return res.json({'message':'faild..'});
+            res.status(200).send(data);       
     });
 
 });
@@ -127,30 +93,23 @@ router.delete('/:projectId'/*,ensureLoggedIn*/, function(req, res, next) {
 /* DELETE - Remove user from project. */
 router.delete('/:projectId/user/:userId'/*,ensureLoggedIn*/, function(req, res, next) {
     
-    var projectId = req.params.projectId;
-    var userId = req.params.userId;
-    Project.update( {_id:projectId}, {$pull: {users: {user:userId}}}, function(err, data){
-        if(err) {
-            return res.status(500).json({'error' : 'error in deleting address'});
-        }
-        res.json(data);
+    projectCtrl.deleteUser(req.params.projectId,req.params.userId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);       
     });
 
 });
 
-/* POST - add user to project. */
+/* PUT - add user to project. */
 router.post('/:projectId/user/:userId/access/:access'/*,ensureLoggedIn*/, function(req, res, next) {
     
-    var projectId = req.params.projectId;
-    var userId = req.params.userId;
-    var access = req.params.access;
-
-    Project.update( {_id:projectId}, {$push: {users: {user:userId,access:access}}}, function(err, data){
-        if(err) {
-            return res.status(500).json({'error' : 'error in adding user'});
-        }
-        res.json(data);
-
+    projectCtrl.addUser(req.params.projectId,req.params.userId,req.params.access,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);       
     });
 
 });
@@ -158,16 +117,11 @@ router.post('/:projectId/user/:userId/access/:access'/*,ensureLoggedIn*/, functi
 /* PUT - update user access in project. */
 router.put('/:projectId/user/:userId/access/:access'/*,ensureLoggedIn*/, function(req, res, next) {
     
-    var projectId = req.params.projectId;
-    var userId = req.params.userId;
-    var access = req.params.access;
-
-    Project.update( {_id:projectId,users: { $elemMatch: { user:userId } }},  { $set:{ "users.$.access":access }}, function(err, data){
-        if(err) {
-            return res.status(500).json({'error' : 'error in adding user'});
-        }
-        res.json(data);
-
+    projectCtrl.addUser(req.params.projectId,req.params.userId,req.params.access,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);       
     });
 
 });
@@ -175,21 +129,11 @@ router.put('/:projectId/user/:userId/access/:access'/*,ensureLoggedIn*/, functio
 /* GET - get contributors. */
 router.get('/:projectId/GetContributors'/*,ensureLoggedIn*/, function(req, res, next) {
     
-    var projectId = req.params.projectId;
-    var userId = req.params.userId;
-    var access = req.params.access;
-
-    Project
-    .findOne( {_id:projectId})
-    .select(["users"])
-    .populate({path:'users',select:['firstName','lastName']})
-    .exec(function(err, data)
-    {
-        if(err) {
-            return res.status(500).json({'error' : 'error with find contributors'});
-        }
-        res.json({contributors: data.users});
-
+    projectCtrl.getContributors(req.params.projectId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);       
     });
 
 });
@@ -200,60 +144,48 @@ router.get('/:projectId/GetContributors'/*,ensureLoggedIn*/, function(req, res, 
 
 /* POST add issue to project */
 router.post('/:projectId/Issue', function(req, res, next) {
-    Project.
-    findOne({_id:req.params.projectId},function(err,project){
-        if(err)
-            return res.json({ success: false });
-        project.issues.push(req.body);
-        project.save(function(err,issue){
-            if(err)
-                return res.json({ success: false });
-            else
-                return res.json({ success: true });
-        });
+
+    projectCtrl.addIssue(req.params.projectId,req.body,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);       
     });
+
 });
 
 /* GET issue from project */
 router.get('/:projectId/Issue/:issueId'/*, ensureLoggedIn*/, function(req, res, next) {
-  var projectId = req.params.projectId;
-  var issueId = req.params.issueId;
-  Project
-  .findOne({_id:projectId,'issues._id':issueId})
-  .populate({path:'issues'})
-  .exec(function (err, project) {
-    if (!err)
-     res.send(project.issues[0]);  
-    else
-      res.send('error');
-  });
+
+    projectCtrl.getIssue(req.params.projectId,req.params.issueId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);       
+    });
+
 });
 
 /* DELETE issue from project */
 router.delete('/:projectId/Issue/:issueId'/*, ensureLoggedIn*/, function(req, res, next) {
-    var projectId = req.params.projectId;
-    var issueId = req.params.issueId;
-    Project.update( {_id:projectId}, {$pull: {issues: {_id:issueId}}}, function(err, data){
-        if(err) {
-            return res.status(500).json({'error' : 'error in deleting address'});
-        }
-        res.json(data);
+    
+    projectCtrl.deleteIssue(req.params.projectId,req.params.issueId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);       
     });
+
 });
 
 /* PUT update issue */
 router.put('/:projectId/Issue/:issueId'/*,ensureLoggedIn*/, function(req, res, next) {
     
-    var projectId = req.params.projectId;
-    var issueId = req.params.issueId;
-    req.body._id = issueId;
-
-    Project.update( {_id:projectId,issues: { $elemMatch: { _id:issueId } }},  { $set:{ "issues.$":req.body }}, function(err, data){
-        if(err) {
-            return res.status(500).json({'error' : 'error in adding user'});
-        }
-        res.json(data);
-
+    projectCtrl.updateIssue(req.params.projectId,req.params.issueId,req.body,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);       
     });
 
 });
