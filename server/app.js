@@ -28,6 +28,7 @@ var plan = require('./routes/plan');
 var request = require('./routes/request');
 var file = require('./routes/file');
 var notification = require('./routes/notification');
+var icq = require('./routes/icq');
 
 
 // This will configure Passport to use Auth0
@@ -106,6 +107,7 @@ app.use('/plan', plan);
 app.use('/request', request);
 app.use('/file', file);
 app.use('/notification', notification);
+app.use('/icq', icq);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
