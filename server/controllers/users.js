@@ -9,6 +9,10 @@ exports.getUser = function(userId,callback){
   	});
 };
 
+exports.getUserId = function(fullUserId){
+	return fullUserId.split("|")[1];
+};
+
 exports.getUsersByPrefix = function(prefix,callback){
     var regex = '/'+ prefix +'/i';
 	User.find({$or:[

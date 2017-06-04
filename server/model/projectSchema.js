@@ -10,7 +10,7 @@ module.exports = mongoose.model('Project', new Schema({
     name: String,
     description: String,
     genre: String,
-    track_version: String,
+    track_version: {type: String, ref: 'Track' },
     users: [{user:{ type: String, ref: 'User' },access:String}],
     issues: [{
             issueId: Schema.Types.ObjectId,

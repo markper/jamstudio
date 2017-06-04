@@ -17,6 +17,16 @@ router.get('/:fileId',/* ensureLoggedIn, */function(req, res, next) {
 });
 
 /* GET file list */
+router.get('/GetAll/:userId',/* ensureLoggedIn, */function(req, res, next) {
+	fileCtrl.getAllByUser(req.params.userId,function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);	
+		else
+			res.status(200).send(data);
+	});
+});
+
+/* GET file list */
 router.get('/GetList/:userId',/* ensureLoggedIn, */function(req, res, next) {
 	fileCtrl.getListByUser(req.params.userId,function(data){
 		if(data instanceof Error)
@@ -26,6 +36,15 @@ router.get('/GetList/:userId',/* ensureLoggedIn, */function(req, res, next) {
 	});
 });
 
+/* GET file list */
+router.get('/GetSharedList/:userId',/* ensureLoggedIn, */function(req, res, next) {
+	fileCtrl.getSharedListByUser(req.params.userId,function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);	
+		else
+			res.status(200).send(data);
+	});
+});
 
 /* PUT user by id */
 router.put('/:fileId',/* ensureLoggedIn, */function(req, res, next) {

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>JamStudio</title>
+  <link rel="icon" type="image/png" href="includes/images/favicon.png">
+  <link rel="stylesheet" type="text/css" href="includes/style/website.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head>
+<body class="noselect">
+<div class="login-page">
+  <div class="form">
+    <form class="register-form">
+      <input type="text" placeholder="firstName"/>
+      <input type="text" placeholder="lastName"/>
+      <input type="text" placeholder="email address"/>
+      <input type="password" placeholder="password"/>
+      <button>create</button>
+      <p class="message">Already registered? <a href="#">Sign In</a></p>
+    </form>
+    <form class="login-form">
+      <input type="text" id="email" placeholder="username" name="email"/>
+      <input type="password" id="password" placeholder="password" name="password"/>
+      <button id="btn_login">login</button>
+      <p class="message">Not registered? <a href="#">Create an account</a></p>
+    </form>
+  </div>
+</div>
+<script>
+$(document).on('click','#btn_login',function(e){
+ event.preventDefault();
+    $.ajax({
+        type: "Post",
+        datatype:"json",
+        url: 'http://localhost:3000/api/authenticate',
+        data:({
+            email : $('#email').val(),
+            password: $('#password').val()
+        }),
+        success: function(result)
+        {
+            if(result && result.token.length>1) // you should do your checking here
+            {
+                window.location = 'studio.html'; //just to show that it went through
+            }
+            else
+            {
+                $('#result').empty().addClass('error')
+                    .append('Something is wrong.');
+            }
+        }
+    });
+    return false;
+});
+$('.message a').click(function(){
+   $('form').animate({height: "toggle", opacity: "toggle"}, "slow");
+});
+</script>
+</body>
+</html>

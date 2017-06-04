@@ -3,23 +3,29 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Studio</title>
-	<link rel="icon" type="image/png" href="includes/images/favicon.png">
-	<link rel="stylesheet" type="text/css" href="includes/style/stylesheetstudio.css">
+	<link rel="icon" type="image/png" href="http://localhost:3000/static/includes/images/favicon.png">
+	<link rel="stylesheet" type="text/css" href="http://localhost:3000/static/includes/style/stylesheetstudio.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-	<script src="includes/scripts/spectrum.js"></script>
-	<script src="includes/scripts/studio.js"></script>
-	<script src="includes/scripts/studioUI.js"></script>
-	<link rel="stylesheet" href="includes/style/jquery-ui.min.css">
-	<script src="includes/scripts/jquery-ui.min.js"></script>
-	<script src="includes/scripts/recorder.js"></script>
+	<script src="http://localhost:3000/static/includes/scripts/spectrum.js"></script>
+		<link rel="stylesheet" href="http://localhost:3000/static/includes/style/jquery-ui.min.css">
+	<script src="http://localhost:3000/static/includes/scripts/jquery-ui.min.js"></script>
+	<script src="http://localhost:3000/static/includes/scripts/controllerAPI.js"></script>
+	<script src="http://localhost:3000/static/includes/scripts/studio.js"></script>
+	<script src="http://localhost:3000/static/includes/scripts/studioUI.js"></script>
+	<script src="http://localhost:3000/static/includes/scripts/recorder.js"></script>
 </head>
 <body class="noselect">
 	<header>
 		<ul>
 			<li id="logo">J</li>
 			<li id="connected_user">
-				<div class="user_img" style="background-image: url(https://scontent.fhfa2-1.fna.fbcdn.net/v/t1.0-1/c26.7.40.40/p74x74/1374206_10151895529017929_1400551419_n.jpg?oh=d2a7b83d1a19fb557fb09fc50bc5b760&oe=5929F59B)"></div>
-				<div class="username">israel.israeli@gmail.com <span>&#x25BC;</span></div>
+				<div class="user_img" style="background-image: url()"></div>
+				<div class="username"><span>israel.israeli@gmail.com</span> <span>&#x25BC;</span></div>
+				<section id="connected_user_menu">
+					<ul>
+						<li id="logout">Logout</li>
+					</ul>
+				</section>
 			</li>
 			<li id="toolbox">
 				<ul>
@@ -46,6 +52,7 @@
 				</ul>
 				<ul>
 					<li id="toolbox_btn_export"></li>
+					<li id="toolbox_btn_create_music"></li>					
 					<li id="toolbox_btn_wav"></li>
 				</ul>
 			</li>
@@ -68,7 +75,8 @@
 		<div id="cursorLine"></div>
 		<section id="file_explorer">
 			<article class="file_explorer_title">
-				File Explorer		
+				File Explorer	
+				<div class="file_explorer_uploader"></div>	
 				<span class="minimize">&#95;</span>					
 				<span class="maximize">&square;</span>					
 			</article>
@@ -83,35 +91,29 @@
 				</article>
 			</section>
 		</section>
-		<section id="black_screen">
-			<section>
-				<div id="close_white_window" href="#">&times;</div>
-				<div id="white_window_title"></div>
-			</section>
-		</section>
-		<nav id="mySidenav" class="sidenav">
-			<ul>
-			  	<li>
-			  		<a href="#" id="close_nav" class="closebtn">&times;</a>
-			  	</li>
-				<li id="nav_settings">
-					<a href="#">Settings</a>
-				</li>
-				<li id="nav_versions">
-					<a href="#">Versions</a>
-				</li>
-				<li id="nav_contributors">
-					<a href="#">Contributors</a>
-				</li>
-				<li id="nav_issues">
-					<a href="#">Issues</a>
-				</li>
-				<li id="nav_exit">
-					<a href="#">Exit</a>
-				</li>
-			</ul>
-		</nav>
 	</main>
+	<nav id="mySidenav" class="sidenav">
+		<ul>
+		  	<li>
+		  		<a href="#" id="close_nav" class="closebtn">&times;</a>
+		  	</li>
+			<li id="nav_settings">
+				<a href="#">Settings</a>
+			</li>
+			<li id="nav_versions">
+				<a href="#">Versions</a>
+			</li>
+			<li id="nav_contributors">
+				<a href="#">Contributors</a>
+			</li>
+			<li id="nav_issues">
+				<a href="#">Issues</a>
+			</li>
+			<li id="nav_exit">
+				<a href="#">Exit</a>
+			</li>
+		</ul>
+	</nav>
 	<footer>
 		<div id="volume-master">
 			<div class="volume-on volume-icon"></div>
@@ -140,10 +142,18 @@
 	<section id="loader">
 		<div></div>
 	</section>
+	<section id="contextmenu"></section>
+		<section id="black_screen">
+			<section>
+				<div id="close_white_window" href="#">&times;</div>
+				<div id="white_window_title"></div>
+			</section>
+		</section>
 	<script>
 		(function(){
 			var s = new studio();
-			s.init('includes/data/data.json');
+			var sui = new studioUI(s);
+			s.init();
 		})();
 	</script>
 </body>

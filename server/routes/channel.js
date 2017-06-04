@@ -47,6 +47,16 @@ router.put('/:channelId', function(req, res) {
     }); 
 });
 
+router.post('/Sync', function(req, res) {
+    channelCtrl.syncChannels(req.body,function(data){
+        if(data instanceof Error){
+            console.log(data.message);
+            res.status(500).send(data.message);}
+        else
+            res.status(200).send(data);
+    }); 
+});
+
 //
 /* SAMPLES */
 //

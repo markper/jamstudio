@@ -9,6 +9,16 @@ router.get('/getId',/* ensureLoggedIn, */ function(req, res, next) {
 	console.log(req.user.id);
 });
 
+/* get logged in information */
+router.get('/getInfo', ensureLoggedIn,  function(req, res, next) {
+	
+	userCtrl.getUser(userCtrl.getUserId(req.user.id),function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);	
+		else
+			res.status(200).send(data);
+ 	});
+});
 
 /* GET user by id */
 router.get('/:userId',/* ensureLoggedIn, */function(req, res, next) {

@@ -4,71 +4,60 @@ var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var Request   = require('../model/requestSchema');  // get our mongoose model
 var bodyParser  = require('body-parser');
+var requestCtrl = require('../controllers/requests');
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
 
 /* GET project. */
-router.get('/:requestId', ensureLoggedIn, function(req, res, next) {
-    //res.send('hello mark');
-    // we're connected!
-    var id = req.params.requestId;
-    Request.findOne({_id: id})
-    .populate({path: 'user', select: ['firstName','lastName', 'picture', 'userId'] })
-    .exec(function(err, requests) {
-      if (err) {
-        res.send("error");
-      } else {
-        res.send(requests);
-      }
+router.get('/:requestId', function(req, res, next) {
+    requestCtrl.getRequest(req.params.requestId,function(data){
+  		if(data instanceof Error)
+  			res.status(500).send(data.message);
+  		else
+  			res.status(200).send(data);
+  	});
   });
-});
 
 router.put('/:requestId',/* ensureLoggedIn,*/ function(req, res, next) {
-    var id = req.params.requestId;
-    var reqJson = req.body;
-    Request.findOne({_id: id}, function(err, request) {
-      if (err) {
-        res.send(err);
-      } else {
-        request.projectId = reqJson.projectId;
-        request.status = reqJson.status;
-        request.userId = reqJson.userId;
-        request.save();
-        res.send(request);
-      }
-  });
+    requestCtrl.updateRequest(req.params.requestId, req.body, function(data){
+  		if(data instanceof Error)
+  			res.status(500).send(data.message);
+  		else
+  			res.status(200).send(data);
+  	});
 });
 
 router.post('/', function(req, res, next) {
   var request = new Request(req.body);
-  res.send(req.body);
-  request.save(function (err, createdRequestObject) {
-      if (err) {
-          res.send(err);
-      }
-      // This createdRequestObject is the same one we saved, but after Mongo
-      // added its additional properties like _id.
-      res.send(createdRequestObject);
+  requestCtrl.createRequest(request, function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);
+		else
+			res.status(200).send(data);
   });
 });
 
-router.delete('/:requestId', function(req, res, next) {
-  Request.findByIdAndRemove({_id: req.params.requestId}, function (err, request) {
-    if(err)
-      res.send('failed');
-    else
-      res.send('ok');
-  });
+/* DELETE file */
+router.delete('/:requestId', /* ensureLoggedIn, */function(req, res, next) {
+    requestCtrl.deleteRequest(req.params.requestId, function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);
+		else
+			res.status(200).send(data);
+    });
 });
+
 
 router.put('/:requestId/SetStatus/:status', function(req, res, next) {
     var requestId = req.params.requestId;
     var status = req.params.status;
-    Request.update( {_id: requestId}, {status: status}, function(err, request){
-        if(err) {
-            return res.status(500).json({'error' : 'error in in setting status'});
-        }
-        res.json(request);
-    });
+    requestCtrl.updateRequestStatus(requestId, status, function(data){
+  		if(data instanceof Error)
+  			res.status(500).send(data.message);
+  		else
+  			res.status(200).send(data);
+  	});
 });
+
+
 module.exports = router;

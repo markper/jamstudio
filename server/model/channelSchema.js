@@ -20,7 +20,7 @@ module.exports = mongoose.model('Channel', new Schema({
         start: String,
         volume: String,
         duration: String,
-        fileId: { type: String, ref: 'File' }
+        file: { type: String, ref: 'File' }
     }]
 }));
 

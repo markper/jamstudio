@@ -9,8 +9,40 @@ exports.getFile = function(fileId,callback){
   	});
 };
 
+exports.getAllByUser = function(userId,callback){
+	File
+	.find({ $or:[{sharedUsers: userId},{userOwner: userId}]})
+	.populate({path:'userOwner', select:['firstName','lastName','picture']})
+    .populate({path:'sharedUsers', select:['firstName','lastName','picture']})
+    .exec(function (err, files) {
+			console.log(files);
+		var owner= [], shared = [];
+		for (var i = files.length - 1; i >= 0; i--) {
+			if(files[i].userOwner._id == userId)
+				owner.push(files[i]);
+			else
+				shared.push(files[i]);
+		}
+		if (err) 
+			return callback(errors.errorNotFound());
+		return callback({
+			files: owner,
+			sharedFiles: shared
+		});
+  	});
+};
+
 exports.getListByUser = function(userId,callback){
 	File.find({userOwner: userId}
+		, function(err, files) {
+		if (err) 
+			return callback(errors.errorNotFound());
+		return callback(files);
+  	});
+};
+
+exports.getSharedListByUser = function(userId,callback){
+	File.find({sharedUsers:  userId }
 		, function(err, files) {
 		if (err) 
 			return callback(errors.errorNotFound());

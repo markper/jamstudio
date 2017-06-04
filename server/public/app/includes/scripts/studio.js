@@ -11,75 +11,122 @@ var studio = function studio(){
 	var p = new player();
 	var ac = new actionController();
 	var ss = new selectedSamples();
+	var sf = new selectedFiles();
+	var sc = new selectedChannels();
 	var sr = new soundRecorder();
 	var mouseOffsetSampleClicked;
 	var sharedEvent = null;
 	var ctlFiles = new files();
 	var ctlProject = new project();
+	var ctlUser = new user();
+	var ctlAPI = new controllerAPI();
 
-	this.init = function init(url){
-		var tmp = null;
-		$.ajax({
-			dataType: "json",
-			url: url,
-			success:  function(result){
-				drawGrid(result.project.name);
-				ctlProject.init(result);
-			}
-		});	
-		$.ajax({
-			dataType: "json",
-			url: 'includes/data/dataFiles.json',
-			success:  function(result){
-				ctlFiles.init(result);
-			}
-		});	
+	this.init = function init(){
+		
+		// Init studio
+		ctlAPI.getUserInfo(function(result){
+
+	        	// load user information
+				ctlUser.init(result);
+
+				// get user FILES
+				ctlAPI.getFileByUser(result._id,function(result){
+					ctlFiles.init(result);
+				});
+				
+				// get user PROJECT 
+				ctlAPI.getProject(getURLID(),function(result){
+					
+					// set project name and prepare project grid
+					drawGrid((result==null?"":result.name));
+					// load user project
+					ctlProject.init(result);
+					// init ui
+					studioUI(ctlAPI,(result==null?"":result._id));
+				});
+	        
+	    });
 	};
 
 	/* UI Objects */
 
 	function files(){
 		this.map = {};
+
 		this.init = function(data){
 			for (var i = 0; i < data.files.length; i++) {
-				this.add({type:'files', file: data.files[i].file});
+				this.add({type:'files', file: data.files[i]});
 			}
 			for (var i = 0; i < data.sharedFiles.length; i++) {
-				this.add({type:'sharedFiles',file: data.files[i].file});
+				this.add({type:'sharedFiles',file: data.sharedFiles[i]});
 			}
 		}
 		this.add = function(data){
-			this.map['file'+data.file.fileId]=data.file;
-			$('#'+data.type).append('<li class="file" draggable="true" id="file'+data.file.fileId+'">'+ data.file.name+'</li>');
+			this.map['file'+data.file._id]=data.file;
+			$('#'+data.type).append('<li class="file" draggable="true" id="file'+data.file._id+'">'+ data.file.name+'</li>');
 		}
 		this.remove = function(file){
-			$('file'+file.fileId).remove();
-			this.map.delete('file'+file.fileId);
+			$('file'+file._id).remove();
+			this.map.delete('file'+file._id);
 		}
 	};
 
+	function user(){
+
+		user.user = null;
+		user.files = null;
+		user.sharedFiles = null;
+
+		this.init = function(data){
+			user.user = data;
+            $('div.username span:first').text(data.email);
+            $('header #connected_user .user_img').css('background-image','url('+data.picture+')');
+		};
+	};
+
 	function project(data){
+		var _this = this;
 
 		this.channels = {};
 
+		this.contributors = {};
+
 		this.json = {};
 
+		this.track_version = null;
+
 		this.init = function(data){
+			if(data==null)				
+				data ={tracks:[]}				
 			this.json = data;
-			for (var i = 0; i < data.project.tracks[0].track.channels.length; i++) {
-				var channelObject = data.project.tracks[0].track.channels[i].channel; 
-				var channel = new Channel(channelObject.channelId,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument);				
-				// samples
-				var samples = channelObject.samples;
-				for (var j = 0; j < samples.length; j++) {	
-					var sample = new Sample(samples[j].sample.sampleId,channel.channelId,samples[j].sample.file.path,
-						samples[j].sample.duration,samples[j].sample.start,samples[j].sample.volume,samples[j].sample.delay,
-						samples[j].sample.fadeIn,samples[j].sample.fadeOut);	
-					channel.addSample(sample);				
-				}	
-				this.add(channel);
-			}
-			this.toJson();
+			this.track_version =  data.track_version._id;
+			ctlAPI.getContributors(data._id,function(result){
+				_this.contributors[result.adminUser._id] = result.adminUser;
+				for (var i = 0; i < result.users.length; i++) {
+					_this.contributors[result.users[i]._id] = result.users[i];
+				}
+				
+				if(!data.track_version)
+					return;
+				for (var i = 0; i < data.track_version.channels.length; i++) {
+					var channelObject = data.track_version.channels[i]; 
+					var channel = new Channel(channelObject._id,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument
+						,channelObject.trackId,channelObject.userId);				
+					// samples
+					var samples = channelObject.samples;
+					if(samples.length>0)
+					for (var j = 0; j < samples.length; j++) {	
+						var sample = new Sample(samples[j]._id,channel.channelId,samples[j].file.path,samples[j].file._id,
+							samples[j].duration,samples[j].start,samples[j].volume,samples[j].delay,
+							samples[j].fadeIn,samples[j].fadeOut);	
+						channel.addSample(sample);				
+					}	
+					_this.add(channel);
+				}
+				_this.toJson();
+
+			});
+		
 		}
 		this.add = function(channel){
 			this.channels[channel.channelId] = channel;
@@ -89,7 +136,11 @@ var studio = function studio(){
 			return this.channels[channelId];
 		}
 		this.remove = function(channel){
-			this.channels.delete(channel.channelId);
+			$('[data-channel='+channel.channelId+']').remove();
+			updateSampleComponents();
+			resetCursor();
+			channel.remove();
+			delete this.channels[channel.channelId];
 		}
 		this.eachSample = function(callback){
 			$.each( Channel.allSamples, function( i, sample ){
@@ -97,6 +148,7 @@ var studio = function studio(){
 			});			
 		}
 		this.getSample = function(sampleId){
+			console.log(Channel.allSamples);
 			return Channel.allSamples[sampleId];
 		}
 
@@ -105,7 +157,9 @@ var studio = function studio(){
 			$.each(this.channels, function( i, channel ){
 				jChannels.push(channel.toJson())
 			});	
-			this.json.project.tracks[0].track.channels = jChannels;
+			if(this.json.tracks.length==0)
+				this.json.tracks = [{track:{}}];
+			this.json.track_version.channels = jChannels;
 			return this.json;
 		}
 
@@ -173,6 +227,14 @@ var studio = function studio(){
 					actionController.actionsUndo.push(new Action('sample_cut_copy',null));	
 					break;
 				}
+				case 'channel_delete':{
+					channel_delete(this);
+					break;
+				}
+				case 'channel_new':{
+					channel_new(this);
+					break;
+				}
 			}
 			function sample_show(parent){
 				actionController.actionsUndo.push(new Action('sample_hide',before));	
@@ -194,7 +256,14 @@ var studio = function studio(){
 				actionController.actionsUndo.push(new Action('sample_delete',action.state));	
 				parent.restoreAction(action);	
 			}
-
+			function channel_delete(parent){
+				actionController.actionsUndo.push(new Action('channel_new',action.state));	
+				parent.restoreAction(action);	
+			}
+			function channel_new(parent){
+				actionController.actionsUndo.push(new Action('channel_delete',action.state));	
+				parent.restoreAction(action);	
+			}
 		};
 		this.undo = function(){
 			if(actionController.lock)
@@ -243,6 +312,14 @@ var studio = function studio(){
 					actionController.actionsRedo.push(new Action('sample_cut_copy',null));	
 					break;
 				}
+				case 'channel_new':{
+					channel_new(this);
+					break;
+				}
+				case 'channel_delete':{
+					channel_delete(this);
+					break;
+				}
 			}
 
 
@@ -266,7 +343,14 @@ var studio = function studio(){
 				actionController.actionsRedo.push(new Action('sample_new',action.state));	
 				parent.restoreAction(action);
 			}
-	
+			function channel_new(parent){
+				actionController.actionsRedo.push(new Action('channel_delete',action.state));	
+				parent.restoreAction(action);
+			}
+			function channel_delete(parent){
+				actionController.actionsRedo.push(new Action('channel_new',action.state));	
+				parent.restoreAction(action);
+			}
 		};
 		this.restoreAction = function(action){	
 			switch(action.type){
@@ -300,6 +384,22 @@ var studio = function studio(){
 
 					break;
 				}
+				case 'channel_new':{
+					//$('#'+action.state.id).remove();
+					//ctlProject.get(action.state.channelId).removeSample(action.state);
+					// ctlProject.remove(action.state);						
+					// break;
+					$('#'+action.state.id).remove();
+					ctlProject.remove(action.state);
+					break;
+				}
+				case 'channel_delete':{		
+					$.map( action.state.samples, function( val, i ) {
+						Channel.allSamples[val.id] = val;
+					});
+					ctlProject.add(action.state);
+					break;
+				}
 			}
 			lock = false;
 		}
@@ -311,7 +411,7 @@ var studio = function studio(){
 		player.timeouts = new Array();
 		player.intervals = new Array();
 		player.mutedChannels = new Array();
-		player.mutedChannelsFlag=false;
+		player.mutedChannelsFlag=true;
 		player.channelId = null;
 		player.playTime = 0;
 		player.isPlaying = false;
@@ -645,20 +745,30 @@ var studio = function studio(){
 	}
 
 	var Channel = class Channel {
-	  constructor(channelId,volume,name,username,instrument) {
+	  constructor(channelId,volume,name,username,instrument,trackId,userId) {
 	  	this.channelId = channelId;	
 	    this.volume = volume;
 	    this.name = name;	
 	    this.username = username;		    
 	    this.instrument = instrument;		
 	    this.samples = {};   
+	    this.trackId = trackId;
+	    this.userId = userId;
+		var _this = this;
+
+	    this.remove = function(){
+	    	$.each( this.samples, function( i, sample ){
+				_this.removeSample(sample);
+			});
+	    }
+
 	    this.addSample = function(sample){
 	    	sample.channelId = this.channelId;
 	    	this.samples[sample.id] = sample;	    	
 	    	Channel.allSamples[sample.id] = sample;
-	    	console.log(Channel.allSamples);
 	    } 
-	    this.removeSample = function(sample){	    	
+	    this.removeSample = function(sample){
+	    	console.log('delete: '+sample.id)	    	
 	    	$('#'+sample.id).remove();
 			sample.aud.pause()
 	    	delete this.samples[sample.id];
@@ -669,18 +779,21 @@ var studio = function studio(){
 	    	var samples = [];
 	    	$.each( this.samples, function( i, sample ){
 				samples.push(sample.toJson());
+
 			});
+			console.log('samples');
+			console.log(samples);
 	    	return {
 					"channel": {
 						"channelId": this.channelId,
-						"trackId": "no",
-						"userId": "user3",
+						"trackId":  this.trackId,
+						"userId": this.userId,
 						"name": this.name,
 						"instrument": this.instrument,
 						"volume":this.volume,
 						"lock": false,
 						"visible": false,
-						"samples": samples
+						"samples": JSON.stringify(samples)
 					}
 				}
 	    }
@@ -697,6 +810,7 @@ var studio = function studio(){
 						'<path class="player-fill" d="M256,0C114.617,0,0,114.617,0,256s114.617,256,256,256s256-114.617,256-256S397.383,0,256,0z M336,320'+
 						'c0,8.836-7.156,16-16,16H192c-8.844,0-16-7.164-16-16V192c0-8.836,7.156-16,16-16h128c8.844,0,16,7.164,16,16V320z"/>';
 			
+			var checkbox = '<input type="checkbox" id="checkbox'+channelId+'" class="css-checkbox lrg"/><label for="checkbox'+channelId+'" name="checkbox'+channelId+'_lbl" class="css-label lrg web-two-style"></label>';
 			var slider = $('<div class="slider-vertical"></div>');
 			$(slider).slider({
 			    orientation: "horizontal",
@@ -708,7 +822,10 @@ var studio = function studio(){
 		 			p.changeChannelVolume(channel.channelId,ui.value*0.01);
 		  	    }
 			});
-			var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channel.name +'</span><div><div class="channel_details"><span class="channel_user">'+channel.userId+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="checkbox"><input type="checkbox" name="channel_checkbox"></li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
+
+			var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channel.name +'</span><div><div class="channel_details"><span class="channel_user">'+
+			ctlProject.contributors[channel.userId].firstName
+				+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="checkbox">'+checkbox+'</li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
 			$(list_item).find('.volume_placeholder').append(slider);
 			$(row).find('.channel_list_row').append(list_item);
 			// create and append, grid cells to grid row
@@ -738,10 +855,11 @@ var studio = function studio(){
 
 
 	var Sample = class Sample {
-	  constructor(id=0,channelId=0,file=0,duration=0,start=0,volume=0,delay=0,fadeIn=0,fadeOut=0) {
+	  constructor(id=0,channelId=0,file=0,fileId=null,duration=0,start=0,volume=0,delay=0,fadeIn=0,fadeOut=0) {
 	    this.id = id;
 	    this.channelId = channelId;
 	    this.file = file;
+	    this.fileId = fileId;
 	    this.time = duration;
 	    this.delay = delay;
 	    this.start = start;
@@ -774,16 +892,13 @@ var studio = function studio(){
 
 	    this.toJson = function(){
 	    	return {
-	    		"sample": {
-					"sampleId": this.id,
-					"fadeIn": this.fadeIn,
-					"fadeOut": this.fadeOut,
+	    			"channelId": this,channelId,
+					"fadein": this.fadeIn,
+					"fadeout": this.fadeOut,
 					"start": this.start,
 					"volume": this.volume,
 					"duration": this.time,
-					"delay": this.delay,
-					"file": {"path": this.file}
-				}
+					"file":  this.fileId				
 	    	}
 	    }
 
@@ -831,6 +946,53 @@ var studio = function studio(){
 	  }
 	};
 
+	function selectedFiles(){
+		selectedFiles.list = new Array();
+		selectedFiles.operation = null;
+
+		this.add = function(file){
+			$('.file').css('opacity','1');
+			if(!$(file).hasClass('selected')){
+				selectedFiles.list.push($(file).attr('id'));
+				$(file).addClass('selected');
+			}else{
+				$(file).removeClass('selected');
+				var index = selectedFiles.list.indexOf($(file).attr('id'));
+				if (index > -1) {
+				    selectedFiles.list.splice(index, 1);
+				}
+				$(file).removeClass('selected');
+			}
+		}
+		this.clean = function(){
+			selectedFiles.list = new Array();
+			$('.file').removeClass('selected').css('opacity','1');
+		}
+	};
+
+	function selectedChannels(){
+		selectedChannels.list = new Array();
+		selectedChannels.operation = null;
+
+		this.add = function(channel){
+			if(!$(channel).hasClass('selected')){
+				selectedChannels.list.push($(channel).attr('id'));
+				$(channel).addClass('selected');
+			}else{
+				$(channel).removeClass('selected');
+				var index = selectedChannels.list.indexOf($(channel).attr('id'));
+				if (index > -1) {
+				    selectedChannels.list.splice(index, 1);
+				}
+				$(channel).removeClass('selected');
+			}
+		}
+		this.clean = function(){
+			selectedChannels.list = new Array();
+			$('.channels_list_row').removeClass('selected');
+		}
+	};
+
 	function selectedSamples(){
 		selectedSamples.list = new Array();
 		selectedSamples.operation = null;
@@ -871,6 +1033,16 @@ var studio = function studio(){
 	}
 
 	/* UI Helper */
+	function getURLID(){
+		return location.href.substr(location.href.lastIndexOf('/') + 1);
+	}
+	Object.size = function(obj) {
+	    var size = 0, key;
+	    for (key in obj) {
+	        if (obj.hasOwnProperty(key)) size++;
+	    }
+	    return size;
+	};
 
 	function getSampletById(sampleId){
 		return ctlProject.getSample(sampleId);
@@ -951,10 +1123,11 @@ var studio = function studio(){
 	function drawFadeIn(sample){
 		var canvas = $(sample).find('canvas');
  		var context = (canvas).get(0).getContext('2d');
+ 		var sampleObject = getSampletById($(sample).attr('id'));
  		context.clearRect(0, 0, canvas.width, canvas.height);
  		context.beginPath();
 		context.moveTo(0, $(sample).height());
-		context.lineTo(secondsToOffset(getSampletById($(sample).attr('id')).fadeIn), 0);
+		context.lineTo(secondsToOffset(sampleObject.fadeIn), 0);
 		context.lineTo(0, 0);
 		context.moveTo(0, $(sample).height());
 		context.fillStyle = $(sample).css("border-right-color");
@@ -1012,7 +1185,7 @@ var studio = function studio(){
 		var sampleId = 'newSample'+sampleIndexGenerator++;
 		var channelId= $(ev.target).closest('.channels_list_row').attr('data-channel');
 		var channel = ctlProject.get(channelId);
-		var sample = new Sample(sampleId,channelId,file.path,file.duration,"0","1","0","0","0");
+		var sample = new Sample(sampleId,channelId,file.path,file._id,file.duration,"0","1","0","0","0");
 		channel.addSample(sample);
 		sample.draw();
 		mouseOffsetSampleClicked=0;		
@@ -1021,13 +1194,14 @@ var studio = function studio(){
 		console.log(ac);
 		ac.addAction(new Action('sample_new',jQuery.extend(true, {}, getSampletById(sampleId))));
 		console.log(ac);
+		updateChannel(channelId);
 	}
 
 	function drawRecord(file,channelId,start){
 		console.log('>'+player.playTime);
 		var sampleId = 'newSample'+sampleIndexGenerator++;
 		var channel = ctlProject.get(channelId);
-		var sample = new Sample(sampleId,channelId,file.file.path,file.file.duration,start,"1","0","0","0");
+		var sample = new Sample(sampleId,channelId,file.file.path,file._id,file.file.duration,start,"1","0","0","0");
 		channel.addSample(sample);
 		sample.draw();
 		ac.addAction(new Action('sample_new',jQuery.extend(true, {}, getSampletById(sampleId))));
@@ -1194,7 +1368,10 @@ var studio = function studio(){
 
 		sample.draw();
 
-		p.reset();
+		p.reset();		
+		updateChannel(lastChannel.channelId);
+		if(lastChannel.channelId!=newChannel.channelId)
+			updateChannel(newChannel.channelId);
 	}
 
 
@@ -1364,6 +1541,87 @@ var studio = function studio(){
 		ss.clean();
 	}
 
+	function deleteChannel(e){
+		var channels = $('.channels_list_row.selected');
+		for (var i = channels.length - 1; i >= 0; i--) {
+
+			var channelId = $(channels[i]).attr('data-channel');
+			var channel = ctlProject.get(channelId);
+
+			ac.addAction(new Action('channel_delete',jQuery.extend(true, {}, channel)));
+
+			ctlProject.remove(channel);
+			ctlAPI.deleteChannels(channelId,function(data){
+				console.log('delete..');
+			});
+
+			p.reset();
+			updateUndoRedoIcons();
+		}
+	}
+
+	function createChannel(e){
+		console.log('tv '+ctlProject.track_version);
+		console.log('usr '+user.user._id);
+		var channelObject = {			
+				"trackId": ctlProject.track_version,
+				"userId": user.user._id,
+				"name": "New Channel",
+				"instrument": "",
+				"volume":"0.6",
+				"lock": false,
+				"visible": false,
+				"samples": []
+		};
+		var generatedId = 'channel'+channelIndexGenerator++;
+		var channel = new Channel(generatedId,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument, channelObject.trackId, channelObject.userId);				
+		ctlAPI.addChannels(channelObject,function(data){
+			channel.channelId = data._id;
+			ctlProject.add(channel);			
+			$('#'+generatedId).closest('.channels_list_row').attr('data-channel',data._id);
+			ac.addAction(new Action('channel_new',jQuery.extend(true, {}, channel)));
+		});
+	}
+
+	function updateChannelName(element){
+		var channelName = $(element);
+		var channelId = $(channelName).closest('.channels_list_row').attr('data-channel');
+		textFieldChange(channelName,function(data){
+			var channel = ctlProject.channels[channelId];
+			channel.name = data;
+			updateChannel(channelId);
+		});
+	}
+	function updateChannel(channelId){
+		var channel = ctlProject.channels[channelId];	
+		console.log(channel.toJson().channel);
+		ctlAPI.updateChannel(channel.toJson().channel,channel.channelId,function(data){
+			console.log(channel.channelId);
+		});
+	}
+
+	function textFieldChange(element,callback){
+		console.log('called..');
+		var input = $('<input type="text" value="'+$(element).text()+'">');
+		$(element).parent().prepend(input);
+		$(element).hide();
+		$(input)
+		.focus()
+		.select()
+		.focusout(function() {
+			callback($(input).val());
+			$(input).remove();
+			$(element).html($(input).val());
+		  	$(element).show();
+		});
+		$(input).keydown(function( event ) {
+		  if ( event.which == 13 ) {
+		  	$(input).blur();
+		   	event.preventDefault();
+		  }
+		});
+	}
+
 	/* UI Events */
 
 	var isShift  = false;
@@ -1374,12 +1632,14 @@ var studio = function studio(){
 
 	$(document).on('dragover','.channel_grid_row',function(e){
 		allowDrop(e);
+		e.preventDefault();
 	});
 	$(document).on('drop','.channel_grid_row',function(e){
 		if(!$('#'+e.originalEvent.dataTransfer.getData("text")).hasClass('file'))
 			drop(e);
 		else
 			dropFile(e);
+		e.preventDefault();
 	});
 	$(document).on('click','.channel_grid_row',function(e){
 		sharedEvent = jQuery.extend(true, {}, e);
@@ -1387,6 +1647,13 @@ var studio = function studio(){
 			ss.clean();
 		}
 		changeCursorPlace(e);
+		e.preventDefault();
+	});
+	
+	$(document).on('mousedown','.checkbox',function(e){
+		var parent = $(this).closest('.channels_list_row');
+		sc.add($(parent));
+		e.preventDefault();
 	});
 
 	// Samples
@@ -1394,13 +1661,10 @@ var studio = function studio(){
 	$(document).on('dragstart','.sample , .file',function(e){
 		drag(e);
 	});
-	$(document).on('contextmenu',function(e){
-		event.preventDefault()
-	});
 
 	$(document).on('mousedown', '.sample , * > .sample',function(e){
 		if(isControl){
-			
+			console.log('ss');
 			ss.add($(this));
 		}
 	    sampleBringFront(e);
@@ -1419,8 +1683,11 @@ var studio = function studio(){
 	$(document).on('mouseup','.sample .ui-resizable-handle',function(e){	
 		
 	});
+
+	/* Keyboard Events */
+
 	$(document).on('keydown', function(e){
-		if($('#black_screen').css('display')!='none')
+		if($('#black_screen').css('display')!='none' || $('input').is(':focus'))
 			return;
 
 		e = e || window.event;
@@ -1477,98 +1744,32 @@ var studio = function studio(){
 		}, 250));
 	});
 
-	// Icons
 
-	$(document).on('click','.channel_pause',function(e){
-		var channelId = $(this).attr('data-channel');
-		lightChannel();
-		p.setChannel();
-		p.pause();
-		modePausingChannel(player.channelId);
-		modePausing();
-	});
-	$(document).on('click','.channel_play',function(e){
-		var channelId = $(this).attr('data-channel');
-		lightChannel($(this).closest('.channels_list_row'));
-		if(!player.isPlaying){
-			p.setChannel(channelId);
-			p.play();
+	/* Header buttons */
+
+	$(document).on('click','#connected_user',function(e){
+		switch(e.target.id){
+			case 'logout':{
+				ctlAPI.logout(function(data){					
+					location.reload();					  
+				});
+				break;
+			}
 		}
-		else if(player.isPlaying && channelId != player.channelId){
-			p.setChannel(channelId);
-			p.pause();
-			p.play();
-		}
-		modePlaying();
-		modePlayingChannel(player.channelId);
+		$('#connected_user_menu').toggle();
 	});
-	$(document).on('click','.channel_name',function(e){
-		var channelName = $(this);
-		var channelId = $(this).closest('.channels_list_row').attr('data-channel');
-		var input = $('<input type="text" value="'+$(this).text()+'">');
-		$(channelName).parent().prepend(input);
-		$(channelName).hide();
-		$(input).focus().focusout(function() {
-			update();
-		}).select();
-
-
-		$(input).keydown(function( event ) {
-		  if ( event.which == 13 ) {
-		  	///update();
-		  	$(input).blur();
-		   	event.preventDefault();
-		  }
+	$(document).on('click','#toolbox_btn_export',function(){
+		var channels = ctlProject.toJson().track_version.channels;
+		var channelsArray = {'channels':[]};
+		for (var i = 0; i < channels.length; i++) {
+			channelsArray['channels'].push(channels[i].channel);
+		}
+		channels = JSON.stringify(channelsArray);
+		console.log(channels);
+		ctlAPI.syncChannels(channels,function(data){
+			console.log(data);
 		});
-		function update(){
-			var channel = ctlProject.channels[channelId];
-			channel.name = $(input).val();
-			console.log(channel.name);
-			
-			$(channelName).html($(input).val());
-		  	$(channelName).show();
-		  	$(input).hide();		  	
-		}
 	});
-
-	$(document).on('click','#play',function(e){
-		lightChannel(null);
-		p.setChannel(null);
-		p.pause();
-		p.play();		
-    	modePlaying();
-	});
-	$(document).on('click','#pause',function(e){
-		p.pause();
-		p.setChannel(null);    	
-		lightChannel(null);
-		modePausing();
-		clearInterval(timeout);
-	});
-	$(document).on('click','#stop',function(e){
-		p.stop();
-		p.setChannel(null);
-		lightChannel(null);
-		resetPlayPause();
-		clearInterval(timeout);
-	});
-	var timeout;
-	$(document).on('mousedown','#backward',function(e){
-		timeout = setInterval(function(){
-        	p.move(-0.50);
-    	}, 100);
-	});
-	$(document).on('mousedown','#forward',function(e){
-		timeout = setInterval(function(){
-        	p.move(0.25);
-    	}, 100);
-	});
-	$(document).on('mouseleave mouseup','#backward , #forward',function(e){
-		clearInterval(timeout);
-		//$('#cursorLine').stop()
-		p.reset();
-	});
-
 	$(document).on('click','#toolbox_btn_zoomin',function(){
 		zoomIn();
 	});
@@ -1621,24 +1822,63 @@ var studio = function studio(){
 	$(document).on('click','#toolbox_btn_delete',function(e){
 		deleteSample();
 	});
-	$(document).on('click','#btn_channel_new',function(e){
-		var channelObject = {			
-				"channelId": "channel_newchannel_" + channelIndexGenerator++,
-				"trackId": "track1",
-				"userId": "user1",
-				"name": "New Channel",
-				"instrument": "",
-				"volume":"0.6",
-				"lock": false,
-				"visible": false,
-				"samples": []
-		};
-		var channel = new Channel(channelObject.channelId,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument);				
-		ctlProject.add(channel);
-	    $('.channel_list_row , .channel_list_buttons').css({
-	        'left': $('main').scrollLeft()	        
-	    });
+
+	$(document).on('click','#toolbox_btn_create_music',function(e){
+		console.log(ctlProject.toJson());
+
+		if($(e.target).hasClass('loading'))
+			return;
+		else
+			$(e.target).addClass('loading');
+
+		ctlAPI.export(ctlProject.toJson(),function(msg){
+			var link = document.createElement("a");
+		    link.download = msg;
+		    link.href = msg;
+		    link.click();
+		    $(e.target).removeClass('loading');
+		});
 	});
+
+	/* Channel list */
+
+	$(document).on('click','.channel_pause',function(e){
+		var channelId = $(this).attr('data-channel');
+		lightChannel();
+		p.setChannel();
+		p.pause();
+		modePausingChannel(player.channelId);
+		modePausing();
+	});
+
+	$(document).on('click','.channel_play',function(e){
+		var channelId = $(this).attr('data-channel');
+		lightChannel($(this).closest('.channels_list_row'));
+		if(!player.isPlaying){
+			p.setChannel(channelId);
+			p.play();
+		}
+		else if(player.isPlaying && channelId != player.channelId){
+			p.setChannel(channelId);
+			p.pause();
+			p.play();
+		}
+		modePlaying();
+		modePlayingChannel(player.channelId);
+	});
+
+	$(document).on('click','#btn_channel_delete',function(e){
+		deleteChannel(e);
+	});
+
+	$(document).on('click','.channel_name',function(e){
+		updateChannelName(e.target);
+	});
+
+	$(document).on('click','#btn_channel_new',function(e){
+		createChannel(e);
+	});
+
 	$(document).on('click','.btn_eye',function(e){
 		var channel = $(this).closest('.channels_list_row');
 		var channelId = $(channel).attr('data-channel');
@@ -1683,6 +1923,75 @@ var studio = function studio(){
 			$(this).css('opacity','1');
 		p.reset();	
 		resetCursor();
+	});
+
+	/* Sound Recorder */
+
+	$(document).on('mousedown','.btn_mic , .btn_mic_recording',function(e){
+		var recordChannelId = $(this).closest('.channels_list_row').attr('data-channel');
+	    if(sr.timer==null){	    
+	    	console.log('start');		    
+			sr.recordStart(recordChannelId);
+	    }else if($(this).hasClass('btn_mic_recording')){
+	    	sr.recordStop();
+	    	console.log('stop');		    
+	    }
+	});
+	$(document).on('mousedown','#startRecord',function(e){
+	    sr.recorder && sr.recorder.record();
+	    $('#startRecord').hide();
+	    $('#stopRecord').show();
+	    sr.timer = setInterval(function(){
+			sr.time_record+=0.1;
+		},100);
+	});
+
+	$(document).on('mousedown','#stopRecord',function(e){
+	    recorder && recorder.stop();
+	    $('#startRecord').show();
+	    $('#stopRecord').hide();
+	    sr.createDownloadLink();
+	  	sr.clearInterval(timer);
+	    sr.recorder.clear();
+	});
+
+	/* Footer Icons */
+
+	$(document).on('click','#play',function(e){
+		lightChannel(null);
+		p.setChannel(null);
+		p.pause();
+		p.play();		
+    	modePlaying();
+	});
+	$(document).on('click','#pause',function(e){
+		p.pause();
+		p.setChannel(null);    	
+		lightChannel(null);
+		modePausing();
+		clearInterval(timeout);
+	});
+	$(document).on('click','#stop',function(e){
+		p.stop();
+		p.setChannel(null);
+		lightChannel(null);
+		resetPlayPause();
+		clearInterval(timeout);
+	});
+	var timeout;
+	$(document).on('mousedown','#backward',function(e){
+		timeout = setInterval(function(){
+        	p.move(-0.50);
+    	}, 100);
+	});
+	$(document).on('mousedown','#forward',function(e){
+		timeout = setInterval(function(){
+        	p.move(0.25);
+    	}, 100);
+	});
+	$(document).on('mouseleave mouseup','#backward , #forward',function(e){
+		clearInterval(timeout);
+		p.reset();
 	});
 
 	var m = new metronome();
@@ -1743,30 +2052,7 @@ var studio = function studio(){
  			m.start();
   	    }
 	});
-
-	$("#file_explorer" ).resizable({ handles: 'w', minWidth: 200	 }).on('resize', function (e) {});;
-	$(document).on("mousedown","#file_explorer .minimize",function(){
-		$('#file_explorer').addClass('minimize');
-		$('#file_explorer .minimize').hide();
-		$('#file_explorer .maximize').show();
-	});
-	$(document).on("mousedown","#file_explorer .maximize",function(){
-		$('#file_explorer').removeClass('minimize');
-		$('#file_explorer .minimize').show();
-		$('#file_explorer .maximize').hide();
-	});
-	$(document).on('click','.file_explorer_files div',function(e){
-		var ul = $(e.target).parent().find('ul');
-		console.log($(ul).css('display'));
-		if($(ul).css('display')!="none"){
-			$(ul).hide();
-			$(e.target).find('span').html('+');
-		}
-		else{
-			$(ul).show();
-			$(e.target).find('span').html('-');
-		}
-	});
+	
 	var masterVol = 0;
 	$(document).on('mousedown','div.volume-icon',function(e){
 		e.preventDefault();
@@ -1784,63 +2070,164 @@ var studio = function studio(){
 		}
 	});
 
-	/* Sound Recorder */
+	/* File Explorer */
 
-	$(document).on('mousedown','.btn_mic , .btn_mic_recording',function(e){
-		var recordChannelId = $(this).closest('.channels_list_row').attr('data-channel');
-	    if(sr.timer==null){	    
-	    	console.log('start');		    
-			sr.recordStart(recordChannelId);
-	    }else if($(this).hasClass('btn_mic_recording')){
-	    	sr.recordStop();
-	    	console.log('stop');		    
-	    }
-	});
-	$(document).on('mousedown','#startRecord',function(e){
-	    sr.recorder && sr.recorder.record();
-	    $('#startRecord').hide();
-	    $('#stopRecord').show();
-	    sr.timer = setInterval(function(){
-			sr.time_record+=0.1;
-		},100);
+	$("#file_explorer" ).resizable({ handles: 'w', minWidth: 200	 }).on('resize', function (e) {});;
+
+	$(document).on("mousedown","#file_explorer .minimize",function(){
+		$('#file_explorer').addClass('minimize');
+		$('#file_explorer .minimize').hide();
+		$('#file_explorer .maximize').show();
 	});
 
-	$(document).on('mousedown','#stopRecord',function(e){
-	    recorder && recorder.stop();
-	    $('#startRecord').show();
-	    $('#stopRecord').hide();
-	    sr.createDownloadLink();
-	  	sr.clearInterval(timer);
-	    sr.recorder.clear();
+	$(document).on("mousedown","#file_explorer .maximize",function(){
+		$('#file_explorer').removeClass('minimize');
+		$('#file_explorer .minimize').show();
+		$('#file_explorer .maximize').hide();
 	});
 
-	/* Export file */
-	$(document).on('click','#toolbox_btn_export',function(e){
-		var heroku = 'https://oran1.herokuapp.com';
-		var local = 'http://localhost:3000';
-		var url = local;//
-		if($(e.target).hasClass('loading'))
-			return;
-		else
-			$(e.target).addClass('loading');
-		$.ajax({
-			method: "POST",
-			//url: '/export/mp3/'+prompt('sec to start')+'/'+prompt('sec to end'),
-			url: url+'/export/mp3/'+prompt('sec to start')+'/'+prompt('sec to end'),
-			data:JSON.stringify(ctlProject.toJson()),
-			error: function(e) {
-				$(e.target).removeClass('loading');
-			},
-			success: function(e){}
-		})
-		.done(function( msg ) {
-			console.log(url+'/'+msg);
-			var link = document.createElement("a");
-		    link.download = msg;
-		    link.href = url+'/'+msg;
-		    link.click();
-		    $(e.target).removeClass('loading');
+	$(document).on('click','.file_explorer_files div',function(e){
+		var ul = $(e.target).parent().find('ul');
+		console.log($(ul).css('display'));
+		if($(ul).css('display')!="none"){
+			$(ul).hide();
+			$(e.target).find('span').html('+');
+		}
+		else{
+			$(ul).show();
+			$(e.target).find('span').html('-');
+		}
+	});
+
+	$(document).on('mousedown', '.file',function(e){
+		if(e.which === 1)
+			if(isControl){
+				sf.add($(this));
+			}else{		
+				sf.clean();
+				sf.add($(this));
+			}
+	});
+
+	$(document).on('click','.file_explorer_uploader',function(){
+	    var form = $('<form enctype="multipart/form-data"><input name="file" type="file" /><input type="button" value="Upload" /></form><progress></progress>');
+	    var input = $(form).find('input[name="file"]');
+	    setTimeout(function(){
+	        $(input).click();
+	    },200);
+
+	    $(input).change(function () {
+	    	var file = this.files[0];
+		    if (file.size > 1024) {
+		        alert('max upload size is 1k');
+		    }
+	    	// Also see .name, .type
+	   		alert($(this).val());
+	   		var audio = new Audio();
+	   		audio.src= URL.createObjectURL(file);
+	   		audio.onloadedmetadata = function() {
+			  ctlAPI.upload(user.user._id,form,audio.duration,file.size,function(result){
+			  	ctlAPI.addFile(result,function(result){
+	        		ctlFiles.add({type: 'files', file:result});
+				});
+			  })
+			};
 		});
+	});	
+
+	/* CONTEXTMENU */
+
+	$(document).on('mousedown','body',function(e){
+		if(!$(e.target).hasClass('time-box'))
+			return;
+		$('#contextmenu').hide();
+		ss.clean();
+		sf.clean();
 	});
-		
+
+	$(document).on('contextmenu','.file',function(e){
+		if(isControl)
+			return;
+		if(!$(e.target).hasClass('selected')){
+			sf.clean();
+			sf.add($(this));
+		}
+		var id  = (e.target.id).substring(4,(e.target.id).length);
+		var listItems = [
+		{text:'Delete','value':'delete'},
+		{text:'Rename','value':'rename'},
+		{text:'Share','value':'share'}
+		]
+		showContextMenu('file',listItems,id,e);
+	});
+
+	$(document).on('contextmenu','.sample',function(e){
+		if(isControl)
+			return;
+		var id  = (e.target.id).substring(5,(e.target.id).length);
+		var listItems = [
+			{text:'Copy','value':'delete',shortCut:'Ctrl+C'},
+			{text:'Paste','value':'delete',shortCut:'Ctrl+V'},
+			{text:'Split','value':'delete',shortCut:'Ctrl+S'},
+			{text:'Fade-in','value':'delete',shortCut:'Ctrl+W'},
+			{text:'Fade-out','value':'delete',shortCut:'Ctrl+E'},
+			{text:'Volume-up','value':'delete',shortCut:'Ctrl+Up'},
+			{text:'Volume-down','value':'delete',shortCut:'Ctrl+Down'}
+		]
+		showContextMenu('sample',listItems,id,e);
+	});
+
+	$(document).on('click','#contextmenu li',function(e){
+		var parent = $(e.target).closest('#contextmenu');
+		var type = $(parent).attr('data-type');
+		var id = $(parent).attr('data-id');
+		var command = $(this).attr('data-command');
+		if(type=='file'){
+			switch(command){
+				case 'delete':{
+					ctlAPI.deleteFile(id,function(result){
+						$('#file'+id).remove();
+					});
+					break;
+				}
+				case 'rename':{
+					textFieldChange($('#file'+id),function(data){
+					});
+					break;
+				}
+				case 'share':{
+					console.log('share');
+					break;
+				}
+			}
+		}else if(type=='sample'){
+
+		}
+		$('#changer').focus(function() { $(this).select() });
+	});
+
+
+	function showContextMenu(type,data,id,e){
+		var ul = $("<ul></ul>");
+		for (var i = data.length - 1; i >= 0; i--) {
+			var li = $('<li data-command="'+data[i].value+'"></li>');
+			var link = $('<a>'+ data[i].text +'</a>');
+			if(data[i].shortCut)
+				$(li).append('<div>'+data[i].shortCut +'</div>')
+			$(li).append(link);
+			$(ul).append(li);
+		}
+		$('#contextmenu')
+		.html(ul)
+		.attr('data-type',type)
+		.attr('data-id',id)
+		.show()
+		.css({'left':e.pageX,'top':e.pageY});
+	}
+
+	$(document).on('contextmenu',function(e){
+		return false;
+	});
+
+
 };

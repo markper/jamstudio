@@ -95,9 +95,9 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(express.static(path.join(__dirname, 'public')));
-
+app.use('/static/',express.static(path.join(__dirname, 'public/app')));
 app.use('/', routes);
+
 app.use('/user', user);
 app.use('/project', project);
 app.use('/track', track);

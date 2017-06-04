@@ -3,23 +3,29 @@ var Track = require('../model/trackSchema');
 var errors = require('./errors')
 
 exports.getChannel = function(channelId,callback){
-	Channel.findOne({_id: channelId}, function(err, channel) {
-        if(err)
-        	return callback(errors.errorNotFound(err));
-        return callback(channel);
+	Channel.findOne({_id: channelId})
+    .populate({path:'samples.file', model:'File'})
+    .exec(function (err, channel) {
+        if (err || !channel)
+            return callback(errors.errorNotFound((err?err:'')));
+        else
+            return callback(channel);
     });
 };
 
 exports.createChannel = function(channelJson,callback){
-    var newChannel = new Channel(trackJson);
-     Channel.findOne({_id:newChannel.trackId},function(err,channel){
-        if(err)
+    console.log('-------');
+    console.log(channelJson);
+    var newChannel = new Channel(channelJson);
+     Track.findOne({_id:channelJson.trackId},function(err,track){
+        console.log(track);
+        if(err || !track)
             return callback(errors.errorNotFound((err?err:'')));
         newChannel.save(function(err) {
             if (err) 
                 return callback(errors.errorSave((err?err:'')));
-            channel.channels.push(newChannel._id);
-            channel.save(function(err,project){
+            track.channels.push(newChannel._id);
+            track.save(function(err,project){
                 if(err)
                     return callback(errors.errorUpdate((err?err:'')));
                 return callback(newChannel);
@@ -53,20 +59,61 @@ exports.updateChannel = function(channelId,channelJson,callback){
         	return callback(errors.errorNotFound((err?err:'')));
         // to do:
 		// if trackId changed update track too..
-        //channel.trackId = channelJson.trackId
+        channel.trackId = channelJson.trackId
         channel.userId = channelJson.userId
         channel.name = channelJson.name
         channel.instrument = channelJson.instrument
         channel.volume = channelJson.volume
         channel.lock = channelJson.lock
         channel.visible = channelJson.visible
-        channel.samples = channelJson.samples
+        channel.samples = [];
+        var samples = JSON.parse(channelJson.samples);
+        for (var i = 0; i < samples.length; i++) {
+            var obj =samples[i];
+            var sample = {
+                    "channelId": obj,channelId,
+                    "fadein": obj.fadein,
+                    "fadeout": obj.fadeout,
+                    "start": obj.start,
+                    "volume": obj.volume,
+                    "duration": obj.duration,
+                    "file":  obj.file  
+            };
+            channel.samples.push(sample);
+        }
+        console.log(channelJson);
         channel.save(function(err){
 	        if (err) 
 	        	return callback(errors.errorUpdate((err?err:'')));
 	        return callback(channel);
         });
     });
+};
+
+
+exports.syncChannels = function(channelsJson,callback){
+    console.log('syncChannels!');
+    console.log(channelsJson);
+    for (var i = 0; i < channelsJson.channels.length; i++) {
+        var channel = channelsJson.channels[i];
+        Channel.findOne({_id:channel.channelId}, function(err,channel){
+            if (err || !channel) {
+                console.log('create!');
+                createChannel(channel.channelId,channel,function(data){
+                    if(data instanceof Error)
+                        return callback(data);      
+                });
+            }
+            else{
+                console.log('update!');
+                updateChannel(channel.channelId,channel,function(data){
+                     if(data instanceof Error)
+                        return callback(data);      
+                });
+            }
+        });
+    }
+    return callback({'message':'success'});  
 };
 
 exports.createSample = function(channelId,channelJson,callback){

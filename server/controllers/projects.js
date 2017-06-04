@@ -1,5 +1,7 @@
 var Project = require('../model/projectSchema');
 var User = require('../model/userSchema');
+var Track = require('../model/trackSchema');
+var File = require('../model/fileSchema');
 var errors = require('./errors')
 
 exports.createProject =  function(projectJson,callback){
@@ -7,16 +9,56 @@ exports.createProject =  function(projectJson,callback){
     project.save(function(err) {
         if (err) 
         	return callback(errors.errorCreate((err?err:'')));
-        return callback(project);
+        var track = new Track();
+        track.projectId = projectJson.projectId;
+        track.name = projectJson.name;
+        track.description = projectJson.description;
+        track.genre = projectJson.genre;
+        track.save(function(err){
+            if (err) 
+                return callback(errors.errorCreate((err?err:'')));
+            console.log('done..'+ track._id);
+            project.track_version = track._id;
+            project.tracks.push(track._id);
+            project.save(function(err) {
+                if (err) 
+                    return callback(errors.errorCreate((err?err:'')));
+                return callback(project);
+            });
+
+        });
     });
 };
 
+exports.getLastProject =  function(userId,callback){
+    Project
+        .findOne({adminUser:userId})
+        .populate({path:'adminUser',select: ['firstName','lastName','email','picture']})
+        .populate({path:'tracks'})
+        .populate({path:'issues'})
+        .populate({path:'users.user'})
+        .exec(function (err, project) {
+            if (err || !project)
+                return callback(errors.errorNotFound((err?err:'')));
+            else
+                return callback(project);
+        });
+};
 
 exports.getProject =  function(projectId,callback){
     Project
         .findOne({_id:projectId})
-        .populate({path:'adminUser',select: ['firstName','lastName']})
-        .populate({path:'tracks'})
+        .populate({path:'adminUser',select: ['firstName','lastName','email','picture']})
+        .populate({path:'track_version',
+                        model: 'Track',
+                            populate: {
+                                path: 'channels',
+                                model: 'Channel',
+                                    populate: {
+                                        path: 'samples.file',
+                                        model: 'File'           
+                                    }          
+                            }})
         .populate({path:'issues'})
         .populate({path:'users.user'})
         .exec(function (err, project) {
@@ -53,21 +95,22 @@ exports.getVersions = function(projectId,callback){
     });
 };
 
-exports.getListOfUser = function(userId,callback){
+exports.getListByUser = function(userId,callback){
 	Project
     .find({adminUser:userId})
     .select(["name","_id","description","adminUser","users","genre"])
-    .populate({path:'adminUser',select: ['firstName','lastName']})
-    .populate({path:'users',select:['_id','firstName','lastName']})
+    .populate({path:'adminUser',select: ['firstName','lastName','email','picture']})
+    .populate({path:'users',select:['_id','firstName','lastName','email','picture']})
     .exec(function (err, adminProjects) {
         if (err)
         	return callback(errors.errorNotFound((err?err:'')));
          Project
         .find({ adminUser:{ $ne: userId },users: { $elemMatch: { user:userId } } })
         .select(["name","_id","description","adminUser","users","genre"])
-        .populate({path:'adminUser',select: ['firstName','lastName']})
-        .populate({path:'users',select:['_id','firstName','lastName']})
+        .populate({path:'adminUser',select: ['firstName','lastName','email','picture']})
+        .populate({path:'users',select:['_id','firstName','lastName','email','picture']})
         .exec(function (err, contributorProject) {
+            console.log(contributorProject);
             if (err)
         		return callback(errors.errorUpdate((err?err:'')));
             else
@@ -151,18 +194,19 @@ exports.updateUserAccess =  function(projectId,userId,access,callback){
 exports.getContributors = function(projectId,callback){
 	Project
     .findOne( {_id:projectId})
-    .select(["users"])
+    .select(["users","adminUser"])
+    .populate({path:'adminUser',select:['firstName','lastName','picture']})
     .populate({path:'users.user',select:['firstName','lastName','picture']})
     .exec(function(err, data)
     {
  		if(err)
             return callback(errors.errorNotFound((err?err:'')));
         return callback(data);
-
     });
 };
 
 exports.addIssue = function(projectId,issueJson,callback){
+    issueJson.projectId = projectId;
 	Project.
     findOne({_id:projectId},function(err,project){
 		if(err || !project)
@@ -207,3 +251,4 @@ exports.updateIssue = function(projectId,issueId,issueJson,callback){
         return callback(data);
     });
 };
+

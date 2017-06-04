@@ -29,6 +29,15 @@ router.get('/:projectId', function(req, res, next) {
     });
 });
 
+router.get('/GetLast/:userId', function(req, res, next) {
+    projectCtrl.getLastProject(req.params.userId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);
+    });
+});
+
 /* PUT - update project  */
 router.put('/:projectId', function(req, res, next) {
     projectCtrl.updateProject(req.params.projectId,req.body,function(data){
@@ -61,7 +70,7 @@ router.get('/:projectId/GetVersions', function(req, res, next) {
 
 /* GET project list by user. */
 router.get('/GetList/:userId', function(req, res, next) {
-    projectCtrl.getListOfUser(req.params.userId,function(data){
+    projectCtrl.getListByUser(req.params.userId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else
