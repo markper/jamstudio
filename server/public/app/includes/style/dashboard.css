@@ -104,7 +104,30 @@ header #connected_user_menu ul li{
 	padding-left: 10px;
 	text-decoration: none;
 }
-
+header #search-line{
+	position: relative;
+	padding-top: 8px;
+	width: calc(100% - 650px);
+}
+header #search-line div{
+	width: 600px;
+	margin: 0 auto;
+}
+header #search-line div input{
+	background-color: #606060;
+	border: 0px;
+	color: #c1c1c1;
+}
+header #search-line div input:focus{
+	background-color: #ffffff;
+	color:  #606060;
+}
+header #search-line div button{
+	background-color: #606060;
+}
+header #search-line div input:focus + span button{
+	background-color: #ffffff;
+}
 /* Nav */
 
 .sidenav {
@@ -158,14 +181,17 @@ header #connected_user_menu ul li{
 	border-radius: 5px;
 	position: relative;
 	width: 500px;
-	height:calc(100vh - 115px);
+	height: 50vh;
 	background-color: #ffffff;
 	background-size: 100px;
-	top: calc(50% - 250px);
+	top: calc(25%);
 	left: calc(50% - 250px);
 	padding: 20px;
 	overflow: auto;
 	box-shadow: 0px 0px 10px #888888;
+}
+#black_screen > section#new_track_window{
+	height: 200px;
 }
 #black_screen section #close_white_window{
 	position: absolute;
@@ -270,6 +296,10 @@ main{
 	height: calc(100% - 100px);
 	width:100%;
 	background-color: #ffffff;
+}
+body.dashboard main{
+	top: 50px;
+	height: calc(100% - 50px);
 }
 
 /* Menu  */
@@ -387,65 +417,71 @@ footer li{
 main::-webkit-scrollbar { 
     display: none; 
 }
-.project_list{
+
+.slider-widjet{
+	width: 100%;
+	overflow: hidden;
+	height: 100%;
 	position: absolute;
-	margin: 0px auto;
-	height: calc(100vh - 100px);
 }
-.project_list:after{
+.slider-widjet:after{
 	clear: both;
-	content: "";
+	content: '';
 }
-.project_list_page{
-	width: 100vw;
-	height: calc(100vh - 150px);
-	padding-top: 50px;
+.slider-widjet .page{
+	float: left;
+}	
+.slider-widjet .page:after{
+	clear: both;
+	content: '';
+}
+.slider-widjet .page-item{
 	float: left;
 }
-.project_list_item{
+.project_item{
 	position: relative;
-	margin: 50px;
-	margin-top: 0px;
-	width: 200px;
-	height: 250px;
+	margin-left: calc(50% - 72px);
+	margin-top: calc(50% - 65px);
+	width: 144px;
+	height: 200px;
 	background-color: #ffffff;
-	float: left;
 	box-shadow: 0px 0px 5px #888888;
 	border: 1px solid #ffffff;
 }
-.project_list_item:after{
+.project_item:after{
 	clear: both;
 	content: "";
 }
-.project_list_item_cover{
+.project_item_cover{
 	height:100%;
+	background-size: 200px;
 	background-image: url(http://media.tumblr.com/tumblr_mf3r1eERKE1qgcb9y.jpg);
 }
-.project_list_item_info{
+.project_item_info{
 	position: absolute;
 	bottom: 0px;
 	height:50px;
 	width:100%;
 	background-color: rgba(0,0,0,0.5);
 }
-.project_list_item_info div {
+.project_item_info div {
 	margin: 4px;
 }
-.project_list_item_info div:first-child a{
-	font-size: 15px;
-	color: red;
+.project_item_info div:first-child a{
+	font-size: 16px;
+	color: #c3bb38;
 }
-.project_list_item_info div a{
+.project_item_info div a{
 	text-decoration: none;
-	font-size: 15px;
 	font-family: Helvetica;
-	font-size: 10px;
+	font-size: 12px;
 	font-weight: bold;
 	color: #ffffff;
 }
 .arrowSlider{
 	position: absolute;
 	top: 50%;
+	z-index: 3;
 }
 .next{
 	right: 50px;
@@ -453,10 +489,17 @@ main::-webkit-scrollbar {
 .back{
 	left: 50px;
 }
-.create{
+#create_project{
 	position: absolute;
-	bottom: 100px;
-	left: 100px;
+	bottom: 70px;
+	right: 70px;
 	font-family: Helvetica;
 	color: blue;
+	background-image: url('../images/plus.svg');
+	width: 70px;
+	height: 70px;
+	background-size: 70px;
+}
+.light-boxes{
+	z-index: 1000;
 }

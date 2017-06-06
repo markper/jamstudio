@@ -1,4 +1,4 @@
-function studioUI(ctlAPI,projectId){
+function studioUI(){
 
 	function openWhiteWindow(_width,_height,_title){
 		$('#black_screen > section').fadeOut(250);
@@ -85,6 +85,7 @@ function studioUI(ctlAPI,projectId){
 				'</li>');
 	}
 
+
 	$(document).on('click','#logo',function() {
 		$('header').addClass("blure")
 		$('main').addClass("blure")
@@ -98,7 +99,7 @@ function studioUI(ctlAPI,projectId){
 	});
 
 	$(document).on('click','#close_white_window',function(){
-		closeWhiteWindow();
+		//closeWhiteWindow();
 	});
 
 	$(document).on('click','#nav_settings',function(){
@@ -125,11 +126,6 @@ function studioUI(ctlAPI,projectId){
 		var form = createInput('form');
 		var username = createInput('text');
 		var list = createInput('list');
-
-		// get versions 
-		ctlAPI.getVersions(projectId,function(msg){
-			// get versions 
-		});
 
 		for (var i = 4 - 1; i >= 1; i--) {
 			var listItem =createListItem();

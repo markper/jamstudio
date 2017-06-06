@@ -70,6 +70,11 @@ exports.updateChannel = function(channelId,channelJson,callback){
         var samples = JSON.parse(channelJson.samples);
         for (var i = 0; i < samples.length; i++) {
             var obj =samples[i];
+
+            console.log('pushing..' + obj,channelId);
+
+            console.log(obj);
+
             var sample = {
                     "channelId": obj,channelId,
                     "fadein": obj.fadein,
@@ -80,8 +85,10 @@ exports.updateChannel = function(channelId,channelJson,callback){
                     "file":  obj.file  
             };
             channel.samples.push(sample);
+
+            console.log('pushed..');
+
         }
-        console.log(channelJson);
         channel.save(function(err){
 	        if (err) 
 	        	return callback(errors.errorUpdate((err?err:'')));
@@ -116,16 +123,16 @@ exports.syncChannels = function(channelsJson,callback){
     return callback({'message':'success'});  
 };
 
-exports.createSample = function(channelId,channelJson,callback){
+exports.createSample = function(channelId,sampleJson,callback){
 	Channel.
     findOne({_id:channelId},function(err,channel){
         if (err || !channel) 
         	return callback(errors.errorNotFound((err?err:'')));
-        channel.samples.push(channelJson);
-        channel.save(function(err,issue){
+        channel.samples.push(sampleJson);
+        channel.save(function(err,channel){
 	        if (err) 
 	        	return callback(errors.errorSave((err?err:'')));
-	        return callback(channel);
+	        return callback(channel.samples[channel.samples.length-1]);
         });
     });
 }
@@ -150,12 +157,36 @@ exports.deleteSample = function(channelId,sampleId,callback){
     });
 };
 
-exports.updateSample = function(channelId,channelJson,callback){
-	Channel.update( {_id:channelId,samples: { $elemMatch: { _id:channelJson._id } }},  { $set:{ "samples.$":channelJson }}, function(err, data){
+exports.updateSample = function(channelId,sampleJson,callback){
+	Channel.update( {_id:channelId,samples: { $elemMatch: { _id:sampleJson._id } }},  { $set:{ "samples.$":sampleJson }}, function(err, data){
         if(err || !data.nModified) {
-            return callback(errors.errorUpdate((err?err:'')));
+            var sample = {
+                "channelId": sampleJson,channelId,
+                "fadein": sampleJson.fadein,
+                "fadeout": sampleJson.fadeout,
+                "start": sampleJson.start,
+                "volume": sampleJson.volume,
+                "duration": sampleJson.duration,
+                "file":  sampleJson.file  
+            };
+            Channel.findByIdAndUpdate(
+                channelId,
+                {$push: {"samples": sample}},
+                {safe: true, upsert: true},
+                function(err, model) {
+                    if(err) {
+                        return callback(errors.errorUpdate((err?err:'')));
+                    }
+                    Channel.findOne({_id:channelId},function(err,date){
+                        if(err) 
+                            return callback(errors.errorUpdate((err?err:'')));
+                        return callback(date.samples[date.samples.length-1]);
+                    })
+                }
+            );
         }
-        return callback(data);
+        else
+            return callback(data);
     });
 };
 

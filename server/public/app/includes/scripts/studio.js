@@ -20,7 +20,7 @@ var studio = function studio(){
 	var ctlProject = new project();
 	var ctlUser = new user();
 	var ctlAPI = new controllerAPI();
-
+	var ctlDBHelper = new dbHelper();
 	this.init = function init(){
 		
 		// Init studio
@@ -116,10 +116,15 @@ var studio = function studio(){
 					var samples = channelObject.samples;
 					if(samples.length>0)
 					for (var j = 0; j < samples.length; j++) {	
-						var sample = new Sample(samples[j]._id,channel.channelId,samples[j].file.path,samples[j].file._id,
-							samples[j].duration,samples[j].start,samples[j].volume,samples[j].delay,
-							samples[j].fadeIn,samples[j].fadeOut);	
-						channel.addSample(sample);				
+						try {
+							// var sample = new Sample(samples[j]._id,channel.channelId,samples[j].file.path,samples[j].file._id,
+							// 	samples[j].duration,samples[j].start,samples[j].volume,samples[j].delay,
+							// 	samples[j].fadein,samples[j].fadeout);	
+							var sample = _this.jsonToSample(samples[j]);
+							channel.addSample(sample);				
+						}catch(err){
+							console.log(err.message);
+						}
 					}	
 					_this.add(channel);
 				}
@@ -127,6 +132,11 @@ var studio = function studio(){
 
 			});
 		
+		}
+		this.jsonToSample = function(jsonObj){
+			return new Sample(jsonObj._id,jsonObj.channelId,jsonObj.file.path,jsonObj.file._id,
+			jsonObj.duration,jsonObj.start,jsonObj.volume,jsonObj.delay,
+			jsonObj.fadein,jsonObj.fadeout);	
 		}
 		this.add = function(channel){
 			this.channels[channel.channelId] = channel;
@@ -148,7 +158,6 @@ var studio = function studio(){
 			});			
 		}
 		this.getSample = function(sampleId){
-			console.log(Channel.allSamples);
 			return Channel.allSamples[sampleId];
 		}
 
@@ -360,16 +369,19 @@ var studio = function studio(){
 					var s = getSampletById(action.state.id);
 					s.clone(jQuery.extend(true, {}, action.state));
 					s.draw();
+
 					break;
 				}
 				case 'sample_new':{
 					$('#'+action.state.id).remove();
-					ctlProject.get(action.state.channelId).removeSample(action.state);						
+					ctlProject.get(action.state.channelId).removeSample(action.state);
+					ctlDBHelper.deleteSample(action.state.id);					
 					break;
 				}
 				case 'sample_delete':{
 					ctlProject.get(action.state.channelId).addSample(action.state);	
 					action.state.draw();
+					ctlDBHelper.createSample(action.state.id);
 					break;
 				}
 				case 'sample_show':{
@@ -715,10 +727,27 @@ var studio = function studio(){
 						}
 				};
 
-			   ctlFiles.add({type:'files', file: file.file});
-			  
+			    var form = $('<form enctype="multipart/form-data"><input name="file" type="file" /><input type="button" value="Upload" /></form><progress></progress>');
+			    var input = $(form).find('input[name="file"]');
+		    	console.log(input);
+			    if (blob.size > 1024) {
+			        alert('max upload size is 1k');
+			    }
+			    console.log(url);
+		    	// Also see .name, .type
+		   		var audio = new Audio();
+		   		audio.src= URL.createObjectURL(blob);
+		   		audio.onloadedmetadata = function() {
+		   			var formData  = new FormData();
+		   			var fileCast = new File([blob], hf.download);
+		   			formData.append('file', fileCast);
+				 	ctlDBHelper.uploadFile(user.user._id,formData,audio.duration,blob.size,function(file){
+				 		drawRecord({file:file},sr.recordChannelId,startAt/1000);
+				 	});
+				};
+
 			 	// draw
-			 	drawRecord(file,sr.recordChannelId,startAt/1000);
+
 
 		    });
 		}
@@ -781,8 +810,6 @@ var studio = function studio(){
 				samples.push(sample.toJson());
 
 			});
-			console.log('samples');
-			console.log(samples);
 	    	return {
 					"channel": {
 						"channelId": this.channelId,
@@ -812,6 +839,7 @@ var studio = function studio(){
 			
 			var checkbox = '<input type="checkbox" id="checkbox'+channelId+'" class="css-checkbox lrg"/><label for="checkbox'+channelId+'" name="checkbox'+channelId+'_lbl" class="css-label lrg web-two-style"></label>';
 			var slider = $('<div class="slider-vertical"></div>');
+			var resizeTimer;
 			$(slider).slider({
 			    orientation: "horizontal",
 			    range: "min",
@@ -820,6 +848,10 @@ var studio = function studio(){
 			    value: parseFloat(channel.volume*100),
 			    slide: function( event, ui ) {
 		 			p.changeChannelVolume(channel.channelId,ui.value*0.01);
+		 			clearTimeout(resizeTimer);
+					resizeTimer = setTimeout(function(){
+						ctlDBHelper.updateChannel(channel.channelId);
+					},250);	
 		  	    }
 			});
 
@@ -934,6 +966,7 @@ var studio = function studio(){
 							p.pause();
 							p.play();
 						}
+						ctlDBHelper.updateSample(_this.id);
 					},250);		
 			});
 	    }
@@ -996,12 +1029,16 @@ var studio = function studio(){
 	function selectedSamples(){
 		selectedSamples.list = new Array();
 		selectedSamples.operation = null;
+		this.channels = {};
 
 		this.add = function(sample){
 			$('.sample').css('opacity','1');
 			if(!$(sample).hasClass('selected')){
 				selectedSamples.list.push($(sample).attr('id'));
 				$(sample).addClass('selected');
+				var channelId = $(sample).closest('.channels_list_row').attr('data-channel');
+				this.channels[channelId] = channelId;
+				
 			}else{
 				$(sample).removeClass('selected');
 				var index = selectedSamples.list.indexOf($(sample).attr('id'));
@@ -1015,23 +1052,94 @@ var studio = function studio(){
 			selectedSamples.list = new Array();
 			$('.sample').removeClass('selected').css('opacity','1');
 		}
-		this.execute = function(callback,operation){
-			selectedSamples.operation = operation;
-			for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
-				var sample = getSampletById(selectedSamples.list[i]);
-				callback(sample);
-			}
-		}
-		this.executeAndSaveAction = function(callback,operation){
-			selectedSamples.operation = operation;
-			for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
-				var sample = getSampletById(selectedSamples.list[i]);
-				callback(sample);
-			}
-			updateUndoRedoIcons();
+
+		this.updateSamplesChannels = function(){
+			var _this = this;
+			$(this.channels).each(function(key,value){
+				ctlDBHelper.updateChannel(_this.channels[Object.keys(_this.channels)[key]]);
+			});
+		};
+
+		this.updateSamples = function(){
+			$(selectedSamples.list).each(function(key,value){
+				ctlDBHelper.updateSample(selectedSamples.list[key]);	
+			});
 		}
 	}
 
+	function dbHelper(){
+		var _this = this;
+		this.deleteChannel = function(channelId){
+			ctlAPI.deleteChannels(channelId,function(data){
+				console.log('delete..');
+			});
+		};
+		this.createChannel = function(channelObject){
+			ctlAPI.addChannels(channelObject,function(data){
+				var generatedId = 'channel'+channelIndexGenerator++;
+				var channel = new Channel(generatedId,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument, channelObject.trackId, channelObject.userId);				
+				channel.channelId = data._id;
+				ctlProject.add(channel);			
+				$('#'+generatedId).closest('.channels_list_row').attr('data-channel',data._id);
+				ac.addAction(new Action('channel_new',jQuery.extend(true, {}, channel)));
+			});
+		};
+		this.updateChannel = 	function(channelId){
+			var channel = ctlProject.channels[channelId];	
+			ctlAPI.updateChannel(channel.toJson().channel,channel.channelId,function(data){
+				if(!data) console.log('error updating server..');
+			});
+		}
+		this.createSample = function(sampleId,callback){
+			var sample = ctlProject.getSample(sampleId);
+			ctlAPI.createSample(sample.channelId,sample.toJson(),function(data){
+				if(!data)
+				 console.log('error updating server..'+ data.message);
+				else{
+					console.log(data);							
+					var clone = jQuery.extend(true, {}, sample);
+					clone.id = data._id;
+					var channel = ctlProject.get(sample.channelId);
+					channel.removeSample(sample);
+					channel.addSample(clone);
+					clone.draw();
+					callback(clone.id);
+				}
+			});
+		}
+		this.updateSample = function(sampleId){
+			var sample = ctlProject.getSample(sampleId);
+			ctlAPI.updateSample(sample.channelId,sample.id,sample.toJson(),function(data){
+				if(!data)
+					console.log('error updating server..'+ data);
+				else
+					console.log(data);
+			});
+		}
+		this.deleteSample = function(sampleId){
+			var sample = ctlProject.getSample(sampleId);
+			ctlAPI.deleteSample(sample.channelId,sample.id,function(data){
+				if(!data) console.log('error updating server..');
+			});
+		}
+		this.updateAfterMovingSample = function(data){
+			if(data.newChannel == data.lastChannel){
+				ctlDBHelper.updateSample(data.sampleId);
+			}
+			else{
+				ctlDBHelper.updateChannel(data.newChannel);
+				ctlDBHelper.updateChannel(data.lastChannel);
+			}
+		}
+		this.uploadFile	= function(userId,form,duration,size,callback){
+			ctlAPI.upload(userId,form,duration,size,function(result){
+			  	ctlAPI.addFile(result,function(result){
+		    		ctlFiles.add({type: 'files', file:result});
+		    		callback(result);
+				});
+			})
+		}
+	}
 	/* UI Helper */
 	function getURLID(){
 		return location.href.substr(location.href.lastIndexOf('/') + 1);
@@ -1111,7 +1219,8 @@ var studio = function studio(){
 			context = $(newCanvas)[0].getContext('2d');
 	 		function createCanvas ( w, h ) {
 			    var newCanvas = document.createElement('canvas');
-			    newCanvas.width  = w;     newCanvas.height = h;
+			    	newCanvas.width  = w;
+			    	newCanvas.height = h;
 			    return newCanvas;
 			};
 			$(sample).find('canvas').remove();
@@ -1188,24 +1297,26 @@ var studio = function studio(){
 		var sample = new Sample(sampleId,channelId,file.path,file._id,file.duration,"0","1","0","0","0");
 		channel.addSample(sample);
 		sample.draw();
-		mouseOffsetSampleClicked=0;		
-		moveSample(ev,sampleId);
-		ac.removeAction();
-		console.log(ac);
-		ac.addAction(new Action('sample_new',jQuery.extend(true, {}, getSampletById(sampleId))));
-		console.log(ac);
-		updateChannel(channelId);
+		mouseOffsetSampleClicked=0;
+		moveSample(ev,sampleId);	
+		ctlDBHelper.createSample(sampleId,function(newId){
+			ac.removeAction();
+			ac.addAction(new Action('sample_new',jQuery.extend(true, {}, getSampletById(newId))));
+		});	
 	}
 
 	function drawRecord(file,channelId,start){
 		console.log('>'+player.playTime);
 		var sampleId = 'newSample'+sampleIndexGenerator++;
 		var channel = ctlProject.get(channelId);
-		var sample = new Sample(sampleId,channelId,file.file.path,file._id,file.file.duration,start,"1","0","0","0");
+		var sample = new Sample(sampleId,channelId,file.file.path,file.file._id,file.file.duration,start,"1","0","0","0");
 		channel.addSample(sample);
+		alert(sample.file);
 		sample.draw();
-		ac.addAction(new Action('sample_new',jQuery.extend(true, {}, getSampletById(sampleId))));
-		updateUndoRedoIcons();
+		ctlDBHelper.createSample(sample.id,function(sampleId){
+			ac.addAction(new Action('sample_new',jQuery.extend(true, {}, getSampletById(sampleId))));
+			updateUndoRedoIcons();
+		});		
 	}
 
 	function resetComponents(){
@@ -1312,7 +1423,7 @@ var studio = function studio(){
 	}
 	function drop(ev) {
 	    ev.preventDefault();
-	    moveSample(ev,ev.originalEvent.dataTransfer.getData("text"));
+	    ctlDBHelper.updateAfterMovingSample(moveSample(ev,ev.originalEvent.dataTransfer.getData("text")));
 	}
 
 	function moveSample(ev,data){
@@ -1355,23 +1466,22 @@ var studio = function studio(){
 	    var sample = getSampletById(data);
 	    var newChannel = ctlProject.get(channelId);
 	    var lastChannel = ctlProject.get(sample.channelId);
-		
+		var changes = {newChannel:newChannel.channelId,lastChannel:lastChannel.channelId,sampleId:sample.id};
 		ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
 		updateUndoRedoIcons();
 
 		lastChannel.removeSample(sample);
 		newChannel.addSample(sample);
-
+	
 		sample.start = all;
 		sample.channelId = channelId;	 
-	  
-
 		sample.draw();
-
+		// console.log('======');
+		// console.log(data);
+	
 		p.reset();		
-		updateChannel(lastChannel.channelId);
-		if(lastChannel.channelId!=newChannel.channelId)
-			updateChannel(newChannel.channelId);
+
+		return (changes);
 	}
 
 
@@ -1453,16 +1563,22 @@ var studio = function studio(){
 		ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
 		ac.addAction(new Action('sample_split',null));
 		updateUndoRedoIcons();
+		//ctlDBHelper.updateChannel(sample.channelId);
+		ctlDBHelper.updateSample(sample.id);
+		ctlDBHelper.createSample(clone.id);
 	}
 
 	function fadeIn(sec){
+		var channelIds = {};
 		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
 			var sample = getSampletById(selectedSamples.list[i]);
 			ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
 			sample.fadeIn =sec;
 	    	sample.draw();
+	    	channelIds[sample.channelId] = sample.channelId
 			updateUndoRedoIcons();			
 		}
+		ss.updateSamples();
 	}
 
 	function fadeOut(sec){
@@ -1474,6 +1590,7 @@ var studio = function studio(){
 	    	updateUndoRedoIcons();
 
 		}
+		ss.updateSamples();
 	}
 
 	function moveTime(sec){
@@ -1488,31 +1605,37 @@ var studio = function studio(){
 	}
 
 	function cut(e){
-		ss.executeAndSaveAction(function(sample){
+		selectedSamples.operation = 'cut'
+		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
+			var sample = getSampletById(selectedSamples.list[i]);
 			$('#'+sample.id).hide();
 			ac.addAction(new Action('sample_hide',jQuery.extend(true, {}, sample)));
-		},'cut');
+		};
 	}
 	function copy(e){
-		ss.execute(function(sample){	
-		},'copy');
+		selectedSamples.operation = 'copy'
 	}
 	function paste(e){
+		selectedSamples.operation = 'paste'
 		mouseOffsetSampleClicked=0;
-		ss.executeAndSaveAction(function(sample){
-			moveSample(e,sample.id);						
+		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
+			var sample = getSampletById(selectedSamples.list[i]);
+			ctlDBHelper.updateAfterMovingSample(moveSample(e,sample.id))
+
 			$('#'+sample.id).show();
 			ac.addAction(new Action('sample_show',jQuery.extend(true, {}, sample)));
 			ac.addAction(new Action('sample_cut_copy',null));
-		},'paste');
+		}
 		ss.clean();
 	}
 	function copypaste(e){
 		mouseOffsetSampleClicked=0;
-		ss.execute(function(sample){
+		selectedSamples.operation = 'copypaste'		
+		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
+			var sample = getSampletById(selectedSamples.list[i]);
 			console.log('copypaste....: ');
 			var time = offsetToSeconds(mouseOffsetSampleClicked);
-			var clone = new Sample();
+			var clone = new jQuery.extend(true, {}, sample);
 			clone.clone(sample);			
 			clone.delay =  parseFloat(parseFloat(sample.delay) +  parseFloat(time)).toString();
 			clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toString();
@@ -1526,20 +1649,33 @@ var studio = function studio(){
 			ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
 			moveSample(e,clone.id);
 			ac.addAction(new Action('sample_paste',null));
-			updateUndoRedoIcons();
-		},'copypaste');
+			console.log('0----------0');
+		}
+		var channelId = $(e.target).closest('.channels_list_row').attr('data-channel');
+		ctlDBHelper.updateChannel(channelId);
 	}
 
 	function deleteSample(e){
-		ss.execute(function(sample){
-			//ac.addAction(new Action('sample_delete',sample))
+		console.log('00000');
+		console.log(ss.channels)
+		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
+			var sample = getSampletById(selectedSamples.list[i]);
+			if(!sample)
+				continue;
+			//ctlDBHelper.deleteSample(sample.id);
 			ac.addAction(new Action('sample_delete',jQuery.extend(true, {}, sample)));			
 			ctlProject.get(sample.channelId).removeSample(sample);
 			p.reset();
-		},'sample_delete');
-		updateUndoRedoIcons();
+		}
+		for (var i = 0; i < Object.size(ss.channels); i++) {
+			console.log(ss.channels[Object.keys(ss.channels)[i]]);
+			ctlDBHelper.updateChannel(ss.channels[Object.keys(ss.channels)[i]]);
+		}
+
+		updateUndoRedoIcons();		
 		ss.clean();
 	}
+
 
 	function deleteChannel(e){
 		var channels = $('.channels_list_row.selected');
@@ -1551,9 +1687,7 @@ var studio = function studio(){
 			ac.addAction(new Action('channel_delete',jQuery.extend(true, {}, channel)));
 
 			ctlProject.remove(channel);
-			ctlAPI.deleteChannels(channelId,function(data){
-				console.log('delete..');
-			});
+			ctlDBHelper.deleteChannel(channelId)
 
 			p.reset();
 			updateUndoRedoIcons();
@@ -1573,32 +1707,12 @@ var studio = function studio(){
 				"visible": false,
 				"samples": []
 		};
-		var generatedId = 'channel'+channelIndexGenerator++;
-		var channel = new Channel(generatedId,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument, channelObject.trackId, channelObject.userId);				
-		ctlAPI.addChannels(channelObject,function(data){
-			channel.channelId = data._id;
-			ctlProject.add(channel);			
-			$('#'+generatedId).closest('.channels_list_row').attr('data-channel',data._id);
-			ac.addAction(new Action('channel_new',jQuery.extend(true, {}, channel)));
-		});
+
+		ctlDBHelper.createChannel(channelObject);
 	}
 
-	function updateChannelName(element){
-		var channelName = $(element);
-		var channelId = $(channelName).closest('.channels_list_row').attr('data-channel');
-		textFieldChange(channelName,function(data){
-			var channel = ctlProject.channels[channelId];
-			channel.name = data;
-			updateChannel(channelId);
-		});
-	}
-	function updateChannel(channelId){
-		var channel = ctlProject.channels[channelId];	
-		console.log(channel.toJson().channel);
-		ctlAPI.updateChannel(channel.toJson().channel,channel.channelId,function(data){
-			console.log(channel.channelId);
-		});
-	}
+	
+
 
 	function textFieldChange(element,callback){
 		console.log('called..');
@@ -1644,14 +1758,14 @@ var studio = function studio(){
 	$(document).on('click','.channel_grid_row',function(e){
 		sharedEvent = jQuery.extend(true, {}, e);
 		if($(e.target).hasClass('time-box') && selectedSamples.operation!='cut' && selectedSamples.operation!='copy' && selectedSamples.operation!='copypaste'){
-			ss.clean();
+			//ss.clean();
 		}
 		changeCursorPlace(e);
 		e.preventDefault();
 	});
 	
-	$(document).on('mousedown','.checkbox',function(e){
-		var parent = $(this).closest('.channels_list_row');
+	$(document).on('mousedown','.checkbox *',function(e){
+		var parent = $(e.target).closest('.channels_list_row');
 		sc.add($(parent));
 		e.preventDefault();
 	});
@@ -1677,7 +1791,6 @@ var studio = function studio(){
 	$(document).on('mousedown','.sample .ui-resizable-handle',function(e){	
 		var sample = getSampletById($(e.target).closest('.sample').attr("id"));
 		ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
-		console.log(sample);
 		updateUndoRedoIcons();
 	});
 	$(document).on('mouseup','.sample .ui-resizable-handle',function(e){	
@@ -1872,7 +1985,14 @@ var studio = function studio(){
 	});
 
 	$(document).on('click','.channel_name',function(e){
-		updateChannelName(e.target);
+		var element = e.target;
+		var channelName = $(element);
+		var channelId = $(channelName).closest('.channels_list_row').attr('data-channel');
+		textFieldChange(channelName,function(data){
+			var channel = ctlProject.channels[channelId];
+			channel.name = data;
+			ctlDBHelper.updateChannel(channelId);
+		});
 	});
 
 	$(document).on('click','#btn_channel_new',function(e){
@@ -2118,22 +2238,17 @@ var studio = function studio(){
 
 	    $(input).change(function () {
 	    	var file = this.files[0];
-		    if (file.size > 1024) {
-		        alert('max upload size is 1k');
-		    }
-	    	// Also see .name, .type
-	   		alert($(this).val());
 	   		var audio = new Audio();
 	   		audio.src= URL.createObjectURL(file);
 	   		audio.onloadedmetadata = function() {
-			  ctlAPI.upload(user.user._id,form,audio.duration,file.size,function(result){
-			  	ctlAPI.addFile(result,function(result){
-	        		ctlFiles.add({type: 'files', file:result});
-				});
-			  })
+			 	ctlDBHelper.uploadFile(user.user._id,new FormData($(form)[0]),audio.duration,file.size,function(result){
+
+			 	});
 			};
 		});
 	});	
+
+
 
 	/* CONTEXTMENU */
 
@@ -2141,7 +2256,7 @@ var studio = function studio(){
 		if(!$(e.target).hasClass('time-box'))
 			return;
 		$('#contextmenu').hide();
-		ss.clean();
+		//ss.clean();
 		sf.clean();
 	});
 
@@ -2229,5 +2344,8 @@ var studio = function studio(){
 		return false;
 	});
 
+	$(document).on('click','#logo',function() {
+		window.location.href = '../dashboard';
+	});
 
 };

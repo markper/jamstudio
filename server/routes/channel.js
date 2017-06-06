@@ -47,6 +47,7 @@ router.put('/:channelId', function(req, res) {
     }); 
 });
 
+
 router.post('/Sync', function(req, res) {
     channelCtrl.syncChannels(req.body,function(data){
         if(data instanceof Error){
@@ -91,7 +92,7 @@ router.delete('/:channelId/Sample/:sampleId'/*, ensureLoggedIn*/, function(req, 
     }); 
 });
 
-/* PUT sample issue */
+/* PUT sample  */
 router.put('/:channelId/Sample/:sampleId'/*,ensureLoggedIn*/, function(req, res, next) {
     req.body._id = req.params.sampleId;
     channelCtrl.updateSample(req.params.channelId,req.body,function(data){

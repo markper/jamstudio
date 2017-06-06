@@ -167,7 +167,6 @@ function controllerAPI(){
 	    });
 	};
 
-
 	this.deleteChannels = function(channelId,callback){
 		$.ajax({
 	        type: "Delete",
@@ -183,6 +182,56 @@ function controllerAPI(){
 	        }
 	    });
 	};
+
+	this.createSample = function(channelId,samplelJson,callback){
+		$.ajax({
+	        type: "Post",
+	        datatype:"json",
+	        url: serverDB+'/Channel/'+channelId +'/Sample',
+	        data:(samplelJson),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	callback(null);
+	        }
+	    });
+	};
+
+	this.updateSample = function(channelId,sampleId,samplelJson,callback){
+		$.ajax({
+	        type: "Put",
+	        datatype:"json",
+	        url: serverDB+'/Channel/'+channelId+'/Sample/'+sampleId,
+	        data:(samplelJson),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	callback(null);
+	        }
+	    });
+	};
+
+	this.deleteSample = function(channelId,sampleId,callback){
+		$.ajax({
+	        type: "Delete",
+	        datatype:"json",
+	        url: serverDB+'/Channel/'+channelId+'/Sample/'+sampleId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	callback(null);
+	        }
+	    });
+	};
+
+
 	//
 	// File
 	//
@@ -250,14 +299,14 @@ function controllerAPI(){
 		});
 	}
 
-	this.upload = function(userId,form,duration,size,callback){
+	this.upload = function(userId,formData,duration,size,callback){
 		$.ajax({
 	        // Your server script to process the upload
 	        url: serverFiles+'/uploads/'+userId,
 	        type: 'POST',
 
 	        // Form data
-	        data: new FormData($(form)[0]),
+	        data: formData,
 
 	        // Tell jQuery not to process data or worry about content-type
 	        // You *must* include these options!
