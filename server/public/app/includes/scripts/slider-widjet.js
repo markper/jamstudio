@@ -26,7 +26,8 @@ var slider_widjet = function(_configuration){
 								'<div class="project_item_cover"></div>'+
 								'<div class="project_item_info">'+
 								'<div><a href="studio/'+configuration.arr[i]._id+'">'+configuration.arr[i].name+'</a></div><div><a href="studio/'+configuration.arr[i]._id+'">'+configuration.arr[i].adminUser.email+'</a></div></div>'+
-							'</article>';
+								'<div class="settings" data-project="'+configuration.arr[i]._id+'"></div>'+
+							   '</article>';
 				var item = $('<li class="page-item">'+
 					project
 					+'</li>');

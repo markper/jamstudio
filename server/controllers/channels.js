@@ -14,11 +14,8 @@ exports.getChannel = function(channelId,callback){
 };
 
 exports.createChannel = function(channelJson,callback){
-    console.log('-------');
-    console.log(channelJson);
     var newChannel = new Channel(channelJson);
      Track.findOne({_id:channelJson.trackId},function(err,track){
-        console.log(track);
         if(err || !track)
             return callback(errors.errorNotFound((err?err:'')));
         newChannel.save(function(err) {

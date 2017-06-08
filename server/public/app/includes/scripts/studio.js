@@ -455,7 +455,7 @@ var studio = function studio(){
 		}
 
 		this.move =  function(playTime){
-			$('#cursorLine').stop()
+			$('#cursorLine , .cursorCircle').stop()
 			console.log((player.playTime+playTime)/1000 + ' ' + secondsToOffset(playTime));
 			var isPlaying = player.isPlaying;
 			if(isPlaying)
@@ -575,7 +575,7 @@ var studio = function studio(){
 				});
 			
 				// cursor
-				$('#cursorLine').stop().css({'left':secondsToOffset(player.playTime/1000)})
+				$('#cursorLine , .cursorCircle').stop().css({'left':secondsToOffset(player.playTime/1000)})
 				.animate({'left':secondsToOffset(max_time)},(max_time*1000-player.playTime), 'linear');
 			};
 		this.pause = function(){
@@ -587,7 +587,7 @@ var studio = function studio(){
 				});		
 				this.clear();		
 			// cursor
-			$('#cursorLine').stop();
+			$('#cursorLine , .cursorCircle').stop();
 		};
 		this.stop = function(){
 			console.log('stop');
@@ -601,7 +601,7 @@ var studio = function studio(){
 				$('#time').text('00:00:00');	
 				this.clear();	
 			// cursor
-			$('#cursorLine').stop().css({'left':0});
+			$('#cursorLine , .cursorCircle').stop().css({'left':0});
 		};
 
 		this.clear = function(){
@@ -625,7 +625,7 @@ var studio = function studio(){
 			metronome.st =setInterval(function(){
 				console.log('tick..');
 				var aud = new Audio();
-			    aud.src = 'includes/loops/tick.mp3'; 
+			    aud.src = '../../static/includes/loops/tick.mp3'; 
 			    aud.volume = 1;
 			    aud.play();
 			    metronome.isPlaying = true;
@@ -898,6 +898,7 @@ var studio = function studio(){
 	    this.aud = new Audio();
 	    this.aud.src = file; 
 	    this.aud.volume = volume;
+	    this.aud.loop = true; 
 	    this.volume = volume;
 	    this.username = "USER";
 	    this.userId = "userId";
@@ -1075,13 +1076,20 @@ var studio = function studio(){
 			});
 		};
 		this.createChannel = function(channelObject){
+			var generatedId = 'channel'+channelIndexGenerator++;
+			var channel = new Channel(generatedId,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument, channelObject.trackId, channelObject.userId);				
+			ctlProject.add(channel);			
 			ctlAPI.addChannels(channelObject,function(data){
-				var generatedId = 'channel'+channelIndexGenerator++;
-				var channel = new Channel(generatedId,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument, channelObject.trackId, channelObject.userId);				
-				channel.channelId = data._id;
-				ctlProject.add(channel);			
-				$('#'+generatedId).closest('.channels_list_row').attr('data-channel',data._id);
-				ac.addAction(new Action('channel_new',jQuery.extend(true, {}, channel)));
+				if(!data)
+				 console.log('error updating server..'+ data.message);
+				else{
+					console.log(data);							
+					var clone = jQuery.extend(true, {}, channel);
+					clone.channelId = data._id;
+					ctlProject.remove(channel);
+					ctlProject.add(clone)
+					ac.addAction(new Action('channel_new',jQuery.extend(true, {}, channel)));
+				}
 			});
 		};
 		this.updateChannel = 	function(channelId){
@@ -1103,7 +1111,8 @@ var studio = function studio(){
 					channel.removeSample(sample);
 					channel.addSample(clone);
 					clone.draw();
-					callback(clone.id);
+					if(callback)
+						callback(clone.id);
 				}
 			});
 		}
@@ -1201,16 +1210,24 @@ var studio = function studio(){
 		updateTrackName(trackName);
 		resetComponents();	
 	}
-
+	$(document).on('click','main',function(e){
+		if(e.target.tagName.toLowerCase() === 'main' || $(e.target).hasClass('time-box')){
+			var position = e.pageX;
+			if(position>=grid_offset)
+				setCursorOnSec(offsetToSeconds(e.pageX-grid_offset));
+			else
+				setCursorOnSec(offsetToSeconds(0));
+		}
+	});
 	function setCursorOnSec(sec){
 		if(player.isPlaying){
 			p.pause();
-			$('#cursorLine').stop()
+			$('#cursorLine , .cursorCircle').stop()
 			.css({'left':secondsToOffset(sec)})
 			.animate({'left':secondsToOffset(max_time)},max_time*1000, 'linear');
 			p.play();
 		}else{
-			$('#cursorLine').css({'left':secondsToOffset(sec)});
+			$('#cursorLine , .cursorCircle').css({'left':secondsToOffset(sec)});
 		}
 	}
 	function createSoundSpectrum(sample,width,height){
@@ -1333,7 +1350,7 @@ var studio = function studio(){
 
 	function resetCursor(){
 		setCursorOnSec(player.playTime/1000);
-		$('#cursorLine').css('height',$('.channel_grid_row:visible').length*(unit_width*3/4*10+1)+24);
+		$('#cursorLine ').css('height',$('.channel_grid_row:visible').length*(unit_width*3/4*10+1)+24);
 	}
 
 	function updateSampleComponents(){
@@ -1695,8 +1712,6 @@ var studio = function studio(){
 	}
 
 	function createChannel(e){
-		console.log('tv '+ctlProject.track_version);
-		console.log('usr '+user.user._id);
 		var channelObject = {			
 				"trackId": ctlProject.track_version,
 				"userId": user.user._id,
@@ -1800,7 +1815,7 @@ var studio = function studio(){
 	/* Keyboard Events */
 
 	$(document).on('keydown', function(e){
-		if($('#black_screen').css('display')!='none' || $('input').is(':focus'))
+		if($('input').is(':focus'))
 			return;
 
 		e = e || window.event;
@@ -1907,11 +1922,10 @@ var studio = function studio(){
 		updateUndoRedoIcons();
 		p.pause();
 	});
-	$(document).on('click','#toolbox_btn_fadein',function(){
-		fadeIn(prompt('fadeIn sec'));
+	$(document).on('click','#btn-set-fadein',function(e){
+		fadeIn($(e.target).find('#input-fadein'));
 		p.pause();
 	});
-
 	$(document).on('click','#toolbox_btn_fadeout',function(){
 		fadeOut(prompt('fadeOut sec'));
 		p.pause();

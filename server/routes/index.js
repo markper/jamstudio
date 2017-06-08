@@ -29,6 +29,13 @@ router.get('/app/studio/:projectId', function (req, res, next) {
   next();
 })
 
+router.get('/app/project/:projectId', function (req, res, next) {
+  var path2 = path.join(__dirname, '../public', 'app/project.html');
+  console.log(path2);
+  return res.sendFile(path2);
+  next();
+})
+
 router.get('/app/dashboard', function (req, res, next) {
   var path2 = path.join(__dirname, '../public', 'app/dashboard.html');
   console.log(path2);
@@ -51,7 +58,7 @@ router.get('/logout', function(req, res){
 router.get('/callback',
   passport.authenticate('auth0', { failureRedirect: '/url-if-something-fails' }),
   function(req, res) {
-    res.redirect(req.session.returnTo || '/app/studio.html');
+    res.redirect(req.session.returnTo || '/app/dashboard');
   });
 
 

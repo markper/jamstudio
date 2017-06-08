@@ -3,6 +3,9 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Studio</title>
+
+
+	
 	<link rel="icon" type="image/png" href="http://localhost:3000/static/includes/images/favicon.png">
 	<link rel="stylesheet" type="text/css" href="http://localhost:3000/static/includes/style/stylesheetstudio.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
@@ -13,6 +16,9 @@
 	<script src="http://localhost:3000/static/includes/scripts/studio.js"></script>
 	<script src="http://localhost:3000/static/includes/scripts/studioUI.js"></script>
 	<script src="http://localhost:3000/static/includes/scripts/recorder.js"></script>
+
+
+
 </head>
 <body class="noselect">
 	<header>
@@ -62,6 +68,7 @@
 	<main class="scrolls">
 		<section id="channels_list"></section>
 		<section id="channels_title">
+			<artical class="cursorCircle"></artical>
 			<article class="channel_list_buttons">		
 				<div id="open_nav">&#9776;</div>
 				<ul>
@@ -143,12 +150,7 @@
 		<div></div>
 	</section>
 	<section id="contextmenu"></section>
-		<section id="black_screen">
-			<section>
-				<div id="close_white_window" href="#">&times;</div>
-				<div id="white_window_title"></div>
-			</section>
-		</section>
+	
 	<script>
 		(function(){
 			var s = new studio();
@@ -156,5 +158,6 @@
 			s.init();
 		})();
 	</script>
+	
 </body>
 </html>

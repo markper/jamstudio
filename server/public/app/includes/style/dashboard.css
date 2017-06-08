@@ -128,6 +128,16 @@ header #search-line div button{
 header #search-line div input:focus + span button{
 	background-color: #ffffff;
 }
+.wrapper{
+	width: 1000px;
+	margin: 0 auto;
+}
+.content{
+	margin-top: 10px;
+	border: 1px solid silver;
+	border-radius: 5px;
+	padding: 20px;
+}
 /* Nav */
 
 .sidenav {
@@ -338,34 +348,6 @@ body.dashboard main{
 	color: rgba(140,133,37,0.7);
 }
 
-/* Scrollers  */
-
-.scrolls { 
-    overflow-x: scroll;
-    overflow-y: scroll;
-    white-space:nowrap;
- } 
-
-::-webkit-scrollbar {
-    width: 14px;
-}
-::-webkit-scrollbar-track {/* scrollers track */
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-}
-::-webkit-scrollbar-corner {
-	display: none;
-}
-::-webkit-scrollbar-thumb {/* scrollers handle */
-    -webkit-border-radius: 10px;
-    border-radius: 10px;
-    background: rgba(195,187,56,0.8); 
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
-}
-::-webkit-scrollbar-thumb:window-inactive {
-	background: rgba(195,187,56,0.4); 
-}
 
 
 /* Footer */
@@ -447,6 +429,21 @@ main::-webkit-scrollbar {
 	background-color: #ffffff;
 	box-shadow: 0px 0px 5px #888888;
 	border: 1px solid #ffffff;
+}
+.project_item .settings{
+	display: none;
+	position: absolute;
+	bottom: 5px;
+	right: 5px;
+	height: 15px;
+	width: 15px;
+	background-size: 15px;
+	background-position: 0px 0px;
+	background-image: url(../images/settings-cog.svg);
+	opacity: 1;
+}
+.project_item:hover .settings{
+	display: block;
 }
 .project_item:after{
 	clear: both;

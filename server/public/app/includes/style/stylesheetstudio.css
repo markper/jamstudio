@@ -129,6 +129,7 @@ header #toolbox ul li{
 	background-repeat: no-repeat;
 }
 
+
 /* Nav */
 
 .sidenav {
@@ -369,8 +370,20 @@ main{
 	position: relative;
 	height: calc(100% - 100px);
 	width:100%;
-	background-color: #232323;
-}
+  background: red; /* For browsers that do not support gradients */
+	  background: -webkit-linear-gradient(left, black , #302c04); /* For Safari 5.1 to 6.0 */
+	  background: -o-linear-gradient(right, black, #302c04); /* For Opera 11.1 to 12.0 */
+	  background: -moz-linear-gradient(right, rblacked, #302c04); /* For Firefox 3.6 to 15 */
+	  background: linear-gradient(to right, black , #8c852c); /* Standard syntax */
+	background-image:
+    radial-gradient(
+      circle at top left,
+      #8c852c,#494508,#1c1a01,
+      black,black
+    );
+
+	}
+
 main #channels_title{
 	height: 24px;
 	top: 0px;
@@ -461,6 +474,9 @@ div.time-box-border{
 main #channels_list{
 	height: calc(100% - 24px);
 	margin-top: 24px;
+
+	
+
 }
 main #channels_list:after{
 	clear: both;
@@ -638,6 +654,16 @@ main #cursorLine{
 	width:1px;
 	background-color: red;
 	height: 100%;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	margin-left: 160px;
+	z-index: 2147483646;
+}
+.cursorCircle{
+	width: 1px;
+	height: 24px;
+	background-color: red;
 	position: absolute;
 	left: 0px;
 	top: 0px;

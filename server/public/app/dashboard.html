@@ -211,7 +211,10 @@
 	            $('header #connected_user .user_img').css('background-image','url('+data.picture+')');
 			};
 		};
-
+		$(document).on('click','.settings',function(e){
+			console.log(window.location.host)
+			window.location = 'project/'+$(e.target).attr("data-project");
+		});
 		$(document).on('click','#btn-create-project',function(e){
 			ctlAPI.createProject({
 				adminUser: user.user._id,
