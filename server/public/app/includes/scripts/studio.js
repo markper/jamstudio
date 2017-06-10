@@ -21,6 +21,8 @@ var studio = function studio(){
 	var ctlUser = new user();
 	var ctlAPI = new controllerAPI();
 	var ctlDBHelper = new dbHelper();
+
+
 	this.init = function init(){
 		
 		// Init studio
@@ -47,6 +49,15 @@ var studio = function studio(){
 	        
 	    });
 	};
+
+	this.preview = function(projectId,callback){
+		ctlAPI.getProject(projectId,function(result){
+			ctlProject.init(result,function(p){
+				callback(p);
+			});			
+		});
+	}
+
 
 	/* UI Objects */
 
@@ -95,7 +106,7 @@ var studio = function studio(){
 
 		this.track_version = null;
 
-		this.init = function(data){
+		this.init = function(data,callback){
 			if(data==null)				
 				data ={tracks:[]}				
 			this.json = data;
@@ -129,7 +140,8 @@ var studio = function studio(){
 					_this.add(channel);
 				}
 				_this.toJson();
-
+				if(callback)
+					callback(p);
 			});
 		
 		}

@@ -6,8 +6,11 @@ var Schema = mongoose.Schema;
 module.exports = mongoose.model('Icq', new Schema({
     icqId: String,
     projectId: String,
-    user: {type: String, ref: 'User'},
-    genre: String,
-    instruments: [String],
+    applicants: [{user:{type: String, ref: 'User'},message: String}],
+    title: String,
+    description: String,
+    instruments: [{
+    	type: String
+	}],
     date: {type: Date, default: Date.now}
 }));

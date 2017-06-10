@@ -59,7 +59,8 @@ exports.getProject =  function(projectId,callback){
                                         model: 'File'           
                                     }          
                             }})
-        .populate({path:'issues'})
+        .populate({path:'issues.toUserId',select:["firstName","lastName","picture"]})
+        .populate({path:'issues.fromUserId',select:["firstName","lastName","picture"]})
         .populate({path:'users.user'})
         .exec(function (err, project) {
             if (err || !project)
@@ -139,6 +140,20 @@ exports.updateProject =  function(projectId,projectJson,callback){
     });
 };
 
+exports.updateProjectInfo =  function(projectId,projectJson,callback){
+    Project.update( {_id:projectId}, {
+    "name": projectJson.name,
+    "description": projectJson.description,
+    "genre": projectJson.genre
+    }, function(err, data){
+        if (err)
+            return callback(errors.errorNotFound((err?err:'')));
+        else
+            return callback(data);
+    });
+};
+
+
 exports.updateProjectVersion =  function(projectId,trackId,callback){
     Project.update( {_id:projectId}, {track_version:trackId}, function(err, data){
         if (err)
@@ -148,38 +163,37 @@ exports.updateProjectVersion =  function(projectId,trackId,callback){
     });
 };
 
-exports.addUser = function(projectId,userId,access,callback){
-	User.findOne({_id:userId},function(err,user){
-		console.log(user);
-		if(err || !user)
+exports.updateProjectPrivacy =  function(projectId,projectJson,callback){
+    Project.update( {_id:projectId}, {privacy:projectJson.privacy}, function(err, data){
+        if (err)
             return callback(errors.errorNotFound((err?err:'')));
         else
+            return callback(data);
+    });
+};
+
+
+exports.addUser = function(projectId,userId,access,callback){
+	User.findOne({_id:userId},function(err,user){		
+		if(err || !user){
+            return callback(errors.errorNotFound((err?err:'')));
+        }
+        else{
             Project.update( {_id:projectId,'users.user': { $ne: userId }}, {$push: {users: {user:userId,access:access}}}, function(err, data){
 		        if(err) 
 		            return callback(errors.errorUpdate((err?err:'')));
 		        return callback(data);
 		    });
+        }
 	});
 };
 
 exports.deleteUser = function(projectId,userId,callback){
-	User.findOne({_id:userId},function(err,user){
-		console.log(user);
-		if(err || !user)
+    Project.update( {_id:projectId}, {$pull: {users: {user:userId}}}, function(err, data){
+        if(err || !data)
             return callback(errors.errorNotFound((err?err:'')));
-        else
-	        Project.findOne( {_id:projectId}, function(err, project){
-				if(err || !project)
-            		return callback(errors.errorNotFound((err?err:'')));
-            	else
-            		project.remove(function(err,data){
-				        if(err)
-            				return callback(errors.errorDelete((err?err:'')));
-				        else
-				            return callback(data);
-				    });
-		    });
-	});
+        return callback(data);
+    });
 };
 
 

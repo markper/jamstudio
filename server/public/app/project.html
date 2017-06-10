@@ -7,6 +7,7 @@
 	<link rel="stylesheet" type="text/css" href="http://localhost:3000/static/includes/style/dashboard.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="http://localhost:3000/static/includes/style/jquery-ui.min.css">
+	<link rel="stylesheet" type="text/css" href="http://localhost:3000/static/includes/style/projectStyle.css">
 	<script src="http://localhost:3000/static/includes/scripts/jquery-ui.min.js"></script>
 	<script src="http://localhost:3000/static/includes/scripts/controllerAPI.js"></script>
 	<script src="http://localhost:3000/static/includes/scripts/studioUI.js"></script>
@@ -27,7 +28,6 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 	<!--  -->
-
 </head>
 <body class="dashboard noselect">
 	<header>
@@ -60,7 +60,7 @@
 	<main class="scrolls">
 	 	<br>
 		<div class="wrapper">
-			<h3>Projact Name / Username</h3>
+			<h3>Projact Name / <span> Username </span></h3>
 			<div class="content">
 			  <!-- Nav tabs -->
 			  <ul class="nav nav-tabs" role="tablist">
@@ -86,22 +86,22 @@
 							  <!-- Tab panes -->
 							  <div class="tab-content">
 							    <div role="tabpanel" class="tab-pane active" id="project-info">
-									<form class="form-horizontal">
+									<form class="form-horizontal" id="form-update-project" action="project.html">
 									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="email">Name:</label>
+									    <label class="control-label col-sm-2" for="project-info-name">Name:</label>
 									    <div class="col-sm-10">
-									      <input type="email" class="form-control" id="email" placeholder="Enter email">
+									      <input type="text" class="form-control" id="project-info-name" placeholder="Enter name">
 									    </div>
 									  </div>
 									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="pwd">Description:</label>
+									    <label class="control-label col-sm-2" for="project-info-description">Description:</label>
 									    <div class="col-sm-10"> 
-									      <input type="email" class="form-control" id="email" placeholder="Enter email">
+									      <input type="text" class="form-control" id="project-info-description" placeholder="Enter description">
 									    </div>
 									  </div>	
 									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="pwd">Genre:</label>
-									  <div class="col-sm-10"> 
+									    <label class="control-label col-sm-2" for="project-info-genre">Genre:</label>
+									  <div class="col-sm-10" id="project-info-genre"> 
 											<select class="form-control">
 											  <option>General</option>
 											  <option>African</option>
@@ -126,17 +126,17 @@
 									  </div>				  
 									  <div class="form-group"> 
 									    <div class="col-sm-offset-2 col-sm-10">
-									      <button type="submit" class="btn btn-default">Submit</button>
+									      <button type="submit" class="btn btn-default" id="btn-project-info">Submit</button>
 									    </div>
 									  </div>
 									</form>
 							    </div>
 							    <div role="tabpanel" class="tab-pane" id="project-privacy">
-									<form class="form-horizontal">
+									<form class="form-horizontal" id="form-update-privacy" >
 									  <div class="form-group">
 									    <label class="control-label col-sm-2" for="pwd">Privacy:</label>
 									  <div class="col-sm-10"> 
-											<select class="form-control">
+											<select class="form-control" id="project-privacy">
 											  <option>Private</option>
 											  <option>Public</option>
 											</select>
@@ -144,7 +144,7 @@
 									  </div>				  
 									  <div class="form-group"> 
 									    <div class="col-sm-offset-2 col-sm-10">
-									      <button type="submit" class="btn btn-default">Submit</button>
+									      <button type="submit" class="btn btn-default" id="btn-project-privacy">Submit</button>
 									    </div>
 									  </div>
 									</form>
@@ -159,7 +159,7 @@
 						  <div class="col-md-2">
 							  <!-- Nav tabs -->
 							  <ul role="tablist" class="nav nav-pills nav-stacked">
-							    <li role="presentation" class="active"><a href="#project-issues-all" aria-controls="project-icq-wanted" role="tab" data-toggle="tab">All Issues</a></li>
+							    <li role="presentation" class="active"><a href="#project-issues-all" aria-controls="project-icq-wanted" role="tab" data-toggle="tab" id="btn-all-issue">All Issues <span class="badge"></span></a></li>
 							    <li role="presentation"><a href="#project-issues-new" aria-controls="project-issues-new" role="tab" data-toggle="tab">New Issue</a></li>
 							  </ul>
 						  </div>
@@ -167,84 +167,34 @@
 							  <!-- Tab panes -->
 							  <div class="tab-content">
 							    <div role="tabpanel" class="tab-pane active" id="project-issues-all">
-									<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-									  <div class="panel panel-default">
-									    <div class="panel-heading" role="tab" id="headingOne">
-									      <h4 class="panel-title">
-									        <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-									          Collapsible Group Item #1
-									        </a>
-									      </h4>
-									    </div>
-									    <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
-									      <div class="panel-body">
-									        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
-											<br><br>
-									        <button type="submit" class="btn btn-success">Close Issue</button>
-
-									      </div>
-									    </div>
-									  </div>
-									  <div class="panel panel-default">
-									    <div class="panel-heading" role="tab" id="headingTwo">
-									      <h4 class="panel-title">
-									        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-									          Collapsible Group Item #2
-									        </a>
-									      </h4>
-									    </div>
-									    <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-									      <div class="panel-body">
-									        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
-									        <br><br>
-									        <button type="submit" class="btn btn-default ">Reopen Issue</button>
-									      </div>
-									    </div>
-									  </div>
-									  <div class="panel panel-default">
-									    <div class="panel-heading" role="tab" id="headingThree">
-									      <h4 class="panel-title">
-									        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-									          Collapsible Group Item #3
-									        </a>
-									      </h4>
-									    </div>
-									    <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
-									      <div class="panel-body">
-									        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
-									        <br><br>
-									        <button type="submit" class="btn btn-default ">Reopen Issue</button>
-									      </div>
-									    </div>
-									  </div>
+									<div class="panel-group" id="issue-accordion" role="tablist" aria-multiselectable="true">
+									  									 
 									</div>
 							    </div>	  						
 							    <div role="tabpanel" class="tab-pane" id="project-issues-new">
-									<form class="form-horizontal">
+									<form class="form-horizontal" id="form-issues-new"  action="project.html">
 									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="email">Title:</label>
+									    <label class="control-label col-sm-2" for="project-issues-title">Title:</label>
 									    <div class="col-sm-10">
-									      <input type="email" class="form-control" id="email" placeholder="Enter title">
+									      <input type="text" class="form-control" id="project-issues-title" placeholder="Enter title">
 									    </div>
 									  </div>
 									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="pwd">Description:</label>
+									    <label class="control-label col-sm-2" for="project-issues-description">Description:</label>
 									    <div class="col-sm-10"> 
-									      <input type="email" class="form-control" id="email" placeholder="Enter description">
+									      <input type="text" class="form-control" id="project-issues-description" placeholder="Enter description">
 									    </div>
 									  </div>	
 									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="pwd">Instrument:</label>
+									    <label class="control-label col-sm-2" for="project-issues-user">User:</label>
 									  <div class="col-sm-10"> 
-											<select class="form-control">
-											  <option>Guitar</option>
-											  <option>Piano</option>
+											<select class="form-control"  id="issues-users">
 											</select>
 										</div>
 									  </div>				  
 									  <div class="form-group"> 
 									    <div class="col-sm-offset-2 col-sm-10">
-									      <button type="submit" class="btn btn-default">Submit</button>
+									      <button type="submit" class="btn btn-default" id="btn-project-issues">Submit</button>
 									    </div>
 									  </div>
 									</form>
@@ -260,34 +210,20 @@
 							  <!-- Nav tabs -->
 							  <ul role="tablist" class="nav nav-pills nav-stacked">
 							    <li role="presentation" class="active"><a href="#project-contributors-users" aria-controls="project-contributors-users" role="tab" data-toggle="tab">Users </a></li>
-							    <li role="presentation"><a href="#project-contributors-invite" aria-controls="project-contributors-invite" role="tab" data-toggle="tab">Invitation </a></li>
+							    <li role="presentation"><a href="#project-contributors-invite" aria-controls="project-contributors-invite" role="tab" data-toggle="tab">Add user </a></li>
 							  </ul>
 						  </div>
 						  <div class="col-md-10">
 							  <!-- Tab panes -->
 							  <div class="tab-content">
 							    <div role="tabpanel" class="tab-pane" id="project-contributors-invite">
-									<form class="form-horizontal">
+									<form class="form-horizontal"  id="form-contributors">
 									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="email">Title:</label>
+									    <label class="control-label col-sm-2" for="form-contributor-user">User:</label>
 									    <div class="col-sm-10">
-									      <input type="email" class="form-control" id="email" placeholder="Enter title">
+									      <input type="text" class="form-control" id="form-contributor-user" placeholder="Enter a name of user"  autocomplete="off">
+									      <section style="position: absolute;z-index: 1;" id="contributors-picker"></section>
 									    </div>
-									  </div>
-									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="pwd">Description:</label>
-									    <div class="col-sm-10"> 
-									      <input type="email" class="form-control" id="email" placeholder="Enter description">
-									    </div>
-									  </div>	
-									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="pwd">Instrument:</label>
-									  <div class="col-sm-10"> 
-											<select class="form-control">
-											  <option>Guitar</option>
-											  <option>Piano</option>
-											</select>
-										</div>
 									  </div>				  
 									  <div class="form-group"> 
 									    <div class="col-sm-offset-2 col-sm-10">
@@ -302,19 +238,7 @@
 									  <div class="panel-heading">Users</div>
 									  <!-- List group -->
 									  <ul class="list-group">
-									    <li class="list-group-item">
-											<div class="row">
-								    		  <div class="col-md-9">
-												<img src="https://scontent.fsdv1-1.fna.fbcdn.net/v/t1.0-1/c26.7.40.40/p74x74/1374206_10151895529017929_1400551419_n.jpg?oh=c8287829aead4780222e5ed1654df9d2&oe=59A09C9B" alt="..." class="img-circle"> Oran Moshe
-								    		  </div>
-								    		  <div class="col-md-3">
-												<div class="btn-group" role="group" aria-label="...">
-												  <button type="button" class="btn btn-primary">Accept</button>
-												  <button type="button" class="btn btn-default">Decline</button>
-												</div>
-								    		  </div>
-								    		</div>
-									    </li>
+									   
 									  </ul>
 									</div>
 							    </div>
@@ -330,30 +254,30 @@
 							  <ul role="tablist" class="nav nav-pills nav-stacked">
 							  	<li role="presentation"  class="active"><a href="#project-icq-new" aria-controls="project-icq-new" role="tab" data-toggle="tab">Post</a></li>
 							    <li role="presentation"><a href="#project-icq-all" aria-controls="project-icq-all" role="tab" data-toggle="tab">All posts</a></li>
-							    <li role="presentation"><a href="#project-icq-requests" aria-controls="project-icq-requests" role="tab" data-toggle="tab">Requests <span class="badge">1</span></a></li>
+							    <li role="presentation"><a href="#project-icq-requests" aria-controls="buildApplicant" role="tab" data-toggle="tab">Requests <span class="badge" id="request-badge">1</span></a></li>
 							  </ul>
 						  </div>
 						  <div class="col-md-10">
 							  <!-- Tab panes -->
 							  <div class="tab-content">
 							    <div role="tabpanel" class="tab-pane active" id="project-icq-new">
-									<form class="form-horizontal">
+									<form class="form-horizontal"  action="project.html" id="form-icq-new">
 									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="email">Title:</label>
+									    <label class="control-label col-sm-2" for="project-icq-title">Title:</label>
 									    <div class="col-sm-10">
-									      <input type="email" class="form-control" id="email" placeholder="Enter title">
+									      <input type="text" class="form-control" id="project-icq-title" placeholder="Enter title">
 									    </div>
 									  </div>
 									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="pwd">Description:</label>
+									    <label class="control-label col-sm-2" for="project-icq-description">Description:</label>
 									    <div class="col-sm-10"> 
-									      <input type="email" class="form-control" id="email" placeholder="Enter description">
+									      <input type="text" class="form-control" id="project-icq-description" placeholder="Enter description">
 									    </div>
 									  </div>	
 									  <div class="form-group">
-									    <label class="control-label col-sm-2" for="pwd">Instrument:</label>
+									    <label class="control-label col-sm-2" for="project-icq-instrument">Instrument:</label>
 									  <div class="col-sm-10"> 
-											<select class="form-control">
+											<select class="form-control" id="project-icq-instrument" multiple>
 											  <option>Guitar</option>
 											  <option>Piano</option>
 											</select>
@@ -372,22 +296,7 @@
 									  <div class="panel-heading">Interested Users</div>
 									  <!-- List group -->
 									  <ul class="list-group">
-									    <li class="list-group-item">
-											<div class="row">
-								    		  <div class="col-md-9">								    		 
-												<img src="https://scontent.fsdv1-1.fna.fbcdn.net/v/t1.0-1/c26.7.40.40/p74x74/1374206_10151895529017929_1400551419_n.jpg?oh=c8287829aead4780222e5ed1654df9d2&oe=59A09C9B" alt="..." class="img-circle">
-												<img src="http://icons.iconarchive.com/icons/flat-icons.com/flat/128/Guitar-icon.png" style="width: 40px; height:40px;margin-left: -20px" alt="..." class="img-circle">
-												 Oran Moshe - <i>Hey, can i join you?</i>
-												
-								    		  </div>
-								    		  <div class="col-md-3">
-												<div class="btn-group" role="group" aria-label="...">
-												  <button type="button" class="btn btn-primary">Accept</button>
-												  <button type="button" class="btn btn-default">Decline</button>
-												</div>
-								    		  </div>
-								    		</div>
-									    </li>
+	
 									  </ul>
 									</div>
 							    </div>
@@ -397,19 +306,7 @@
 									  <div class="panel-heading">Panel heading</div>
 									  <!-- List group -->
 									  <ul class="list-group">
-									    <li class="list-group-item">
-											<div class="row">
-								    		  <div class="col-md-9">
-												<img src="http://icons.iconarchive.com/icons/flat-icons.com/flat/128/Guitar-icon.png" style="width: 40px; height:40px;" alt="..." class="img-circle"> Looking for guitarist
-								    		  </div>
-								    		  <div class="col-md-3">
-												<div class="btn-group" role="group" aria-label="...">
-												  <button type="button" class="btn btn-default disabled">Jump</button>
-												  <button type="button" class="btn btn-danger">Delete</button>
-												</div>
-								    		  </div>
-								    		</div>
-									    </li>
+									   
 									  </ul>
 									</div>
 								</div>
@@ -550,25 +447,379 @@
 	</section>
 	<section id="contextmenu"></section>
 
-	<div id="create_project" data-toggle="modal" data-target="#exampleModal"></div>
-
 	<script>
 
 		var ctlAPI = new controllerAPI();
 		var ctlUI = new studioUI();
 		var ctlUser = new user();
-		var projects = {};
+		var project = {};
+		var user = {};
 
 		// Init studio
 		ctlAPI.getUserInfo(function(result){
 
 			ctlUser.init(result);
+			user = result;
 
-			ctlAPI.getProjectList(result._id,function(_result){
-				projects = _result.admin.concat(_result.contributor);
+			ctlAPI.getProject(getURLID(),function(_result){
+				project = _result;
+				// title
+				$('h3').html(project.name + ' / ');
+				$('h3').append('<span>'+user.firstName + ' ' + user.lastName+'</span>');
+				// info
+				$('#project-info-name').val(_result.name);
+				$('#project-info-description').val(_result.description);
+				$('#project-info-genre option').filter(function(e) {
+				    return $(this).text() == _result.genre; 
+				}).prop('selected', true);
+				$('#project-privacy option').filter(function(e) {
+				    return $(this).text() == _result.privacy; 
+				}).prop('selected', true);
+				// issues
+				var openIssues = 0;
+				for (var i = _result.issues.length - 1; i >= 0; i--) {
+					$('#issue-accordion').append($(buidIssue(_result.issues[i],(i==_result.issues.length - 1))));
+					if(_result.issues[i].status==1)
+						openIssues++;
+				}
+				if(openIssues) $('#btn-all-issue span').html(openIssues);
+				$('#issues-users').append($(buildUsersOptions()));	
+				// contributors
+				$('#project-contributors-users .list-group').append($(buildContributors()));
+				// icq
+				ctlAPI.getIcqByProject(getURLID(),function(_result){
+					for (var i = _result.length - 1; i >= 0; i--) {
+						$('#project-icq-all .list-group').append($(buildIcq(_result[i])));		
+					}
+					getRequests(_result);
+					function getRequests(icqs){
+						var requests = [];
+						var requests = [];
+						$(icqs).each(function(key,icq){
+							$(icq.applicants).each(function(key,applicant){
+								requests.push({applicant:applicant,icqId:icq._id});
+							});
+						});						
+						var reqAmount = 0;
+						$(requests).each(function(key,req){
+							$('#project-icq-requests .list-group').append($(buildRequest(req.applicant,req.icqId)));
+							reqAmount+=applicant.length;
+						});
+						$('#request-badge').html(reqAmount);
+					}
+				});
 			});
-			
+	
 		});
+
+		// update project info
+		$( "#form-update-project" ).submit(function(e) {
+			var data ={
+				name : $('#project-info-name').val(),
+				description : $('#project-info-description').val(),
+				genre : $('#project-info-genre').find(":selected").text()
+			}
+			ctlAPI.updateProjectInfo(project._id,data,function(result){
+				console.log(result);
+			})
+		 	event.preventDefault();
+		});
+
+		// update project privacy
+		$( "#form-update-privacy" ).submit(function(e) {
+			var data ={
+				privacy : $('#project-privacy').find(":selected").text()
+			}
+			ctlAPI.updateProjectPrivacy(project._id,data,function(result){
+				console.log(result);
+			});
+		 	event.preventDefault();
+		});
+
+		// new icq
+		$( "#form-icq-new" ).submit(function(e) {
+			var instruments = [];
+			$('#project-icq-instrument').find(":selected").map(function(key,value){
+				instruments.push($(value).text());
+			});
+			var icqJson ={
+			    "projectId": project._id,
+			    "applicants": [],
+			    "title": $('#project-icq-title').val(),
+			    "description": $('#project-icq-description').val(),
+			    "instruments": instruments
+			};
+			ctlAPI.createICQ(JSON.stringify(icqJson),function(result){
+				console.log(result);
+			})
+		 	event.preventDefault();
+		});
+
+		// new issue
+		$( "#form-issues-new" ).submit(function(e) {
+			var data ={
+	            projectId: project._id,
+	            fromUserId: user._id,
+	            toUserId: $('#issues-users option:selected').attr('data-userid'),//$('#issues-users').find(":selected").text(),
+	            name: $('#project-issues-title').val(),
+	            description:$('#project-issues-description').val(),
+	            status: 0
+			}
+			console.log($('#issues-users').find(":selected").text())
+			ctlAPI.createProjectIssue(project._id,data,function(result){
+				console.log(result);
+			});
+		 	event.preventDefault();
+		});
+
+		// Show users picker
+		//$('#form-contributor-user').attr('data-userid','592c04f9f36d2873685a5dbc');
+		$('#form-contributor-user').on('input',function(e){
+			$("#contributors-picker").show();
+			ctlAPI.getUsersPrefix($(e.target).val(),function(result){
+				console.log(buildUserPicker(result));
+				$("#contributors-picker").html($(buildUserPicker(result)));
+			});
+	    });
+
+	    // Pick user to input element 
+	    $(document).on('click','#contributors-picker li',function(e){
+	    	var userId = $(e.target).attr('data-userid'),
+	    		userName = $(e.target).attr('data-username');
+	    	$('#form-contributor-user').attr('data-userid',userId);
+	    	$('#form-contributor-user').val(userName);
+	    	$("#contributors-picker").hide();
+	    });
+
+		// Update user limitations	
+		$(document).on('click','.contributors-access-btns .btn',function(e){
+			var userId = $(e.target).closest('.list-group-item').attr('data-userid');
+			var active = ($(e.target).hasClass('active')?true:false);
+			var type = ($(e.target).find('input').hasClass('btn-limited')?'0':'1');
+			ctlAPI.updateContributorStatus(project._id,userId,type,function(result){
+				console.log(result);
+			});
+		});
+
+		// remove contributor	
+		$(document).on('click','#project-contributors-users .remove',function(e){
+			var userId = $(e.target).closest('.list-group-item').attr('data-userid');
+			ctlAPI.removeContributor(project._id,userId,function(result){
+				location.reload();
+			});
+		});
+		
+
+		// remove icq post
+		$(document).on('click','#project-icq-requests .btn-default',function(e){
+			var	userId = $(e.target).attr('data-userid');
+			var	icqId = $(e.target).closest('.list-group-item').attr('data-icqid');
+			console.log('requests.. decline');
+			console.log(userId);
+			console.log(icqId);
+			ctlAPI.removeIcqApplicants(icqId,userId,function(result){
+			 	console.log(result);
+			})
+		});
+
+		// jump icq
+		$(document).on('click','#project-icq-all .btn-default',function(e){
+			var	userId = $(e.target).attr('data-userid');
+			var	icqId = $(e.target).closest('.list-group-item').attr('data-icqid');
+			ctlAPI.updateICQJump(icqId,function(result){
+				console.log(result);
+				location.reload();
+			});
+		});
+
+		// delete icq
+		$(document).on('click','#project-icq-all .btn-danger',function(e){
+			var	userId = $(e.target).attr('data-userid');
+			var	icqId = $(e.target).closest('.list-group-item').attr('data-icqid');
+			ctlAPI.deleteICQ(icqId,function(result){
+				console.log(result);
+				location.reload();
+			});
+		});
+
+		// add contributor 
+		$(document).on('click','#project-icq-requests .btn-primary',function(e){
+			var	userId = $(e.target).attr('data-userid');
+			var	icqId = $(e.target).closest('.list-group-item').attr('data-icqid');
+			console.log('requests.. decline');
+			console.log(userId);
+			console.log(icqId);
+			ctlAPI.addContributor(project._id,userId,"all",function(result){
+			});
+		});
+
+		// update issue
+		$(document).on('click','button[data-issue]',function(e){
+			var issueId = $(e.target).attr('data-issue');
+			var issue = filterIssues(issueId)[0];
+			if(!issue)
+				return;
+			$(e.target).prop('disabled', true);
+
+			issueJson = {
+	            projectId: issue.projectId,
+				toUserId:issue.toUserId._id,
+				fromUserId:issue.fromUserId._id,
+	            name: issue.name,
+	            description: issue.description,
+				status:(issue.status=="0"?"1":"0")
+			}
+			updateIssue(project._id,issue._id,issueJson,function(result){								
+				($(e.target).hasClass("btn-success")?
+					$(e.target).removeClass("btn-success").addClass("btn-default").prop('disabled', false)
+					:$(e.target).removeClass("btn-default").addClass("btn-success")).prop('disabled', false);	
+				$(e.target).html(($(e.target).hasClass("btn-success")?'Close Issue':'Open Issue'));	
+			});
+
+		});
+
+	    function buildUserPicker(users){
+	    	var items = '';
+	    	for (var i = users.length - 1; i >= 0; i--) {
+	    		items += '<li class="list-group-item" data-userid="'+users[i]._id+'" data-username="'+users[i].firstName + ' ' +users[i].lastName +'">'+ buidUser(users[i]) +'</li>';
+	    	}
+		    return	'<ul class="list-group">'+
+				  	items +
+					'</ul>';
+	    }
+		$( "form#form-contributors" ).submit(function(e) {
+			var data ={
+	            user: $('#form-contributor-user').attr('data-userid'),//$('#issues-users').find(":selected").text(),
+	            access: "all"
+			}			
+			ctlAPI.addContributor(project._id,data.user,data.access,function(result){
+				alert(result);
+			});
+		 	event.preventDefault();
+		});
+
+		function buildUsersOptions(){			
+			var options = '';
+				users = project.users;
+			for (var i = users.length - 1; i >= 0; i--) {
+				options+='<option data-userid="'+ users[i].user._id +'">'+users[i].user.firstName+' '+ users[i].user.lastName +'</option>';
+			}
+			return options;
+		}
+
+		function buildContributors(){
+			var contributors = '';
+			users = project.users;
+			for (var i = users.length - 1; i >= 0; i--) {
+				contributors+=buildContributor(users[i]);
+			}
+			return contributors;
+		}
+
+		function buildRequest(request,icqId){
+			return '<li class="list-group-item" data-icqid='+icqId+'>'+
+			'	<div class="row">'+
+			'	  <div class="col-md-9" style="padding-left:40px;">'+
+			'		<img src="http://icons.iconarchive.com/icons/flat-icons.com/flat/128/Guitar-icon.png" style="width: 40px; height:40px;margin-left: -25px;position:absolute;" alt="..." class="img-circle">'+
+			'		 '+buidUser(request.user)+' - <i>'+request.message+'</i>'+
+			'	  </div>'+
+			'	  <div class="col-md-3">'+
+			'		<div class="btn-group" role="group" aria-label="...">'+
+			'		  <button type="button" class="btn btn-primary accept" data-userid="'+request.user._id+'">Accept</button>'+
+			'		  <button type="button" class="btn btn-default decline" data-userid="'+request.user._id+'">Decline</button>'+
+			'		</div>'+
+			'	  </div>'+
+			'	</div>'+
+		    '</li>'
+		}
+
+	    function buildIcq(icq){
+	    	console.log('---');
+	    	console.log();
+			return  '<li class="list-group-item" data-icqid="'+icq._id+'">'+
+					'	<div class="row">'+
+			    	'	  <div class="col-md-9">'+
+					'		<img src="http://icons.iconarchive.com/icons/flat-icons.com/flat/128/Guitar-icon.png" style="width: 40px; height:40px;" alt="..." class="img-circle">'+ icq.title +', '+icq.description +
+			    	'	  </div>'+
+			    	'	  <div class="col-md-3">'+
+					'		<div class="btn-group" role="group" aria-label="...">'+
+					'		  <button type="button" class="btn btn-default disabled" data-icqid="'+icq._id+'">Jump</button>'+
+					'		  <button type="button" class="btn btn-danger" data-icqid="'+icq._id+'">Delete</button>'+
+					'		</div>'+
+			    	'	  </div>'+
+			    	'	</div>'+
+				    '</li>'
+	    }
+
+		function buidIssue(issueObject,expanded){
+			return $(
+			 '<div class="panel panel-default">'+
+			 '   <div class="panel-heading" role="tab" id="headingOne'+issueObject._id+'">'+
+			 '     <h4 class="panel-title">'+
+			 '       <a role="button" data-toggle="collapse" data-parent="#issue-accordion" href="#collapseOne'+issueObject._id+'" aria-expanded="'+expanded+'" aria-controls="collapseOne'+issueObject._id+'">'+
+			 issueObject. name +
+			 '       </a>'+
+			 '     </h4>'+
+			 '   </div>'+
+			 '   <div id="collapseOne'+issueObject._id+'" class="panel-collapse collapse '+(expanded?'in':'')+'" role="tabpanel" aria-labelledby="headingOne'+issueObject._id+'">'+
+			 '     <div class="panel-body">'+
+			 			issueObject.description+
+			 '			<br><br>'+buidUser(issueObject.fromUserId) +'<br>'+ buidUser(issueObject.toUserId)+'<br><br>'+	
+			 '       <button type="submit" data-issue="'+issueObject._id+'" class="btn '+(issueObject.status=="1"?'btn-success':'btn-default')+'">'+(issueObject.status=="1"?'Close Issue':'Open Issue')+'</button>'+
+			 '      </div>'+
+			 '    </div>'+
+			 '  </div>');
+		}
+
+		function filterIssues(query) {
+		    return project.issues.filter(function(el) {
+		     return el._id.toLowerCase().indexOf(query.toLowerCase()) > -1;
+		    })
+		}
+
+		function updateIssue(projectId,issueId,issueJson,callback){
+			ctlAPI.updateProjectIssue(projectId,issueId,issueJson,function(result){
+				callback(result);
+			});
+		}
+
+		function buidUser(userObject){
+			if(userObject)
+			return '<img src="'+userObject.picture+'" alt="..." class="img-circle" style="width:40px;"> '+ userObject.firstName+' '+userObject.lastName;
+		}
+
+		function buildContributor(userJson){
+			return ' <li class="list-group-item" data-userid="'+userJson.user._id+'">'+
+					'	<div class="row">'+
+			    	'	  <div class="col-md-6">'+
+					'		<img src="'+userJson.user.picture+'" style="width:40px;" alt="..." class="img-circle"> '+ userJson.user.firstName + ' ' + userJson.user.lastName +
+			    	'	  </div>'+
+			    	'	  <div class="col-md-3">'+
+					'		<div class="btn-group contributors-access-btns" data-toggle="buttons">'+
+					'		  <label class="btn btn-primary '+
+						(userJson.access=='1'?'active':'')
+					+'">'+
+					'		    <input type="radio" name="options" class="btn-manager" autocomplete="off" '+
+						(userJson.access?'checked':'')
+					+'"> Manager'+
+					'		  </label>'+
+					'		  <label class="btn btn-primary '+
+						(userJson.access=='1'?'':'active')
+					+'">'+
+					'		    <input type="radio" name="options" class="btn-limited" autocomplete="off" '+
+						(userJson.access?'checked':'')
+					+'">Limited'+
+					'		  </label>'+
+					'		</div>'+
+					'	  </div>'+
+					'	  <div class="col-md-3">'+
+					'		<div class="btn-group" role="group" aria-label="...">'+
+					'		  <button type="button" class="btn btn-danger remove">Remove</button>'+
+					'		</div>'+
+			    	'	  </div>'+
+			    	'	</div>'+
+				    '</li>'
+		}
 
 		function user(){
 
@@ -587,10 +838,24 @@
 			return location.href.substr(location.href.lastIndexOf('/') + 1);
 		}
 
+		// tabs events 
+		window.onload = function(){		
+			$('a[href="'+window.location.hash+'"]').trigger( "click" );
+			$('#loader').show();
+		};
+		$(document).ready(function(){
+			$('#loader').hide();
+		});
+		$(document).on('click','.nav.nav-tabs a',function(){
+			window.location.hash = $(this).attr("href");
+		});
+
+		// logo event
 		$(document).on('click','#logo',function(e){
 			window.location.href = '../dashboard';
 		});
 
+		// user events
 		$(document).on('click','#connected_user',function(e){
 			switch(e.target.id){
 				case 'logout':{
@@ -602,7 +867,12 @@
 			}
 			$('#connected_user_menu').toggle();
 		});
-		
+
+		// relaod at submit..
+		$(document).submit(function(e){
+			location.reload();
+		});
+
 	</script>
 
     <script src="http://localhost:3000/static/includes/bootstrap/3.3.7/js/bootstrap.min.js"></script>

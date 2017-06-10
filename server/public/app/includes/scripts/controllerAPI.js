@@ -86,6 +86,36 @@ function controllerAPI(){
 		});	
 	}
 
+
+	this.updateProjectInfo = function(projectId,projectJson, callback){
+		$.ajax({
+			type: "Put",
+			dataType: "json",
+ 			url: serverDB+'/Project/Info/'+projectId,
+ 			data: (projectJson),
+ 			success:  function(result){
+				callback(result);
+			},
+	        error: function(err){
+	        	callback(null);
+	        }
+		});	
+	}
+
+	this.updateProjectPrivacy = function(projectId,projectJson, callback){
+		$.ajax({
+			type: "Put",
+			dataType: "json",
+ 			url: serverDB+'/Project/Privacy/'+projectId,
+ 			data: (projectJson),
+ 			success:  function(result){
+				callback(result);
+			},
+	        error: function(err){
+	        	callback(null);
+	        }
+		});	
+	}
 	this.createProject = function(projectJson,callback){
 		$.ajax({
 			type: "Post",
@@ -101,6 +131,35 @@ function controllerAPI(){
 		});	
 	}
 
+	this.createProjectIssue = function(projectId,issueJson,callback){
+		$.ajax({
+			type: "Post",
+			dataType: "json",
+ 			url: serverDB+'/Project/'+projectId+'/Issue',
+ 			data: (issueJson),
+ 			success:  function(result){
+				callback(result);
+			},
+	        error: function(err){
+	        	callback(null);
+	        }
+		});	
+	}
+
+	this.updateProjectIssue = function(projectId,issueId,issueJson,callback){
+		$.ajax({
+			type: "Put",
+			dataType: "json",
+ 			url: serverDB+'/Project/'+projectId+'/Issue/'+issueId,
+ 			data: (issueJson),
+ 			success:  function(result){
+				callback(result);
+			},
+	        error: function(err){
+	        	callback(null);
+	        }
+		});	
+	}
 	this.getProjectList = function(userId,callback){
 		$.ajax({
 			type: "Get",
@@ -121,6 +180,176 @@ function controllerAPI(){
 	        datatype:"json",
 	        url: serverDB+'/'+projectId+'/GetVersions',
 	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err);
+	        }
+	    });
+	}
+
+
+	this.getUsersPrefix = function(prefix,callback){
+		$.ajax({
+	        type: "Get",
+	        datatype:"json",
+	        url: serverDB+'/User/GetList/'+prefix,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err);
+	        }
+	    });
+	}
+
+
+
+	this.addContributor = function(projectId,userId,access,callback){
+		$.ajax({
+	        type: "Post",
+	        datatype:"json",
+	        url: serverDB+'/Project/'+projectId+'/User/'+userId+'/Access/'+ access,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err.message);
+	        }
+	    });
+	}
+
+	this.removeContributor = function(projectId,userId,callback){
+		$.ajax({
+	        type: "Delete",
+	        datatype:"json",
+	        url: serverDB+'/Project/'+projectId+'/User/'+userId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err);
+	        }
+	    });
+	}
+
+	this.updateContributorStatus = function(projectId,userId,access,callback){
+		$.ajax({
+	        type: "Put",
+	        datatype:"json",
+	        url: serverDB+'/Project/'+projectId+'/User/'+userId+'/Access/'+ access,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err);
+	        }
+	    });
+	}
+
+	//
+	// ICQ
+	//
+	this.createICQ = function(icqJson,callback){
+		$.ajax({
+	        type: "Post",
+	        datatype:"json",
+	        contentType: "application/json",
+	        url: serverDB+'/Icq',
+	        data:(icqJson),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err);
+	        }
+	    });
+	}
+
+	this.deleteICQ = function(icqId,callback){
+		$.ajax({
+	        type: "Delete",
+	        datatype:"json",
+	        contentType: "application/json",
+	        url: serverDB+'/Icq/'+icqId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err);
+	        }
+	    });
+	}
+
+	this.updateICQJump = function(icqId,callback){
+		$.ajax({
+	        type: "Put",
+	        datatype:"json",
+	        contentType: "application/json",
+	        url: serverDB+'/Icq/'+icqId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err);
+	        }
+	    });
+	}
+
+	this.getIcqByProject = function(projectId,callback){
+		$.ajax({
+	        type: "Get",
+	        datatype:"json",
+	        url: serverDB+'/Icq/Project/'+projectId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err);
+	        }
+	    });
+	}
+
+	this.removeIcqApplicants = function(icqId,userId,callback){
+		$.ajax({
+	        type: "Delete",
+	        datatype:"json",
+	        url: serverDB+'/Icq/'+icqId+'/Applicant/'+userId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err);
+	        }
+	    });
+	}
+
+	this.addIcqApplicants = function(icqId,applicantJson,callback){
+		$.ajax({
+	        type: "Delete",
+	        datatype:"json",
+	        url: serverDB+'/Icq/'+icqId+'/Applicant',
+	        contentType: "application/json",
+	        data:(applicantJson),
 	        success: function(result)
 	        {
 	        	callback(result);
