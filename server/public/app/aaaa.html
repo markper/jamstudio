@@ -7,13 +7,18 @@
   <input type="submit">
 </form>
 <script>
-	var a = new Audio();
-	a.src = 'http://localhost:3300/uploads/592c04f9f36d2873685a5dbc/3.wav'
-	a.currentTime = 7;
-	a.addEventListener('loadeddata', function(){
-		a.play();
-	}, false);
-
+var request = new XMLHttpRequest();
+request.open("GET", "http://localhost:3300/uploads/592c04f9f36d2873685a5dbc/3.wav", true);
+request.responseType = "blob";    
+request.onload = function() {
+  if (this.status == 200) {
+    var audio = new Audio(URL.createObjectURL(this.response));
+    audio.load();
+    audio.currentTime = 5;
+    audio.play();
+  }
+}
+request.send();
 </script>
 <p><strong>Note:</strong> The accept attribute of the input tag is not supported in Internet Explorer 9 (and earlier versions), and Safari 5 (and earlier).</p>
 <p><strong>Note:</strong> Because of security issues, this example will not allow you to upload files.</p>

@@ -17,3 +17,7 @@ exports.errorDelete = function(info){
 exports.errorCreate = function(info){
 	return new Error('error: object not created.\n '+ info);
 };
+
+exports.errorSave = function(info){
+	return new Error('error: object not saved.\n '+ info);
+};

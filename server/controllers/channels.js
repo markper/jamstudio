@@ -79,7 +79,8 @@ exports.updateChannel = function(channelId,channelJson,callback){
                     "start": obj.start,
                     "volume": obj.volume,
                     "duration": obj.duration,
-                    "file":  obj.file  
+                    "file":  obj.file,
+                    "delay":  obj.delay  
             };
             channel.samples.push(sample);
 
@@ -123,12 +124,18 @@ exports.syncChannels = function(channelsJson,callback){
 exports.createSample = function(channelId,sampleJson,callback){
 	Channel.
     findOne({_id:channelId},function(err,channel){
-        if (err || !channel) 
-        	return callback(errors.errorNotFound((err?err:'')));
+        if (err || !channel) {
+            console.log('channel not found');
+        	return callback(errors.errorNotFound((err?err:'')));            
+        }
+        
+        delete sampleJson["sampleId"]
         channel.samples.push(sampleJson);
         channel.save(function(err,channel){
-	        if (err) 
+	        if (err) {
+                console.log('channel not saved..');
 	        	return callback(errors.errorSave((err?err:'')));
+            }
 	        return callback(channel.samples[channel.samples.length-1]);
         });
     });
@@ -164,7 +171,8 @@ exports.updateSample = function(channelId,sampleJson,callback){
                 "start": sampleJson.start,
                 "volume": sampleJson.volume,
                 "duration": sampleJson.duration,
-                "file":  sampleJson.file  
+                "file":  sampleJson.file,
+                "delay": sampleJson.delay
             };
             Channel.findByIdAndUpdate(
                 channelId,

@@ -16,6 +16,14 @@ router.get('/', function(req, res, next) {
 });
 
 /* GET home page. */
+router.get('/mark', ensureLoggedIn, function(req, res, next) {
+  var path2 = path.join(__dirname, '../public', 'app/aaaa.html');
+  console.log(path2);
+  return res.sendFile(path2);
+  next();
+});
+
+/* GET home page. */
 router.get('/test/preview/:id', ensureLoggedIn, function(req, res, next) {
   var path2 = path.join(__dirname, '../public', 'app/preview.html');
   console.log(path2);

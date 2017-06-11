@@ -1,4 +1,5 @@
 var studio = function studio(){
+
 	var max_time = 60*20;
 	var time_units = 5;
 	var unit_width = 10;
@@ -24,7 +25,8 @@ var studio = function studio(){
 
 
 	this.init = function init(){
-		
+
+
 		// Init studio
 		ctlAPI.getUserInfo(function(result){
 
@@ -534,11 +536,31 @@ var studio = function studio(){
 					}
 					console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
 
-					var st1 = setTimeout(function(){						
-						sample.aud.currentTime = startAt + parseFloat(sample.delay);
-						console.log(sample.id +': '+(sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume)));
-						sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume));
-						sample.aud.play();
+					var st1 = setTimeout(function(){		
+						console.log('delay play:' + startAt);
+						//console.log(startAt + parseFloat(sample.delay))				
+						//console.log(sample.id +': '+(sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume)));
+						// sample.aud.src = sample.file;
+						// console.log(sample.file);
+						// sample.aud.load();
+						// sample.aud.currentTime = 5;
+						// sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume));
+						// sample.aud.play();
+
+
+						var request = new XMLHttpRequest();
+						request.open("GET", sample.file, true);
+						request.responseType = "blob";    
+						request.onload = function() {
+						  if (this.status == 200) {
+						    var audio = new Audio(URL.createObjectURL(this.response));
+						    sample.aud = audio;
+						    sample.aud.load();
+						    sample.aud.currentTime = startAt+ parseFloat(sample.delay);
+						    sample.aud.play();
+						  }
+						}
+						request.send();
 					},remainToStart*1000);	
 					player.timeouts.push(st1);
 
@@ -900,6 +922,7 @@ var studio = function studio(){
 
 	var Sample = class Sample {
 	  constructor(id=0,channelId=0,file=0,fileId=null,duration=0,start=0,volume=0,delay=0,fadeIn=0,fadeOut=0) {
+	     var _this = this;
 	    this.id = id;
 	    this.channelId = channelId;
 	    this.file = file;
@@ -907,10 +930,7 @@ var studio = function studio(){
 	    this.time = duration;
 	    this.delay = delay;
 	    this.start = start;
-	    this.aud = new Audio();
-	    this.aud.src = file; 
-	    this.aud.volume = volume;
-	    this.aud.loop = true; 
+	   	this.aud = new Audio();
 	    this.volume = volume;
 	    this.username = "USER";
 	    this.userId = "userId";
@@ -924,8 +944,7 @@ var studio = function studio(){
 		    this.time = data.time;
 		    this.delay = data.delay;
 		    this.start = data.start;
-		    this.aud = new Audio();
-		    this.aud.src = data.aud.src; 
+			this.aud = new Audio();
 		    this.volume = data.volume;
 		    this.username = data.username;
 		    this.userId = data.userId;
@@ -937,13 +956,16 @@ var studio = function studio(){
 
 	    this.toJson = function(){
 	    	return {
+	    			"sampleId" : this.id,
 	    			"channelId": this,channelId,
 					"fadein": this.fadeIn,
 					"fadeout": this.fadeOut,
 					"start": this.start,
 					"volume": this.volume,
 					"duration": this.time,
-					"file":  this.fileId				
+					"delay": this.delay,
+					"file":  this.fileId,
+					"path":  this.file					
 	    	}
 	    }
 
@@ -1579,10 +1601,15 @@ var studio = function studio(){
 		clone.id = 'newSample'+sampleIndexGenerator++;
 		clone.fadeIn = 0;
 
+		console.log('clone.delay')
+		console.log(clone.delay);
+
 		sample.time = time.toFixed(1);
 		sample.fadeOut = 0;
 		sample.draw();
 
+		console.log('sample.delay')
+		console.log(sample.delay);
 
 		ctlProject.get(clone.channelId).addSample(clone);
 		clone.draw();
@@ -1906,9 +1933,9 @@ var studio = function studio(){
 		}
 		channels = JSON.stringify(channelsArray);
 		console.log(channels);
-		ctlAPI.syncChannels(channels,function(data){
-			console.log(data);
-		});
+		// ctlAPI.syncChannels(channels,function(data){
+		// 	console.log(data);
+		// });
 	});
 	$(document).on('click','#toolbox_btn_zoomin',function(){
 		zoomIn();
@@ -1970,7 +1997,14 @@ var studio = function studio(){
 		else
 			$(e.target).addClass('loading');
 
-		ctlAPI.export(ctlProject.toJson(),function(msg){
+		var channels = ctlProject.toJson().track_version.channels;
+		var channelsArray = {'channels':[]};
+		for (var i = 0; i < channels.length; i++) {
+			channelsArray['channels'].push(channels[i].channel);
+		}
+		channels = JSON.stringify(channelsArray);
+
+		ctlAPI.export(channels,function(msg){
 			var link = document.createElement("a");
 		    link.download = msg;
 		    link.href = msg;
