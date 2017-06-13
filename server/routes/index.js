@@ -3,11 +3,12 @@ var passport = require('passport');
 var router = express.Router();
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var path = require('path');
+var config = require('../config');       // get our config file
 
 var env = {
   AUTH0_CLIENT_ID: process.env.AUTH0_CLIENT_ID,
   AUTH0_DOMAIN: process.env.AUTH0_DOMAIN,
-  AUTH0_CALLBACK_URL: process.env.AUTH0_CALLBACK_URL || 'http://localhost:3000/callback'
+  AUTH0_CALLBACK_URL: process.env.AUTH0_CALLBACK_URL || config.server+'/callback'
 };
 
 /* GET home page. */
@@ -15,45 +16,27 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express', env: env });
 });
 
-/* GET home page. */
-router.get('/mark', ensureLoggedIn, function(req, res, next) {
-  var path2 = path.join(__dirname, '../public', 'app/aaaa.html');
-  console.log(path2);
-  return res.sendFile(path2);
-  next();
-});
 
-/* GET home page. */
-router.get('/test/preview/:id', ensureLoggedIn, function(req, res, next) {
-  var path2 = path.join(__dirname, '../public', 'app/preview.html');
-  console.log(path2);
-  return res.sendFile(path2);
-  next();
-});
-
-
-
-router.get('/app/studio/:projectId', function (req, res, next) {
+router.get('/app/studio/:projectId',ensureLoggedIn, function (req, res, next) {
   var path2 = path.join(__dirname, '../public', 'app/studio.html');
   console.log(path2);
   return res.sendFile(path2);
   next();
 })
 
-router.get('/app/project/:projectId', function (req, res, next) {
+router.get('/app/project/:projectId', ensureLoggedIn ,function (req, res, next) {
   var path2 = path.join(__dirname, '../public', 'app/project.html');
   console.log(path2);
   return res.sendFile(path2);
   next();
 })
 
-router.get('/app/dashboard', function (req, res, next) {
+router.get('/app/dashboard', ensureLoggedIn, function (req, res, next) {
   var path2 = path.join(__dirname, '../public', 'app/dashboard.html');
   console.log(path2);
   return res.sendFile(path2);
   next();
 })
-
 
 
 router.get('/login',

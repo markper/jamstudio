@@ -22,11 +22,21 @@ var studio = function studio(){
 	var ctlUser = new user();
 	var ctlAPI = new controllerAPI();
 	var ctlDBHelper = new dbHelper();
+	var ctlLoader = new loaderWindow();
 
+	function loaderWindow(){
+		var counter = 0;
+		this.inc=function(){
+			counter++;
+			$('#loader').show();
+		}	
+		this.dec=function(){
+			if(!--counter)
+				$('#loader').fadeOut();
+		}	
+	}
 
 	this.init = function init(){
-
-
 		// Init studio
 		ctlAPI.getUserInfo(function(result){
 
@@ -64,8 +74,8 @@ var studio = function studio(){
 	/* UI Objects */
 
 	function files(){
+		var _this = this;
 		this.map = {};
-
 		this.init = function(data){
 			for (var i = 0; i < data.files.length; i++) {
 				this.add({type:'files', file: data.files[i]});
@@ -74,9 +84,13 @@ var studio = function studio(){
 				this.add({type:'sharedFiles',file: data.sharedFiles[i]});
 			}
 		}
-		this.add = function(data){
-			this.map['file'+data.file._id]=data.file;
-			$('#'+data.type).append('<li class="file" draggable="true" id="file'+data.file._id+'">'+ data.file.name+'</li>');
+		this.add = function(data){			
+			ctlAPI.isFileExist(data.file._id,function(result){
+				if(result){
+					_this.map['file'+data.file._id]=data.file;
+					$('#'+data.type).append('<li class="file" draggable="true" id="file'+data.file._id+'">'+ data.file.name+'</li>');
+				}
+			});	
 		}
 		this.remove = function(file){
 			$('file'+file._id).remove();
@@ -548,19 +562,23 @@ var studio = function studio(){
 						// sample.aud.play();
 
 
-						var request = new XMLHttpRequest();
-						request.open("GET", sample.file, true);
-						request.responseType = "blob";    
-						request.onload = function() {
-						  if (this.status == 200) {
-						    var audio = new Audio(URL.createObjectURL(this.response));
-						    sample.aud = audio;
-						    sample.aud.load();
-						    sample.aud.currentTime = startAt+ parseFloat(sample.delay);
-						    sample.aud.play();
-						  }
-						}
-						request.send();
+						// var request = new XMLHttpRequest();
+						// request.open("GET", sample.file, true);
+						// request.responseType = "blob";    
+						// request.onload = function() {
+						//   if (this.status == 200) {
+						//     var audio = new Audio(URL.createObjectURL(this.response));
+						//     sample.aud = audio;
+						//     // sample.aud.load();
+						//     sample.aud.currentTime = startAt+ parseFloat(sample.delay);
+						//     sample.aud.play();
+						//   }
+						// }
+						// request.send();
+						sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume));
+						sample.aud.currentTime = startAt+ parseFloat(sample.delay);
+						sample.aud.play();
+		
 					},remainToStart*1000);	
 					player.timeouts.push(st1);
 
@@ -921,7 +939,7 @@ var studio = function studio(){
 
 
 	var Sample = class Sample {
-	  constructor(id=0,channelId=0,file=0,fileId=null,duration=0,start=0,volume=0,delay=0,fadeIn=0,fadeOut=0) {
+	  constructor(id,channelId,file,fileId,duration,start,volume,delay,fadeIn,fadeOut) {
 	     var _this = this;
 	    this.id = id;
 	    this.channelId = channelId;
@@ -952,6 +970,31 @@ var studio = function studio(){
 		    this.fadeIn = data.fadeIn;
 		    this.fadeOut = data.fadeOut;
 		    this.loop = data.loop;
+	    }
+	  
+	 	var _this = this;
+
+	    loadFile();
+	    this.loadFile = function(){
+	    	loadFile();
+	    };
+
+	    function loadFile(){
+	    	ctlLoader.inc();
+	    	var request = new XMLHttpRequest();
+			console.log(_this.file);
+			request.open("GET", _this.file, true);
+			request.responseType = "blob";    
+			request.onload = function() {
+			  if (this.status == 200) {
+			    var audio = new Audio(URL.createObjectURL(this.response));
+			    _this.aud = audio;
+			    _this.aud.load();
+			    _this.aud.currentTime = _this.start+ parseFloat(_this.delay);		    
+			    ctlLoader.dec();
+			  }
+			}
+			request.send();
 	    }
 
 	    this.toJson = function(){
@@ -1007,6 +1050,8 @@ var studio = function studio(){
 	    }
 	  }	 
 	};
+
+
 	var Action = class Action {
 	  constructor(type,state) {
 	  	this.type = type;	
@@ -1142,9 +1187,28 @@ var studio = function studio(){
 					var clone = jQuery.extend(true, {}, sample);
 					clone.id = data._id;
 					var channel = ctlProject.get(sample.channelId);
+					clone.file = sample.file;
+
+					ctlLoader.inc();
+			    	var request = new XMLHttpRequest();
+					console.log(clone.file);
+					request.open("GET", clone.file, true);
+					request.responseType = "blob";    
+					request.onload = function() {
+					  if (this.status == 200) {
+					    var audio = new Audio(URL.createObjectURL(this.response));
+					    clone.aud = audio;
+					    clone.aud.load();
+					    clone.aud.currentTime = clone.start+ parseFloat(clone.delay);		    
+					    ctlLoader.dec();
+					  }
+					}
+					request.send();
+
 					channel.removeSample(sample);
 					channel.addSample(clone);
 					clone.draw();
+
 					if(callback)
 						callback(clone.id);
 				}
@@ -1353,6 +1417,7 @@ var studio = function studio(){
 		ctlDBHelper.createSample(sampleId,function(newId){
 			ac.removeAction();
 			ac.addAction(new Action('sample_new',jQuery.extend(true, {}, getSampletById(newId))));
+			//getSampletById(newId).loadFile();
 		});	
 	}
 
@@ -2302,16 +2367,25 @@ var studio = function studio(){
 	   		audio.src= URL.createObjectURL(file);
 	   		audio.onloadedmetadata = function() {
 			 	ctlDBHelper.uploadFile(user.user._id,new FormData($(form)[0]),audio.duration,file.size,function(result){
-
+			 		console.log(result);
+			 	},function(res){
+			 		console.log(res);
 			 	});
 			};
 		});
 	});	
 
+	function loader(){
+		$('#loader').hide();
+	}
 
-
+	function loaderProgress(){
+		
+	}
+	function loaderHide(){
+		$('#loader').hide();
+	}
 	/* CONTEXTMENU */
-
 	$(document).on('mousedown','body',function(e){
 		if(!$(e.target).hasClass('time-box'))
 			return;
@@ -2352,7 +2426,8 @@ var studio = function studio(){
 		showContextMenu('sample',listItems,id,e);
 	});
 
-	$(document).on('click','#contextmenu li',function(e){
+	$(document).on('mousedown','#contextmenu li',function(e){
+		$('#contextmenu').hide();
 		var parent = $(e.target).closest('#contextmenu');
 		var type = $(parent).attr('data-type');
 		var id = $(parent).attr('data-id');
@@ -2378,7 +2453,7 @@ var studio = function studio(){
 		}else if(type=='sample'){
 
 		}
-		$('#changer').focus(function() { $(this).select() });
+		//$('#changer').focus(function() { $(this).select() });		
 	});
 
 

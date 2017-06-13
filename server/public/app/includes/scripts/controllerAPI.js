@@ -2,8 +2,10 @@ function controllerAPI(){
 	
 	var localDB = 'http://localhost:3000';
 	var localFiles = 'http://localhost:3300';
-	var serverDB = localDB;
-	var serverFiles = localFiles;
+	var remoteDB = 'http://jammeapp.herokuapp.com';
+	var remoteFiles = 'http://oran1.herokuapp.com';
+	var serverDB = remoteDB;
+	var serverFiles = remoteFiles;
 	
 	//
 	// User
@@ -514,7 +516,7 @@ function controllerAPI(){
 		$.ajax({
 			method: "POST",
 			//url: '/export/mp3/'+prompt('sec to start')+'/'+prompt('sec to end'),
-			url: serverFiles+'/export/mp3/'+prompt('sec to start')+'/'+prompt('sec to end'),
+			url: serverFiles+'/export/wav/'+prompt('sec to start')+'/'+prompt('sec to end'),
 			data:JSON.stringify(track),
 			error: function(e) {
 				$(e.target).removeClass('loading');
@@ -528,7 +530,24 @@ function controllerAPI(){
 		});
 	}
 
-	this.upload = function(userId,formData,duration,size,callback){
+	this.isFileExist = function(id,callback){
+		$.ajax({
+			method: "GET",
+			url: serverDB+'/file/isExist/'+id,
+			data:({}),
+			error: function(e) {
+				callback(false);
+			},
+			success: function(result){
+				callback(result);
+			}
+		})
+		.done(function(msg) {
+			console.log(msg);
+		});
+	}
+
+	this.upload = function(userId,formData,duration,size,callback,progressLoader){
 		$.ajax({
 	        // Your server script to process the upload
 	        url: serverFiles+'/uploads/'+userId,
@@ -547,19 +566,27 @@ function controllerAPI(){
 	        xhr: function() {
 	            var myXhr = $.ajaxSettings.xhr();
 	            if (myXhr.upload) {
+	            	$('#loader').show(); 
+	            	$('.loader-progress').show();  
+	                $('.progress-bar').css({'width':'0px'});  
 	                // For handling the progress of the upload
 	                myXhr.upload.addEventListener('progress', function(e) {
-	                    if (e.lengthComputable) {
-	                        $('progress').attr({
+	                    if (e.lengthComputable) {	             		
+	                 		$('.progress-bar').css({width:e.loaded*100/e.total+'%'})
+	                        console.log({
 	                            value: e.loaded,
 	                            max: e.total,
 	                        });
 	                    }
 	                } , false);
+	               
 	            }
 	            return myXhr;
 	        },
 	        success: function(data){
+	        	$('.loader-progress').hide();
+	        	$('#loader').hide(); 
+
 				// UpdateWS
 	    		var fileJson = {
 				    userOwner: userId,
@@ -571,6 +598,7 @@ function controllerAPI(){
 				    sharedUsers: []
 				};
 				callback(fileJson);
+	        },error: function(err){
 	        }
 	    });
 	}

@@ -26,6 +26,16 @@ router.get('/GetAll/:userId',/* ensureLoggedIn, */function(req, res, next) {
 	});
 });
 
+
+router.get('/isExist/:fileId',/* ensureLoggedIn, */function(req, res, next) {
+	fileCtrl.isExistDeleteIfNot(req.params.fileId,function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);	
+		else
+			res.status(200).send(data);
+	});
+});
+
 /* GET file list */
 router.get('/GetList/:userId',/* ensureLoggedIn, */function(req, res, next) {
 	fileCtrl.getListByUser(req.params.userId,function(data){
