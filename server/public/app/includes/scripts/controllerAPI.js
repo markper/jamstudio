@@ -2,8 +2,8 @@ function controllerAPI(){
 	
 	var localDB = 'http://localhost:3000';
 	var localFiles = 'http://localhost:3300';
-	var remoteDB = 'http://jammeapp.herokuapp.com';
-	var remoteFiles = 'http://oran1.herokuapp.com';
+	var remoteDB = 'https://jammeapp.herokuapp.com';
+	var remoteFiles = 'https://oran1.herokuapp.com';
 	var serverDB = remoteDB;
 	var serverFiles = remoteFiles;
 	
@@ -420,6 +420,22 @@ function controllerAPI(){
 	        datatype:"json",
 	        url: serverDB+'/Channel/'+channelId +'/Sample',
 	        data:(samplelJson),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	callback(null);
+	        }
+	    });
+	};
+
+	this.getSample = function(channelId,sampleId,callback){
+		$.ajax({
+	        type: "Get",
+	        datatype:"json",
+	        url: serverDB+'/Channel/'+channelId +'/Sample/'+ sampleId,
+	        data:({}),
 	        success: function(result)
 	        {
 	        	callback(result);

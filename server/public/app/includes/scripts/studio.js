@@ -1,5 +1,4 @@
 var studio = function studio(){
-
 	var max_time = 60*20;
 	var time_units = 5;
 	var unit_width = 10;
@@ -23,20 +22,52 @@ var studio = function studio(){
 	var ctlAPI = new controllerAPI();
 	var ctlDBHelper = new dbHelper();
 	var ctlLoader = new loaderWindow();
+	var ctlMessage = new messages();
+
+	function messages(){
+		var socket = io.connect("https://oran-p2p2-yale.herokuapp.com/");
+		socket.emit("subscribe", { room: getURLID() });
+		this.send = function(action,msg){
+			socket.emit('broadcast', {room:getURLID(),emit:action,msg:msg});
+		}
+		socket.on("newSample", function(data) {
+		    var channel = ctlProject.get(data.channelId);
+	    	ctlAPI.getSample(data.channelId,data.sampleId,function(result){
+	    		ctlProject.addSample(result);
+	    	});
+		});
+		socket.on("removeSample", function(data) {
+			var sample = ctlProject.getSample(data.sampleId);
+			ctlProject.removeSample(sample);
+		});
+		socket.on("updateSample", function(data) {
+			ctlAPI.getSample(data.channelId,data.sampleId,function(result){
+	    		ctlProject.updateSample(result);
+	    	});
+		});
+	}
 
 	function loaderWindow(){
+		var isVisible = false;
 		var counter = 0;
+		this.visiblity = function(_isVisible){
+			isVisible = _isVisible;
+		}
 		this.inc=function(){
 			counter++;
-			$('#loader').show();
+			if(isVisible)
+				$('#loader').show();
 		}	
 		this.dec=function(){
-			if(!--counter)
+			if(!--counter){
 				$('#loader').fadeOut();
+				isVisible=true;
+			}
 		}	
 	}
 
 	this.init = function init(){
+		$('#loader').show();
 		// Init studio
 		ctlAPI.getUserInfo(function(result){
 
@@ -57,6 +88,8 @@ var studio = function studio(){
 					ctlProject.init(result);
 					// init ui
 					studioUI(ctlAPI,(result==null?"":result._id));
+
+					$('#loader').fadeOut();
 				});
 	        
 	    });
@@ -78,6 +111,7 @@ var studio = function studio(){
 		this.map = {};
 		this.init = function(data){
 			for (var i = 0; i < data.files.length; i++) {
+				
 				this.add({type:'files', file: data.files[i]});
 			}
 			for (var i = 0; i < data.sharedFiles.length; i++) {
@@ -95,6 +129,10 @@ var studio = function studio(){
 		this.remove = function(file){
 			$('file'+file._id).remove();
 			this.map.delete('file'+file._id);
+		}
+		function fixPrefix(path){
+			if(path.substring(0,5)=="http:" && location.href.substr(0,5) =="https")
+				path = 'https:'+path.substring(5,path.length);
 		}
 	};
 
@@ -188,7 +226,21 @@ var studio = function studio(){
 		this.getSample = function(sampleId){
 			return Channel.allSamples[sampleId];
 		}
-
+		this.addSample = function(sampleJson){
+			var sample = _this.jsonToSample(sampleJson),
+				channel = _this.get(sample.channelId);
+			channel.addSample(sample);
+			sample.draw();
+		}
+		this.updateSample = function(sampleJson){
+			var sample = _this.jsonToSample(sampleJson);
+			this.removeSample(sample);
+			this.addSample(sampleJson);
+		}
+		this.removeSample = function(sample){
+			$('#'+sample.id).remove();
+			ctlProject.get(sample.channelId).removeSample(sample);
+		}
 		this.toJson = function(){
 			var jChannels = [];
 			$.each(this.channels, function( i, channel ){
@@ -551,7 +603,6 @@ var studio = function studio(){
 					console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
 
 					var st1 = setTimeout(function(){		
-						console.log('delay play:' + startAt);
 						//console.log(startAt + parseFloat(sample.delay))				
 						//console.log(sample.id +': '+(sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume)));
 						// sample.aud.src = sample.file;
@@ -939,8 +990,10 @@ var studio = function studio(){
 
 
 	var Sample = class Sample {
+
 	  constructor(id,channelId,file,fileId,duration,start,volume,delay,fadeIn,fadeOut) {
 	     var _this = this;
+	     var isloading = false;
 	    this.id = id;
 	    this.channelId = channelId;
 	    this.file = file;
@@ -972,7 +1025,6 @@ var studio = function studio(){
 		    this.loop = data.loop;
 	    }
 	  
-	 	var _this = this;
 
 	    loadFile();
 	    this.loadFile = function(){
@@ -980,6 +1032,8 @@ var studio = function studio(){
 	    };
 
 	    function loadFile(){
+	    	$('#'+_this.id).css('opacity','0.5');
+	    	isloading = true;
 	    	ctlLoader.inc();
 	    	var request = new XMLHttpRequest();
 			console.log(_this.file);
@@ -992,6 +1046,8 @@ var studio = function studio(){
 			    _this.aud.load();
 			    _this.aud.currentTime = _this.start+ parseFloat(_this.delay);		    
 			    ctlLoader.dec();
+			    $('#'+_this.id).css('opacity','1');
+			    isloading = false;
 			  }
 			}
 			request.send();
@@ -1013,6 +1069,7 @@ var studio = function studio(){
 	    }
 
 	    this.draw = function(){
+			var _this = this;
 
 	    	if($('#'+this.id).length>0)
 	    		$('#'+this.id).remove();
@@ -1024,11 +1081,12 @@ var studio = function studio(){
 			
 			$(_sample).css('width',Math.floor(width))
 			.css('height',Math.floor(height))
-			.css('left',Math.floor(secondsToOffset(this.start)));
-			$(row).find('.channel_grid_row .sample_placeholder').append(_sample);
-			createSoundSpectrum($(_sample),width,height);
+			.css('left',Math.floor(secondsToOffset(this.start)));		
+			if(_this.isloading)
+				$(_sample).css('opacity','0.5');
 
-			var _this = this;
+			$(row).find('.channel_grid_row .sample_placeholder').append(_sample);			
+			createSoundSpectrum($(_sample),width,height);
 			var resizeTimer;
 			var state = this;
 			$($(row).find('#'+this.id)).resizable({
@@ -1174,7 +1232,7 @@ var studio = function studio(){
 		this.updateChannel = 	function(channelId){
 			var channel = ctlProject.channels[channelId];	
 			ctlAPI.updateChannel(channel.toJson().channel,channel.channelId,function(data){
-				if(!data) console.log('error updating server..');
+				if(!data) console.log('error updating server..');				
 			});
 		}
 		this.createSample = function(sampleId,callback){
@@ -1208,7 +1266,8 @@ var studio = function studio(){
 					channel.removeSample(sample);
 					channel.addSample(clone);
 					clone.draw();
-
+					ctlMessage.send("newSample",{"sampleId":clone.id,"channelId":clone.channelId});
+					
 					if(callback)
 						callback(clone.id);
 				}
@@ -1219,8 +1278,10 @@ var studio = function studio(){
 			ctlAPI.updateSample(sample.channelId,sample.id,sample.toJson(),function(data){
 				if(!data)
 					console.log('error updating server..'+ data);
-				else
+				else{
 					console.log(data);
+					ctlMessage.send("updateSample",{"sampleId":sample.id,"channelId":sample.channelId});
+				}
 			});
 		}
 		this.deleteSample = function(sampleId){
@@ -1787,6 +1848,7 @@ var studio = function studio(){
 			ac.addAction(new Action('sample_delete',jQuery.extend(true, {}, sample)));			
 			ctlProject.get(sample.channelId).removeSample(sample);
 			p.reset();
+			ctlMessage.send("removeSample",{"sampleId":selectedSamples.list[i]});
 		}
 		for (var i = 0; i < Object.size(ss.channels); i++) {
 			console.log(ss.channels[Object.keys(ss.channels)[i]]);
@@ -2482,5 +2544,8 @@ var studio = function studio(){
 	$(document).on('click','#logo',function() {
 		window.location.href = '../dashboard';
 	});
+	
+	
+	
 
 };

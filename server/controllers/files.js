@@ -1,7 +1,7 @@
 var File = require('../model/fileSchema');
 var errors = require('./errors');
 var http = require('http');
-var remoteFiles = 'http://oran1.herokuapp.com';
+var remoteFiles = 'https://oran1.herokuapp.com';
 var request = require('request');
 
 

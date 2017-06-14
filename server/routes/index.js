@@ -16,6 +16,12 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express', env: env });
 });
 
+router.get('/app/p',ensureLoggedIn, function (req, res, next) {
+  var path2 = path.join(__dirname, '../public', 'app/p.html');
+  console.log(path2);
+  return res.sendFile(path2);
+  next();
+})
 
 router.get('/app/studio/:projectId',ensureLoggedIn, function (req, res, next) {
   var path2 = path.join(__dirname, '../public', 'app/studio.html');

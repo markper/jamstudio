@@ -1,3 +1,6 @@
 h3 span{
 	font-size: 20px;
 }
+#loader{
+	display: none !important;
+}

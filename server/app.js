@@ -9,6 +9,7 @@ var dotenv = require('dotenv');
 var passport = require('passport');
 var Auth0Strategy = require('passport-auth0');
 
+
 //////////////////////////////////////
 //ADDITIONS - put them where you wish
 var mongoose    = require('mongoose');
@@ -69,7 +70,11 @@ app.set('view engine', 'jade');
 app.use(function (req, res, next) {
 
     // Website you wish to allow to connect
-    res.setHeader('Access-Control-Allow-Origin', config.server);
+    var allowedOrigins = ['http://localhost:3000', 'http://jammeapp.herokuapp.com','http://oran-p2p2-yale.herokuapp.com:3000'];
+    var origin = req.headers.origin;
+    if(allowedOrigins.indexOf(origin) > -1){
+         res.setHeader('Access-Control-Allow-Origin', origin);
+    }
 
     // Request methods you wish to allow
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -129,15 +134,5 @@ if (app.get('env') === 'development') {
     });
   });
 }
-
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.render('error', {
-    message: err.message,
-    error: {}
-  });
-});
 
 module.exports = app;
