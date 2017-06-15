@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>User Settings</title>
+
+	<link rel="icon" type="image/png" href="http://jammeapp.herokuapp.com/static/includes/images/favicon.png">
+	<link rel="stylesheet" type="text/css" href="http://jammeapp.herokuapp.com/static/includes/style/dashboard.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="http://jammeapp.herokuapp.com/static/includes/style/jquery-ui.min.css">
+	<link rel="stylesheet" type="text/css" href="http://jammeapp.herokuapp.com/static/includes/style/projectStyle.css">
+	<script src="http://jammeapp.herokuapp.com/static/includes/scripts/jquery-ui.min.js"></script>
+	<script src="http://jammeapp.herokuapp.com/static/includes/scripts/controllerAPI.js"></script>
+	<script src="http://jammeapp.herokuapp.com/static/includes/scripts/studioUI.js"></script>
+	<script src="http://jammeapp.herokuapp.com/static/includes/scripts/slider-widjet.js"></script>
+
+
+
+	<!-- -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Bootstrap -->
+    <link href="http://jammeapp.herokuapp.com/static/includes/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+	<!--  -->
+</head>
+<body class="dashboard noselect">
+	<header>
+		<ul>
+			<li id="logo">J</li>
+			<li id="connected_user">
+				<div class="user_img" style="background-image: url()"></div>
+				<div class="username"><span>israel.israeli@gmail.com</span> <span>&#x25BC;</span></div>
+				<section id="connected_user_menu">
+					<ul>
+						<li id="logout">Logout</li>
+					</ul>
+				</section>
+			</li>
+			<li id="search-line">
+				<div>
+                    <div class="input-group col-md-12">
+                        <input type="text" class="  search-query form-control" placeholder="Search" />
+                        <span class="input-group-btn">
+                            <button class="btn" type="button">
+                                <span class=" glyphicon glyphicon-search"></span>
+                            </button>
+                        </span>
+                    </div>
+				</div>
+			</li>
+			<li id="searchbox"></li>
+		</ul>
+	</header>
+	<main class="scrolls">
+	 	<br>
+		<div class="wrapper">
+			<h3>User <span> Settings </span></h3>
+			<div class="content">
+			  <!-- Nav tabs -->
+			  <ul class="nav nav-tabs" role="tablist">
+			    <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Settings</a></li>
+			  </ul>
+			  <br>
+        <!-- Settings-->
+          <div role="tabpanel" class="tab-pane active" id="home">
+           <div class="row">
+            <div class="col-md-2">
+              <!-- Nav tabs -->
+              <ul role="tablist" class="nav nav-pills nav-stacked">
+                <li role="presentation" class="active"><a href="#user-set" aria-controls="user-set" role="tab" data-toggle="tab">Edit User</a></li>
+                <li role="presentation"><a href="#user-privacy" aria-controls="user-privacy" role="tab" data-toggle="tab">Plan</a></li>
+              </ul>
+            </div>
+            <div class="col-md-10">
+              <!-- Tab panes -->
+              <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="user-set">
+                <form class="form-horizontal" id="form-update-project" action="usersettings.html">
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="user-set-fname">First Name:</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="user-set-fname" placeholder="Enter first name">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="user-set-lname">Last Name:</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="user-set-lname" placeholder="Enter last name">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="user-set-email">Email:</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="user-set-email" placeholder="Enter Email">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="user-set-password">Password:</label>
+                    <div class="col-sm-10">
+                      <input type="password" class="form-control" id="user-set-password" placeholder="Enter Password">
+                    </div>
+                  </div>
+                  <!-- <div class="form-group">
+                    <label class="control-label col-sm-2" for="user-set-picture">Picture:</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="user-set-picture" placeholder="Enter Picture URL or upload a picture">
+                    </div>
+                  </div> -->
+                  <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                      <button type="submit" class="btn btn-default" id="btn-user-set">Submit</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div role="tabpanel" class="tab-pane" id="user-privacy">
+              <form class="form-horizontal" id="form-update-privacy" >
+                <div class="form-group">
+                  <label class="control-label col-sm-2" for="pwd">Privacy:</label>
+                <div class="col-sm-10">
+                  <select class="form-control" id="user-privacy">
+                    <option>Private</option>
+                    <option>Public</option>
+                  </select>
+                </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-default" id="btn-user-privacy">Submit</button>
+                  </div>
+                </div>
+              </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        </div>
+        <script type="text/javascript">
+
+        </script>
+        <script src="http://jammeapp.herokuapp.com/static/includes/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    </body>
+    </html>

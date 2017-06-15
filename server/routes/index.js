@@ -23,6 +23,13 @@ router.get('/app/p',ensureLoggedIn, function (req, res, next) {
   next();
 })
 
+router.get('/app/usersettings',ensureLoggedIn, function (req, res, next) {
+  var path2 = path.join(__dirname, '../public', 'app/usersettings.html');
+  console.log(path2);
+  return res.sendFile(path2);
+  next();
+})
+
 router.get('/app/studio/:projectId',ensureLoggedIn, function (req, res, next) {
   var path2 = path.join(__dirname, '../public', 'app/studio.html');
   console.log(path2);
