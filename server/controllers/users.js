@@ -3,7 +3,7 @@ var errors = require('./errors');
 
 exports.getUser = function(userId,callback){
 	User.findOne({_id: userId}, function(err, user) {
-		if (err) 
+		if (err)
 			return callback(errors.errorNotFound());
 		return callback(user);
   	});
@@ -20,15 +20,15 @@ exports.getUsersByPrefix = function(prefix,callback){
 		{"lastName": new RegExp('^'+prefix, "i")}
 		]}
 		, function(err, users) {
-		if (err) 
+		if (err)
 			return callback(errors.errorNotFound());
 		return callback(users);
   	});
 };
 
 exports.updateUser = function(userId,userJson,callback){
-    User.findOne({_id: userId}, function(err, user) {	
-		if(err) 
+    User.findOne({_id: userId}, function(err, user) {
+		if(err)
 			return callback(errors.errorNotFound());
 		user.firstName = userJson.firstName;
 		user.lastName = userJson.lastName;
@@ -38,7 +38,20 @@ exports.updateUser = function(userId,userJson,callback){
 		user.planId = userJson.planId;
 		user.storage_usage = userJson.storage_usage;
 		user.save(function(err,data){
-			if(err) 
+			if(err)
+				return callback(errors.errorUpdate());
+			return callback(data);
+		});
+	});
+};
+
+exports.updateUserPlan = function(userId,planId,callback){
+    User.findOne({_id: userId}, function(err, user) {
+		if(err)
+			return callback(errors.errorNotFound());
+		user.planId = planId;
+		user.save(function(err,data){
+			if(err)
 				return callback(errors.errorUpdate());
 			return callback(data);
 		});
@@ -48,7 +61,7 @@ exports.updateUser = function(userId,userJson,callback){
 exports.createUser = function(userJson,callback) {
 	var user = new User(userJson);
 	user.save(function (err, savedUser) {
-		if(err) 
+		if(err)
 			return callback(errors.errorCreate());
 		return callback(savedUser);
 	});
@@ -56,7 +69,7 @@ exports.createUser = function(userJson,callback) {
 
 exports.deleteUser = function(userId,callback) {
 	User.findByIdAndRemove({_id: userId}, function (err, user) {
-		if(err || !user) 
+		if(err || !user)
 			return callback(errors.errorDelete());
 		return callback(user);
 	});

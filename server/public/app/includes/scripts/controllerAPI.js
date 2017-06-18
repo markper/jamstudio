@@ -1,16 +1,48 @@
 function controllerAPI(){
-	
+
 	var localDB = 'http://localhost:3000';
 	var localFiles = 'http://localhost:3300';
 	var remoteDB = 'https://jammeapp.herokuapp.com';
 	var remoteFiles = 'https://oran1.herokuapp.com';
 	var serverDB = remoteDB;
 	var serverFiles = remoteFiles;
-	
+
 	//
 	// User
 	//
-	
+
+	this.updateUserInfo = function(userId,userJson,callback){
+		$.ajax({
+	        type: "Put",
+	        datatype:"json",
+	        url: serverDB+'/user/'+ userId,
+	        data:(userJson),
+	        success: function(result)
+	        {
+	        	callback(result)
+	        },
+	        error: function(err){
+	        	console.log(err);
+	        }
+	    });
+	};
+
+	this.updateUserPlan = function(userId,planId,callback){
+		$.ajax({
+	        type: "Put",
+	        datatype:"json",
+	        url: serverDB+'/user/'+ userId+'/Plan/'+planId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result)
+	        },
+	        error: function(err){
+	        	console.log(err);
+	        }
+	    });
+	};
+
 	this.getUserInfo = function(callback){
 		$.ajax({
 	        type: "Get",
@@ -42,6 +74,25 @@ function controllerAPI(){
 		});
 	}
 
+  //
+  // Plan
+  //
+  this.getAllPlan = function(callback){
+  		$.ajax({
+  	        type: "Get",
+  	        datatype:"json",
+  	        url: serverDB+'/Plan/All',
+  	        data:({}),
+  	        success: function(result)
+  	        {
+  	        	callback(result)
+  	        },
+  	        error: function(err){
+  	        	console.log(err);
+  	        }
+  	    });
+  	};
+
 	//
 	// Project
 	//
@@ -57,7 +108,7 @@ function controllerAPI(){
 	        error: function(err){
 	        	callback(null);
 	        }
-		});	
+		});
 	};
 
 	this.getContributors = function(projectId,callback){
@@ -71,7 +122,7 @@ function controllerAPI(){
 	        error: function(err){
 	        	callback(null);
 	        }
-		});	
+		});
 	}
 	this.getVersions = function(projectId,callback){
 		$.ajax({
@@ -123,7 +174,7 @@ function controllerAPI(){
 	        error: function(err){
 	        	callback(null);
 	        }
-		});	
+		});
 	}
 
 
@@ -139,7 +190,7 @@ function controllerAPI(){
 	        error: function(err){
 	        	callback(null);
 	        }
-		});	
+		});
 	}
 
 	this.updateProjectPrivacy = function(projectId,projectJson, callback){
@@ -154,7 +205,7 @@ function controllerAPI(){
 	        error: function(err){
 	        	callback(null);
 	        }
-		});	
+		});
 	}
 	this.createProject = function(projectJson,callback){
 		$.ajax({
@@ -168,7 +219,7 @@ function controllerAPI(){
 	        error: function(err){
 	        	callback(null);
 	        }
-		});	
+		});
 	}
 
 	this.createProjectIssue = function(projectId,issueJson,callback){
@@ -183,7 +234,7 @@ function controllerAPI(){
 	        error: function(err){
 	        	callback(null);
 	        }
-		});	
+		});
 	}
 
 	this.updateProjectIssue = function(projectId,issueId,issueJson,callback){
@@ -198,7 +249,7 @@ function controllerAPI(){
 	        error: function(err){
 	        	callback(null);
 	        }
-		});	
+		});
 	}
 	this.getProjectList = function(userId,callback){
 		$.ajax({
@@ -211,7 +262,7 @@ function controllerAPI(){
 	        error: function(err){
 	        	callback(null);
 	        }
-		});	
+		});
 	}
 	this.getProjectsByWord = function(word,callback){
 		$.ajax({
@@ -648,12 +699,12 @@ function controllerAPI(){
 	        xhr: function() {
 	            var myXhr = $.ajaxSettings.xhr();
 	            if (myXhr.upload) {
-	            	$('#loader').show(); 
-	            	$('.loader-progress').show();  
-	                $('.progress-bar').css({'width':'0px'});  
+	            	$('#loader').show();
+	            	$('.loader-progress').show();
+	                $('.progress-bar').css({'width':'0px'});
 	                // For handling the progress of the upload
 	                myXhr.upload.addEventListener('progress', function(e) {
-	                    if (e.lengthComputable) {	             		
+	                    if (e.lengthComputable) {
 	                 		$('.progress-bar').css({width:e.loaded*100/e.total+'%'})
 	                        console.log({
 	                            value: e.loaded,
@@ -661,13 +712,13 @@ function controllerAPI(){
 	                        });
 	                    }
 	                } , false);
-	               
+
 	            }
 	            return myXhr;
 	        },
 	        success: function(data){
 	        	$('.loader-progress').hide();
-	        	$('#loader').hide(); 
+	        	$('#loader').hide();
 
 				// UpdateWS
 	    		var fileJson = {

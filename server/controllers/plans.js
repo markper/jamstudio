@@ -12,6 +12,17 @@ exports.getPlan = function(planId, callback) {
   });
 };
 
+
+exports.getAllPlan = function( callback) {
+  Plan.find({}, function(err, plans) {
+    if (err || !plans) {
+      return callback(errors.errorNotFound((err ? err : '')));
+    } else {
+      return callback(plans);
+    }
+  });
+};
+
 exports.createPlan = function(planJson, callback){
   var plan = new Plan(planJson);
 	plan.save(function (err, plan) {
