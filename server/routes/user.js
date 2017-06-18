@@ -11,10 +11,10 @@ router.get('/getId',/* ensureLoggedIn, */ function(req, res, next) {
 
 /* get logged in information */
 router.get('/getInfo', ensureLoggedIn,  function(req, res, next) {
-	
+
 	userCtrl.getUser(userCtrl.getUserId(req.user.id),function(data){
 		if(data instanceof Error)
-			res.status(500).send(data.message);	
+			res.status(500).send(data.message);
 		else
 			res.status(200).send(data);
  	});
@@ -24,7 +24,7 @@ router.get('/getInfo', ensureLoggedIn,  function(req, res, next) {
 router.get('/:userId',/* ensureLoggedIn, */function(req, res, next) {
  	userCtrl.getUser(req.params.userId,function(data){
 		if(data instanceof Error)
-			res.status(500).send(data.message);	
+			res.status(500).send(data.message);
 		else
 			res.status(200).send(data);
  	});
@@ -34,7 +34,7 @@ router.get('/:userId',/* ensureLoggedIn, */function(req, res, next) {
 router.get('/GetList/:prefix',/* ensureLoggedIn, */function(req, res, next) {
  	userCtrl.getUsersByPrefix(req.params.prefix,function(data){
 		if(data instanceof Error)
-			res.status(500).send(data.message);	
+			res.status(500).send(data.message);
 		else
 			res.status(200).send(data);
  	});
@@ -44,18 +44,28 @@ router.get('/GetList/:prefix',/* ensureLoggedIn, */function(req, res, next) {
 router.put('/:userId',/* ensureLoggedIn, */function(req, res, next) {
 	userCtrl.updateUser(req.params.userId,req.body,function(data){
 		if(data instanceof Error)
-			res.status(500).send(data.message);	
+			res.status(500).send(data.message);
 		else
 			res.status(200).send(data);
  	});
-
 });
+
+/* PUT user by id */
+router.put('/:userId/Plan/:planId',/* ensureLoggedIn, */function(req, res, next) {
+	userCtrl.updateUserPlan(req.params.userId,req.params.planId,function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);
+		else
+			res.status(200).send(data);
+ 	});
+});
+
 
 /* POST user */
 router.post('/',function(req, res, next) {
 	userCtrl.createUser(req.body,function(data){
 		if(data instanceof Error)
-			res.status(500).send(data.message);	
+			res.status(500).send(data.message);
 		else
 			res.status(200).send(data);
  	});
@@ -65,7 +75,7 @@ router.post('/',function(req, res, next) {
 router.delete('/:userId', /* ensureLoggedIn, */function(req, res, next) {
 	userCtrl.deleteUser(req.params.userId,function(data){
 		if(data instanceof Error)
-			res.status(500).send(data.message);	
+			res.status(500).send(data.message);
 		else
 			res.status(200).send(data);
  	});

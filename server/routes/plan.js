@@ -5,6 +5,15 @@ var router = express.Router();
 var Plan = require('../model/planSchema');  // get our mongoose model
 var planCtrl = require('../controllers/plans');
 
+router.get('/All', /*ensureLoggedIn*/ function(req, res, next) {
+    planCtrl.getAllPlan( function(data){
+  		if(data instanceof Error)
+  			res.status(500).send(data.message);
+  		else
+  			res.status(200).send(data);
+  	});
+});
+
 router.get('/:planId', /*ensureLoggedIn*/ function(req, res, next) {
     var id = req.params.planId;
     planCtrl.getPlan(id, function(data){
@@ -14,7 +23,6 @@ router.get('/:planId', /*ensureLoggedIn*/ function(req, res, next) {
   			res.status(200).send(data);
   	});
 });
-
 
 router.post('/', function(req, res, next) {
   planCtrl.createPlan(req.body, function(data){
