@@ -356,6 +356,16 @@ ul{
     background-size: 15px;
 	background-image: url(../images/studio_icon_disk.svg);
 }
+#toolbox li#toolbox_btn_ver-set{
+    background-position: 0px 3px;
+    background-size: 15px;
+	background-image: url(../images/ver-set.svg);
+}
+#toolbox li#toolbox_btn_ver-add{
+    background-position: 0px 3px;
+    background-size: 15px;
+	background-image: url(../images/ver-add.svg);
+}
 #toolbox li#toolbox_btn_create_music{
     background-position: 0px 3px;
     background-size: 15px;
@@ -699,13 +709,19 @@ main #cursorLine{
 	width: 200px;
 	background-color: #e2ee79;
 	border: 1px solid #c1d045;
+	color: #c1d045;
 	height: calc(100% - 2px);
 	z-index: 3;
 	left:0px;
 	cursor: move;
 }
 .sample.selected{
-	opacity: 0.5 !important;
+/*	opacity: 0.5 !important;*/
+	border: 1px solid red !important;
+}
+.sample-info{
+	color: #343434;
+	font-size: 12px;
 }
 .ui-resizable {
      position: absolute !important; 
@@ -720,11 +736,13 @@ main #cursorLine{
 #channels_list > div:nth-child(3n+2) .channel_grid_row .sample , #channels_list > div:nth-child(3n+2) .player-fill{
 	background-color: #FFB253;
 	border: 1px solid #d68227; 
+	color: #d68227;
 	fill: #FFB253;
 }
 #channels_list > div:nth-child(3n+3) .channel_grid_row .sample  , #channels_list > div:nth-child(3n+3) .player-fill{
 	background-color: #00A4D3;
 	border: 1px solid #006e8c; 
+	color: #006e8c;
 	fill: #00A4D3;
 }
 .sample_placeholder{
@@ -1099,4 +1117,12 @@ footer li{
 }
 div.loader-progress .progress-bar{
 	width: 0%;
+}
+.sampleLoaded{
+	animation-name: sampleLoaded;
+    animation-duration: 1s;
+}
+@keyframes sampleLoaded {
+    from {opacity:0;}
+    to {opacity:1 !important}
 }

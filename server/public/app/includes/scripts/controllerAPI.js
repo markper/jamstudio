@@ -73,7 +73,45 @@ function controllerAPI(){
 	        }
 		});	
 	}
-
+	this.getVersions = function(projectId,callback){
+		$.ajax({
+			type: "Get",
+			dataType: "json",
+ 			url: serverDB+'/Project/'+projectId+'/GetVersions',
+ 			success:  function(result){
+				callback(result);
+			},
+	        error: function(err){
+	        	callback(null);
+	        }
+		});	
+	}
+	this.setVersions = function(projectId,trackId,callback){
+		$.ajax({
+			type: "Put",
+			dataType: "json",
+ 			url: serverDB+'/Project/'+projectId+'/SetVersion/'+trackId,
+ 			success:  function(result){
+				callback(result);
+			},
+	        error: function(err){
+	        	callback(null);
+	        }
+		});	
+	}
+	this.createVersion = function(projectId,trackId,callback){
+		$.ajax({
+			type: "Put",
+			dataType: "json",
+ 			url: serverDB+'/Project/'+projectId+'/CreateVersion/'+trackId,
+ 			success:  function(result){
+				callback(result);
+			},
+	        error: function(err){
+	        	callback(null);
+	        }
+		});	
+	}
 	this.getProject = function(projectId,callback){
 		$.ajax({
 			type: "Get",
@@ -175,22 +213,20 @@ function controllerAPI(){
 	        }
 		});	
 	}
-
-	this.getVersions = function(projectId,callback){
+	this.getProjectsByWord = function(word,callback){
 		$.ajax({
-	        type: "Get",
-	        datatype:"json",
-	        url: serverDB+'/'+projectId+'/GetVersions',
-	        data:({}),
-	        success: function(result)
-	        {
-	        	callback(result);
-	        },
-	        error:function(err){
-	        	console.log(err);
+			type: "Get",
+			dataType: "json",
+ 			url: serverDB+'/Project/Search/'+word,
+ 			success:  function(result){
+				callback(result);
+			},
+	        error: function(err){
+	        	callback(null);
 	        }
-	    });
+		});	
 	}
+
 
 
 	this.getUsersPrefix = function(prefix,callback){
@@ -430,6 +466,22 @@ function controllerAPI(){
 	    });
 	};
 
+	this.getChannel = function(channelId,callback){
+		$.ajax({
+	        type: "Get",
+	        datatype:"json",
+	        url: serverDB+'/Channel/'+channelId ,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	callback(null);
+	        }
+	    });
+	};
+
 	this.getSample = function(channelId,sampleId,callback){
 		$.ajax({
 	        type: "Get",
@@ -528,6 +580,19 @@ function controllerAPI(){
 		});
 	};
 
+	this.accessFileOfUser = function(userId,fileId,access,callback){
+		// get user FILES
+		$.ajax({
+	        type: "Put",
+	        datatype:"json",
+	        url: serverDB+'/File/'+fileId+'/User/'+userId+'/Access/'+ access,
+	        success: function(result)
+	        {
+	        	callback(result);
+	        }
+		});
+	};
+
 	this.export = function(track,callback){
 		$.ajax({
 			method: "POST",
@@ -560,6 +625,7 @@ function controllerAPI(){
 		})
 		.done(function(msg) {
 			console.log(msg);
+			console.log(id);
 		});
 	}
 

@@ -72,6 +72,8 @@
 				</ul>
 				<ul>
 					<li id="toolbox_btn_export"></li>
+					<li id="toolbox_btn_ver-set"></li>
+					<li id="toolbox_btn_ver-add"></li>
 					<li id="toolbox_btn_create_music"></li>					
 					<li id="toolbox_btn_wav"></li>
 				</ul>
@@ -178,7 +180,56 @@
 	    </div>
 	  </div>
 	</div>
-
+	<div class="modal fade" id="modal-select"  tabindex="-1" role="dialog" aria-labelledby="modal-prompt-label">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="exampleModalLabel">Title</h4>
+	      </div>
+	      <div class="modal-body">
+	        <form>
+           		<div class="row">
+	              <div class="col-ms-2">
+	              	<label class="control-label col-sm-2" for="project-icq-title">Title:</label>
+	              </div>
+	              <div class="col-ms-10">
+					<select class="form-control">
+					</select>
+		          </div>
+	            </div>
+	        </form>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        <button type="button" class="btn btn-primary" id="btn-select">Approval</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	<div class="modal fade" id="modal-prompt"  tabindex="-1" role="dialog" aria-labelledby="modal-prompt-label">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="promptModalLabel">Title</h4>
+	      </div>
+	      <div class="modal-body">
+	        <form>
+           		<div class="row">
+	              <div class="col-ms-10">
+	              	<input type="text" class="form-control" id="project-prompt" placeholder="Enter value">
+	              </div>
+	            </div>
+	        </form>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	        <button type="button" class="btn btn-primary" id="btn-prompt">Approval</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
 	<section id="contextmenu"></section>
 	<section id="loader">
 		<div class="logo"></div>

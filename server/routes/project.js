@@ -29,6 +29,16 @@ router.get('/:projectId', function(req, res, next) {
     });
 });
 
+/* GET project. */
+router.get('/Search/:string', function(req, res, next) {
+    projectCtrl.getProjectByString(req.params.string,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);
+    });
+});
+
 router.get('/GetLast/:userId', function(req, res, next) {
     projectCtrl.getLastProject(req.params.userId,function(data){
         if(data instanceof Error)
@@ -70,6 +80,14 @@ router.put('/Privacy/:projectId', function(req, res, next) {
 /* PUT - set project version */
 router.put('/:projectId/SetVersion/:trackId', function(req, res, next) {
     projectCtrl.updateProjectVersion(req.params.projectId,req.params.trackId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message); 
+        else
+            res.status(200).send(data);
+    });
+});
+router.put('/:projectId/CreateVersion/:trackId', function(req, res, next) {
+    projectCtrl.makeProjectVersion(req.params.projectId,req.params.trackId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else

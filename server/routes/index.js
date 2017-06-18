@@ -4,6 +4,7 @@ var router = express.Router();
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var path = require('path');
 var config = require('../config');       // get our config file
+var projects = require('../controllers/projects');
 
 var env = {
   AUTH0_CLIENT_ID: process.env.AUTH0_CLIENT_ID,
@@ -31,9 +32,15 @@ router.get('/app/studio/:projectId',ensureLoggedIn, function (req, res, next) {
 })
 
 router.get('/app/project/:projectId', ensureLoggedIn ,function (req, res, next) {
-  var path2 = path.join(__dirname, '../public', 'app/project.html');
-  console.log(path2);
-  return res.sendFile(path2);
+  // projects.getProject(req.params.projectId , function(project){
+  //   if(project.adminUser == req.user.id){
+       var path2 = path.join(__dirname, '../public', 'app/project.html');
+      console.log(path2);
+      return res.sendFile(path2);
+  //   }else
+  //       res.render('login', { env: env });
+  // });
+  
   next();
 })
 

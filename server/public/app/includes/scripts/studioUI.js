@@ -87,11 +87,11 @@ function studioUI(){
 
 
 	$(document).on('click','#logo',function() {
-		$('header').addClass("blure")
-		$('main').addClass("blure")
-		$('footer').addClass("blure")
-		$("#mySidenav").css('width','250px');
-		$('#black_screen').toggle();
+		// $('header').addClass("blure")
+		// $('main').addClass("blure")
+		// $('footer').addClass("blure")
+		// $("#mySidenav").css('width','250px');
+		// $('#black_screen').toggle();
 	});
 
 	$(document).on('click','#close_nav',function() {

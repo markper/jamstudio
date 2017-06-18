@@ -142,8 +142,6 @@ exports.createSample = function(channelId,sampleJson,callback){
 }
 
 exports.getSample = function(channelId,sampleId,callback){
-    console.log('get sample.....');
-    console.log(channelId + ' ' +sampleId)
 	Channel
 	.findOne({ '_id': channelId, 'samples._id': sampleId }, { 'samples.$': 1 })
 	.populate({path:'samples'})

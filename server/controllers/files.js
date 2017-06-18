@@ -22,15 +22,15 @@ function isExistPyshicaly(path,callback){
 
 exports.isExistDeleteIfNot = isExistDeleteIfNot;
 function isExistDeleteIfNot(fileId,callback){
-	getFileById(fileId,function(data){
-		if(data || !data instanceof Error)
-			isExistPyshicaly(data.path,function(data){
-				if(data)
+	getFileById(fileId,function(file){
+		if(file || !(file instanceof Error))
+			isExistPyshicaly(file.path,function(isExist){
+				if(isExist)
 					return callback(true);
-				else
-					deleteFile(fileId,function(data){
-						return callback(false);
-					});
+				else					
+				// 	deleteFile(fileId,function(data){
+				 		return callback(false);
+				// 	});
 			});
 		else
 			return callback(false);
@@ -101,6 +101,32 @@ exports.getSharedListByUser = function(userId,callback){
 			return callback(errors.errorNotFound());
 		return callback(files);
   	});
+};
+exports.updateFileAccess = function(fileId,userId,access,callback){
+	User.findOne({_id: userId}, function(err, user) {	
+		if(err || !user) 
+			return callback(errors.errorNotFound());
+		else
+			File.findOne({_id: fileId}, function(err, file) {	
+				if (err) 
+					return callback(errors.errorNotFound());
+				var isInArray = file.sharedUsers.some(function (user) {
+				    return user==userId;
+				});
+				if(!isInArray && access=='1')
+					file.sharedUsers.push(userId);
+				else if(isInArray && access=='0')
+					file.sharedUsers.pop(userId);
+				file.save(function(err,data){
+					if(err)
+						return callback(errors.errorUpdate());
+					return callback(data);
+				});
+			});
+		
+	});
+
+ 	
 };
 
 exports.updateFile = function(fileId,fileJson,callback){

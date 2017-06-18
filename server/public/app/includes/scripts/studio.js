@@ -33,6 +33,7 @@ var studio = function studio(){
 		socket.on("newSample", function(data) {
 		    var channel = ctlProject.get(data.channelId);
 	    	ctlAPI.getSample(data.channelId,data.sampleId,function(result){
+	    		ctlLoader.visibleOneTime(false);
 	    		ctlProject.addSample(result);
 	    	});
 		});
@@ -41,8 +42,24 @@ var studio = function studio(){
 			ctlProject.removeSample(sample);
 		});
 		socket.on("updateSample", function(data) {
-			ctlAPI.getSample(data.channelId,data.sampleId,function(result){
+	    	ctlAPI.getSample(data.channelId,data.sampleId,function(result){
 	    		ctlProject.updateSample(result);
+	    	});
+		});
+		socket.on("deleteChannel", function(data) {
+			var channel = ctlProject.get(data.channelId);
+	    	ctlProject.remove(channel);
+		});
+		socket.on("addChannel", function(data) {
+			ctlAPI.getChannel(data.channelId,function(channelObject){
+	    		var channel = new Channel(channelObject._id,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument
+									,channelObject.trackId,channelObject.userId);
+	    		ctlProject.add(channel);
+	    	});
+		});
+		socket.on("updateChannel", function(data) {
+			ctlAPI.getChannel(data.channelId,function(channelObject){
+	    		ctlProject.update(channelObject);
 	    	});
 		});
 	}
@@ -50,7 +67,7 @@ var studio = function studio(){
 	function loaderWindow(){
 		var isVisible = false;
 		var counter = 0;
-		this.visiblity = function(_isVisible){
+		this.visibleOneTime = function(_isVisible){
 			isVisible = _isVisible;
 		}
 		this.inc=function(){
@@ -111,14 +128,14 @@ var studio = function studio(){
 		this.map = {};
 		this.init = function(data){
 			for (var i = 0; i < data.files.length; i++) {
-				
+
 				this.add({type:'files', file: data.files[i]});
 			}
 			for (var i = 0; i < data.sharedFiles.length; i++) {
 				this.add({type:'sharedFiles',file: data.sharedFiles[i]});
 			}
 		}
-		this.add = function(data){			
+		this.add = function(data){	
 			ctlAPI.isFileExist(data.file._id,function(result){
 				if(result){
 					_this.map['file'+data.file._id]=data.file;
@@ -166,38 +183,37 @@ var studio = function studio(){
 			this.json = data;
 			this.track_version =  data.track_version._id;
 			ctlAPI.getContributors(data._id,function(result){
-				_this.contributors[result.adminUser._id] = result.adminUser;
+				_this.contributors[result.adminUser._id] = {user:result.adminUser,access:"admin"};
 				for (var i = 0; i < result.users.length; i++) {
-					_this.contributors[result.users[i]._id] = result.users[i];
+					_this.contributors[result.users[i].user._id] = result.users[i];
 				}
 				
 				if(!data.track_version)
 					return;
 				for (var i = 0; i < data.track_version.channels.length; i++) {
-					var channelObject = data.track_version.channels[i]; 
-					var channel = new Channel(channelObject._id,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument
-						,channelObject.trackId,channelObject.userId);				
-					// samples
-					var samples = channelObject.samples;
-					if(samples.length>0)
-					for (var j = 0; j < samples.length; j++) {	
-						try {
-							// var sample = new Sample(samples[j]._id,channel.channelId,samples[j].file.path,samples[j].file._id,
-							// 	samples[j].duration,samples[j].start,samples[j].volume,samples[j].delay,
-							// 	samples[j].fadein,samples[j].fadeout);	
-							var sample = _this.jsonToSample(samples[j]);
-							channel.addSample(sample);				
-						}catch(err){
-							console.log(err.message);
-						}
-					}	
-					_this.add(channel);
+					_this.add(_this.jsonToChannel(data.track_version.channels[i]));
 				}
 				_this.toJson();
 				if(callback)
 					callback(p);
 			});
 		
+		}
+		this.jsonToChannel = function(channelObject){ 
+			var channel = new Channel(channelObject._id,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument
+				,channelObject.trackId,channelObject.userId);				
+			// samples
+			var samples = channelObject.samples;
+			if(samples.length>0)
+			for (var j = 0; j < samples.length; j++) {	
+				try {	
+					var sample = _this.jsonToSample(samples[j]);
+					channel.addSample(sample);				
+				}catch(err){
+					console.log(err.message);
+				}
+			}
+			return channel;	
 		}
 		this.jsonToSample = function(jsonObj){
 			return new Sample(jsonObj._id,jsonObj.channelId,jsonObj.file.path,jsonObj.file._id,
@@ -218,6 +234,16 @@ var studio = function studio(){
 			channel.remove();
 			delete this.channels[channel.channelId];
 		}
+		this.update = function(channelJson){
+			var channel = _this.jsonToChannel(channelJson),
+				old = this.get(channel.channelId);
+			old.remove();
+			for (var i = Object.size(channel.samples) - 1; i >= 0; i--) {
+				old.addSample(channel.samples[Object.keys(channel.samples)[i]]);
+				channel.samples[Object.keys(channel.samples)[i]].draw();
+			}
+			console.log(channel);
+		}
 		this.eachSample = function(callback){
 			$.each( Channel.allSamples, function( i, sample ){
 				callback(sample);
@@ -229,8 +255,10 @@ var studio = function studio(){
 		this.addSample = function(sampleJson){
 			var sample = _this.jsonToSample(sampleJson),
 				channel = _this.get(sample.channelId);
-			channel.addSample(sample);
-			sample.draw();
+			sample.channelId = channel.channelId;
+	    	channel.samples[sample.id] = sample;	    	
+	    	Channel.allSamples[sample.id] = sample;
+	    	sample.draw();
 		}
 		this.updateSample = function(sampleJson){
 			var sample = _this.jsonToSample(sampleJson);
@@ -361,7 +389,7 @@ var studio = function studio(){
 			if(actionController.actionsUndo.length<=0)
 				return;
 			var action = actionController.actionsUndo.pop();
-			var before = (action.state!=null?getSampletById(action.state.id):null);
+			var before = ctlProject.getSample(action.state.id);
 			switch(action.type){
 				case 'sample':{
 					sample(this);
@@ -442,34 +470,39 @@ var studio = function studio(){
 			}
 		};
 		this.restoreAction = function(action){	
+			console.log(action.type);
+			console.log(action.state);
 			switch(action.type){
 				case 'sample':{
 					//p.updateSample();
-					console.log(action.state);
-					var s = getSampletById(action.state.id);
-					s.clone(jQuery.extend(true, {}, action.state));
-					s.draw();
-
+					//console.log(action.state);
+					//var s = getSampletById(action.state.id);
+					//s.clone(jQuery.extend(true, {}, action.state));
+					//s.draw();
+				
+					// var clone = jQuery.extend(true, {}, action.state);
+					// ctlProject.removeSample(action.state.id);
+					// ctlProject.addSample(clone.toJson2());
 					break;
 				}
 				case 'sample_new':{
-					$('#'+action.state.id).remove();
-					ctlProject.get(action.state.channelId).removeSample(action.state);
-					ctlDBHelper.deleteSample(action.state.id);					
+					// $('#'+action.state.id).remove();
+					// ctlProject.get(action.state.channelId).removeSample(action.state);
+					// ctlDBHelper.deleteSample(action.state.id);					
 					break;
 				}
 				case 'sample_delete':{
-					ctlProject.get(action.state.channelId).addSample(action.state);	
-					action.state.draw();
-					ctlDBHelper.createSample(action.state.id);
+					// ctlProject.get(action.state.channelId).addSample(action.state);	
+					// action.state.draw();
+					// ctlDBHelper.createSample(action.state.id);
 					break;
 				}
 				case 'sample_show':{
-					$('#'+action.state.id).hide();
+					//$('#'+action.state.id).hide();
 					break;
 				}
 				case 'sample_hide':{
-					$('#'+action.state.id).show();
+					//$('#'+action.state.id).show();
 					break;
 				}
 				case 'channel':{
@@ -477,10 +510,6 @@ var studio = function studio(){
 					break;
 				}
 				case 'channel_new':{
-					//$('#'+action.state.id).remove();
-					//ctlProject.get(action.state.channelId).removeSample(action.state);
-					// ctlProject.remove(action.state);						
-					// break;
 					$('#'+action.state.id).remove();
 					ctlProject.remove(action.state);
 					break;
@@ -583,7 +612,7 @@ var studio = function studio(){
 				ctlProject.eachSample(function(sample) {
 					var playerTimeSec = parseFloat(player.playTime)/1000;
 					var a = parseFloat(sample.start);  // second of start sample
-					var b = parseFloat(sample.start) + parseFloat(sample.time); // second of end sample
+					var b = parseFloat(sample.start) + parseFloat(sample.duration); // second of end sample
 					var c = playerTimeSec; // second of cursor position
 					var remainToStart = a-c;
 					var remainToEnd = b-c;
@@ -595,7 +624,7 @@ var studio = function studio(){
 					}
 					if(a<c&&c<b){ // play from middle
 						remainToStart = 0;
-						startAt = parseFloat(c-a)%parseFloat(sample.aud.duration);
+						startAt = parseFloat(c-a)%parseFloat(sample.duration);
 					}
 					if(c>b){ // play after ends
 						return;
@@ -603,33 +632,9 @@ var studio = function studio(){
 					console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
 
 					var st1 = setTimeout(function(){		
-						//console.log(startAt + parseFloat(sample.delay))				
-						//console.log(sample.id +': '+(sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume)));
-						// sample.aud.src = sample.file;
-						// console.log(sample.file);
-						// sample.aud.load();
-						// sample.aud.currentTime = 5;
-						// sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume));
-						// sample.aud.play();
-
-
-						// var request = new XMLHttpRequest();
-						// request.open("GET", sample.file, true);
-						// request.responseType = "blob";    
-						// request.onload = function() {
-						//   if (this.status == 200) {
-						//     var audio = new Audio(URL.createObjectURL(this.response));
-						//     sample.aud = audio;
-						//     // sample.aud.load();
-						//     sample.aud.currentTime = startAt+ parseFloat(sample.delay);
-						//     sample.aud.play();
-						//   }
-						// }
-						// request.send();
 						sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume));
 						sample.aud.currentTime = startAt+ parseFloat(sample.delay);
 						sample.aud.play();
-		
 					},remainToStart*1000);	
 					player.timeouts.push(st1);
 
@@ -900,12 +905,17 @@ var studio = function studio(){
 	    	Channel.allSamples[sample.id] = sample;
 	    } 
 	    this.removeSample = function(sample){
-	    	console.log('delete: '+sample.id)	    	
-	    	$('#'+sample.id).remove();
-			sample.aud.pause()
-	    	delete this.samples[sample.id];
-	    	delete Channel.allSamples[sample.id];
-	    	p.reset();
+	    	try{
+		    	console.log('delete: '+sample.id)	    	
+		    	$('#'+sample.id).remove();
+				//sample.aud.pause()
+				this.samples[sample.id].aud.pause();
+				Channel.allSamples[sample.id].aud.pause();
+		    	delete this.samples[sample.id];
+		    	delete Channel.allSamples[sample.id];
+		    	p.reset();
+	    	}
+	    	catch(e){}
 	    } 
 	    this.toJson = function(){
 	    	var samples = [];
@@ -957,9 +967,8 @@ var studio = function studio(){
 					},250);	
 		  	    }
 			});
-
 			var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channel.name +'</span><div><div class="channel_details"><span class="channel_user">'+
-			ctlProject.contributors[channel.userId].firstName
+			ctlProject.contributors[channel.userId].user.firstName
 				+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="checkbox">'+checkbox+'</li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
 			$(list_item).find('.volume_placeholder').append(slider);
 			$(row).find('.channel_list_row').append(list_item);
@@ -993,12 +1002,12 @@ var studio = function studio(){
 
 	  constructor(id,channelId,file,fileId,duration,start,volume,delay,fadeIn,fadeOut) {
 	     var _this = this;
-	     var isloading = false;
+	     var isloaded = false;
 	    this.id = id;
 	    this.channelId = channelId;
 	    this.file = file;
 	    this.fileId = fileId;
-	    this.time = duration;
+	    this.duration = duration;
 	    this.delay = delay;
 	    this.start = start;
 	   	this.aud = new Audio();
@@ -1012,7 +1021,7 @@ var studio = function studio(){
 	    	this.id = data.id;
 		    this.channelId = data.channelId;
 		    this.file = data.file;
-		    this.time = data.time;
+		    this.duration = data.time;
 		    this.delay = data.delay;
 		    this.start = data.start;
 			this.aud = new Audio();
@@ -1026,32 +1035,28 @@ var studio = function studio(){
 	    }
 	  
 
-	    loadFile();
-	    this.loadFile = function(){
-	    	loadFile();
-	    };
+	  //   loadFile();
+	  //   this.loadFile = function(){
+	  //   	loadFile();
+	  //   };
 
-	    function loadFile(){
-	    	$('#'+_this.id).css('opacity','0.5');
-	    	isloading = true;
-	    	ctlLoader.inc();
-	    	var request = new XMLHttpRequest();
-			console.log(_this.file);
-			request.open("GET", _this.file, true);
-			request.responseType = "blob";    
-			request.onload = function() {
-			  if (this.status == 200) {
-			    var audio = new Audio(URL.createObjectURL(this.response));
-			    _this.aud = audio;
-			    _this.aud.load();
-			    _this.aud.currentTime = _this.start+ parseFloat(_this.delay);		    
-			    ctlLoader.dec();
-			    $('#'+_this.id).css('opacity','1');
-			    isloading = false;
-			  }
-			}
-			request.send();
-	    }
+	  //   function loadFile(){
+	  //   	$('#'+_this.id).css('opacity','0.1');
+	  //   	var request = new XMLHttpRequest();
+			// request.open("GET", _this.file, true);
+			// request.responseType = "blob";    
+			// request.onload = function() {
+			//   if (this.status == 200) {
+			//     var audio = new Audio(URL.createObjectURL(this.response));
+			//     _this.aud = audio;
+			//     _this.aud.load();
+			//     _this.aud.currentTime = parseFloat(_this.start)+ parseFloat(_this.delay);		    
+			// 	$('#'+_this.id).animate({opacity:1},1000);
+			// 	console.log();
+			//   }
+			// }
+			// request.send();
+	  //   }
 
 	    this.toJson = function(){
 	    	return {
@@ -1061,11 +1066,49 @@ var studio = function studio(){
 					"fadeout": this.fadeOut,
 					"start": this.start,
 					"volume": this.volume,
-					"duration": this.time,
+					"duration": this.duration,
 					"delay": this.delay,
 					"file":  this.fileId,
 					"path":  this.file					
 	    	}
+	    }
+
+	    this.toJson2 = function(){
+	    	return {
+	    			"sampleId" : this.id,
+	    			"channelId": this,channelId,
+					"fadein": this.fadeIn,
+					"fadeout": this.fadeOut,
+					"start": this.start,
+					"volume": this.volume,
+					"duration": this.duration,
+					"delay": this.delay,
+					"file":  {
+						"_id":this.fileId,
+						"path": this.file,
+						"duration": this.duration
+					}				
+	    	}
+	    }
+
+	    this.reload = function(_this){	 
+	   		$('#'+_this.id).css('opacity','0.2');   	
+	    	var request = new XMLHttpRequest();
+			request.open("GET", _this.file, true);
+			request.responseType = "blob";    
+			request.onload = function() {
+			  if (this.status == 200) {
+			    var audio = new Audio(URL.createObjectURL(this.response));
+			    _this.aud = audio;
+			    _this.aud.load();
+			    _this.aud.pause();
+			    _this.aud.currentTime = parseFloat(_this.start)+ parseFloat(_this.delay);
+			    p.reset();		    
+				$('#'+_this.id).animate({opacity:1},1000);
+				isloaded = true;
+			  }
+			}
+			request.send();
 	    }
 
 	    this.draw = function(){
@@ -1073,18 +1116,20 @@ var studio = function studio(){
 
 	    	if($('#'+this.id).length>0)
 	    		$('#'+this.id).remove();
-
 	    	var row = $('.channels_list_row[data-channel="'+ this.channelId +'"]');
-			var _sample = $('<article class="sample" id="'+this.id+'" draggable="true" data-duration="'+this.time+'" data-start="'+this.start+'"></article>');
-			var width = this.time*unit_width+ (this.time/time_units);
+			var _sample = $('<article class="sample" id="'+this.id+'" draggable="true" data-duration="'+this.duration+'" data-start="'+this.start+'"><div class="sample-info">'+ctlFiles.map['file'+this.fileId].name+'</div></article>');
+			var width = this.duration*unit_width+ (this.duration/time_units);
 			var height = unit_width*3/4*10-2;
 			
 			$(_sample).css('width',Math.floor(width))
 			.css('height',Math.floor(height))
-			.css('left',Math.floor(secondsToOffset(this.start)));		
-			if(_this.isloading)
-				$(_sample).css('opacity','0.5');
+			.css('left',Math.floor(secondsToOffset(this.start)));
 
+			if(!isloaded){
+				$(_sample).css('opacity','0.2');
+				_this.reload(_this);
+			}
+			
 			$(row).find('.channel_grid_row .sample_placeholder').append(_sample);			
 			createSoundSpectrum($(_sample),width,height);
 			var resizeTimer;
@@ -1092,7 +1137,7 @@ var studio = function studio(){
 			$($(row).find('#'+this.id)).resizable({
 			  	handles: 'e, w'
 			}).on('resize', function (e) {
-					_this.time = offsetToSeconds($(e.target).width());
+					_this.duration = offsetToSeconds($(e.target).width());
 					_this.start = 	offsetToSeconds(parseFloat($(e.target).css('left')));
 					_this.aud.loop = true;
 					createSoundSpectrum($(e.target),$(e.target).width(),$(e.target).height());	
@@ -1210,6 +1255,7 @@ var studio = function studio(){
 		this.deleteChannel = function(channelId){
 			ctlAPI.deleteChannels(channelId,function(data){
 				console.log('delete..');
+				ctlMessage.send("deleteChannel",{"channelId":channelId});
 			});
 		};
 		this.createChannel = function(channelObject){
@@ -1225,6 +1271,7 @@ var studio = function studio(){
 					clone.channelId = data._id;
 					ctlProject.remove(channel);
 					ctlProject.add(clone)
+					ctlMessage.send("addChannel",{"channelId":clone.channelId});
 					ac.addAction(new Action('channel_new',jQuery.extend(true, {}, channel)));
 				}
 			});
@@ -1234,43 +1281,36 @@ var studio = function studio(){
 			ctlAPI.updateChannel(channel.toJson().channel,channel.channelId,function(data){
 				if(!data) console.log('error updating server..');				
 			});
+			ctlMessage.send("updateChannel",{"channelId":channelId});
 		}
 		this.createSample = function(sampleId,callback){
 			var sample = ctlProject.getSample(sampleId);
-			ctlAPI.createSample(sample.channelId,sample.toJson(),function(data){
-				if(!data)
-				 console.log('error updating server..'+ data.message);
-				else{
-					console.log(data);							
-					var clone = jQuery.extend(true, {}, sample);
-					clone.id = data._id;
-					var channel = ctlProject.get(sample.channelId);
-					clone.file = sample.file;
-
-					ctlLoader.inc();
-			    	var request = new XMLHttpRequest();
-					console.log(clone.file);
-					request.open("GET", clone.file, true);
-					request.responseType = "blob";    
-					request.onload = function() {
-					  if (this.status == 200) {
-					    var audio = new Audio(URL.createObjectURL(this.response));
-					    clone.aud = audio;
-					    clone.aud.load();
-					    clone.aud.currentTime = clone.start+ parseFloat(clone.delay);		    
-					    ctlLoader.dec();
-					  }
-					}
-					request.send();
-
-					channel.removeSample(sample);
-					channel.addSample(clone);
-					clone.draw();
-					ctlMessage.send("newSample",{"sampleId":clone.id,"channelId":clone.channelId});
-					
-					if(callback)
-						callback(clone.id);
-				}
+			var sj = sample.toJson();
+			ctlAPI.createSample(sample.channelId,sj,function(data){
+				var clone = jQuery.extend(true, {}, sample);
+				clone.id = data._id;
+				var channel = ctlProject.get(sample.channelId);
+				clone.file = sample.file;
+		  //   	var request = new XMLHttpRequest();
+				// console.log(clone.file);
+				// request.open("GET", clone.file, true);
+				// request.responseType = "blob";    
+				// request.onload = function() {
+				//   if (this.status == 200) {
+				//     var audio = new Audio(URL.createObjectURL(this.response));
+				//     clone.aud = audio;
+				//     clone.aud.load();
+				//     clone.aud.currentTime = parseFloat(clone.delay);		    
+				//     $('#'+clone.id).animate({opacity:1},1000);
+				//     p.reset();
+				//   }
+				// }
+				// request.send();
+				channel.removeSample(sample);
+				channel.addSample(clone);
+				clone.draw();
+				$('#'+clone.id).css('opacity','0.1');
+				ctlMessage.send("newSample",{"sampleId":clone.id,"channelId":channel.channelId});
 			});
 		}
 		this.updateSample = function(sampleId){
@@ -1280,6 +1320,7 @@ var studio = function studio(){
 					console.log('error updating server..'+ data);
 				else{
 					console.log(data);
+
 					ctlMessage.send("updateSample",{"sampleId":sample.id,"channelId":sample.channelId});
 				}
 			});
@@ -1298,6 +1339,30 @@ var studio = function studio(){
 				ctlDBHelper.updateChannel(data.newChannel);
 				ctlDBHelper.updateChannel(data.lastChannel);
 			}
+		}
+		this.dropSample = function(changes){
+			ctlAPI.deleteSample(changes.lastChannel,changes.sampleId,function(data){
+				if(!data) console.log('error updating server..');
+				else
+				{
+					ctlMessage.send("removeSample",{"sampleId":changes.sampleId,"channelId":changes.lastChannel});	
+					var sample = ctlProject.getSample(changes.sampleId);
+					sample.channelId = changes.newChannel;
+					var sj = sample.toJson();
+					sj.channelId = changes.newChannel;
+					ctlAPI.createSample(changes.newChannel,sj,function(data){
+						var channel = ctlProject.get(sample.channelId);
+						var clone = jQuery.extend(true, {}, sample);
+						clone.id = data._id;
+						channel.removeSample(sample);
+						channel.addSample(clone);
+						clone.draw();
+						p.reset();
+						ctlMessage.send("newSample",{"sampleId":clone.id,"channelId":channel.channelId});
+					});
+				}
+			});
+
 		}
 		this.uploadFile	= function(userId,form,duration,size,callback){
 			ctlAPI.upload(userId,form,duration,size,function(result){
@@ -1427,9 +1492,9 @@ var studio = function studio(){
 		var h = $(sample).height();
 		sample = getSampletById($(sample).attr('id'));
 		var w = sample.fadeOut;
-		context.moveTo(secondsToOffset(sample.time-sample.fadeOut), 0);
-		context.lineTo(secondsToOffset(sample.time),h);
-		context.lineTo(secondsToOffset(sample.time),0);
+		context.moveTo(secondsToOffset(sample.duration-sample.fadeOut), 0);
+		context.lineTo(secondsToOffset(sample.duration),h);
+		context.lineTo(secondsToOffset(sample.duration),0);
 		context.fill();
 	}
 
@@ -1465,20 +1530,32 @@ var studio = function studio(){
 	}
 
 	function dropFile(ev){
+		
 		ev.preventDefault();
 		var file = ctlFiles.map[ev.originalEvent.dataTransfer.getData("text")];
 		var sampleId = 'newSample'+sampleIndexGenerator++;
 		var channelId= $(ev.target).closest('.channels_list_row').attr('data-channel');
-		var channel = ctlProject.get(channelId);
-		var sample = new Sample(sampleId,channelId,file.path,file._id,file.duration,"0","1","0","0","0");
-		channel.addSample(sample);
-		sample.draw();
+	    var jsonObj = {
+	    	"_id" : sampleId,
+	    	"channelId" : channelId,
+	    	"file" : {
+				"path": file.path,
+	    		"_id": file._id,
+	    		"duration": file.duration
+	    	},
+	    	"duration": file.duration,
+	    	"start": "0",
+	    	"volume": "1",
+	    	"delay": "0",
+			"fadein": "0",
+			"fadeout":"0"
+		};
+		ctlProject.addSample(jsonObj);
 		mouseOffsetSampleClicked=0;
 		moveSample(ev,sampleId);	
 		ctlDBHelper.createSample(sampleId,function(newId){
 			ac.removeAction();
 			ac.addAction(new Action('sample_new',jQuery.extend(true, {}, getSampletById(newId))));
-			//getSampletById(newId).loadFile();
 		});	
 	}
 
@@ -1521,7 +1598,7 @@ var studio = function studio(){
 
 	function updateSampleComponent(element){
 		var sample = getSampletById(element.id);
-		var width = sample.time*unit_width+ (sample.time/time_units);
+		var width = sample.duration*unit_width+ (sample.duration/time_units);
 		var height = unit_width*3/4*10-2;
 		$(element).css('width',Math.floor(width));
 		$(element).css('height',Math.floor(height));
@@ -1600,7 +1677,7 @@ var studio = function studio(){
 	}
 	function drop(ev) {
 	    ev.preventDefault();
-	    ctlDBHelper.updateAfterMovingSample(moveSample(ev,ev.originalEvent.dataTransfer.getData("text")));
+	    ctlDBHelper.dropSample(moveSample(ev,ev.originalEvent.dataTransfer.getData("text")));
 	}
 
 	function moveSample(ev,data){
@@ -1637,28 +1714,28 @@ var studio = function studio(){
 	    // define new start
 	    var borders = Math.floor(new_offset/((time_units*unit_width)));
 	    var all = ((new_offset-borders)/(time_units*unit_width))*time_units;
-	    $('#'+data).attr('data-start', all);
-	  
 	    var channelId = $(target).closest('.sample_placeholder').attr('data-channel');
 	    var sample = getSampletById(data);
 	    var newChannel = ctlProject.get(channelId);
 	    var lastChannel = ctlProject.get(sample.channelId);
 		var changes = {newChannel:newChannel.channelId,lastChannel:lastChannel.channelId,sampleId:sample.id};
+		
+		$('#'+data).attr('data-start', all);
+	  
 		ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
 		updateUndoRedoIcons();
 
-		lastChannel.removeSample(sample);
-		newChannel.addSample(sample);
-	
-		sample.start = all;
-		sample.channelId = channelId;	 
+		if(lastChannel.channelId != newChannel.channelId){
+			lastChannel.removeSample(sample);
+			sample.channelId = channelId;
+			newChannel.addSample(sample);
+		}
+		sample.start = all; 
 		sample.draw();
-		// console.log('======');
-		// console.log(data);
-	
+
 		p.reset();		
 
-		return (changes);
+		return changes;
 	}
 
 
@@ -1716,28 +1793,28 @@ var studio = function studio(){
 
 	function cutSample(e){
 
-		var sample = getSampletById(($(e.target).closest('.sample')).attr("id"));	
+		var sample = ctlProject.getSample(($(e.target).closest('.sample')).attr("id"));
 		ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
 		var time = offsetToSeconds(mouseOffsetSampleClicked);
 
 		var clone = jQuery.extend(true, {}, sample);
 		clone.delay =  parseFloat(parseFloat(sample.delay) +  parseFloat(time)).toString();
 		clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toString();
-		clone.time = parseFloat(parseFloat(sample.time)-parseFloat(time)).toString();
+		clone.duration = parseFloat(parseFloat(sample.duration)-parseFloat(time)).toString();
 		clone.id = 'newSample'+sampleIndexGenerator++;
 		clone.fadeIn = 0;
 
 		console.log('clone.delay')
 		console.log(clone.delay);
 
-		sample.time = time.toFixed(1);
+		sample.duration = time.toFixed(1);
 		sample.fadeOut = 0;
 		sample.draw();
 
 		console.log('sample.delay')
 		console.log(sample.delay);
 
-		ctlProject.get(clone.channelId).addSample(clone);
+		ctlProject.get(sample.channelId).addSample(clone);
 		clone.draw();
 
 		cursorType = 'arrow';
@@ -1761,6 +1838,7 @@ var studio = function studio(){
 			updateUndoRedoIcons();			
 		}
 		ss.updateSamples();
+		ss.clean();
 	}
 
 	function fadeOut(sec){
@@ -1773,6 +1851,7 @@ var studio = function studio(){
 
 		}
 		ss.updateSamples();
+		ss.clean();
 	}
 
 	function moveTime(sec){
@@ -2088,12 +2167,76 @@ var studio = function studio(){
 		updateUndoRedoIcons();
 		p.pause();
 	});
-	$(document).on('click','#btn-set-fadein',function(e){
-		fadeIn($(e.target).find('#input-fadein'));
+	$(document).on('click','#toolbox_btn_fadein',function(e){
+		$("#modal-prompt").modal();
+		$("#modal-prompt").attr("action","fadein");
 		p.pause();
 	});
+	$(document).on('click','#toolbox_btn_ver-set',function(e){
+		ctlAPI.getVersions(getURLID(),function(result){
+			$("#modal-select").attr("action","versions");
+			var select = $("#modal-select").find('select');
+			$(result.tracks).each(function(key,value){
+				$(select).append($('<option data-track="'+value._id+'">'+value._id+'</option>'));
+			});
+			$(select).find('option').filter(function(e) {
+				    return $(this).text() == ctlProject.track_version; 
+			}).prop('selected', true);
+			$("#modal-select").modal();
+		});
+	});
+
+	$(document).on('click','#toolbox_btn_ver-add',function(e){
+		$("#modal-prompt").modal();
+		$("#modal-prompt").attr("action","create-version");
+	});
+
+	$(document).on('click','#btn-select',function(e){
+		var action = $("#modal-select").attr("action");
+		var value = $("#modal-select").find("option:selected").attr('data-track');
+		switch(action){
+			case 'versions':{
+				setVersion(value);
+				break;
+			}
+		}
+		location.reload();
+		$("#modal-select").modal("hide");
+	});
+	function setVersion(value){
+		ctlAPI.setVersions(getURLID(),value,function(result){
+			
+		});
+	}
+	function createVersion(value){
+		ctlAPI.createVersion(getURLID(),ctlProject.track_version, function(result){
+			location.reload();
+		});
+	}
+	$(document).on('click','#btn-prompt',function(e){
+		var action = $("#modal-prompt").attr("action");
+		var value = $("#modal-prompt").find("input").val();
+		$("#promptModalLabel").html(value);
+		switch(action){
+			case 'fadein':{
+				fadeIn(value);
+				break;
+			}
+			case 'fadeout':{
+				fadeOut(value);
+				break;
+			}
+			case 'create-version':{
+				createVersion(value);
+				break;
+			}
+		}
+		$("#modal-prompt").modal("hide");
+	});
+	
 	$(document).on('click','#toolbox_btn_fadeout',function(){
-		fadeOut(prompt('fadeOut sec'));
+		$("#modal-prompt").modal();
+		$("#modal-prompt").attr("action","fadeout");
 		p.pause();
 	});
 	$(document).on('click','#toolbox_btn_cut',function(e){

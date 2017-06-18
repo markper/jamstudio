@@ -66,6 +66,15 @@ router.put('/:fileId',/* ensureLoggedIn, */function(req, res, next) {
     });
 });
 
+router.put('/:fileId/User/:userId/Access/:access',/* ensureLoggedIn, */function(req, res, next) {
+    fileCtrl.updateFileAccess(req.params.fileId,req.params.userId,req.params.access,function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);	
+		else
+			res.status(200).send(data);
+    });
+});
+
 /* POST file */
 router.post('/',function(req, res, next) {
     fileCtrl.createFile(req.body,function(data){
