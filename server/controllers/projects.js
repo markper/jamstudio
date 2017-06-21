@@ -18,6 +18,7 @@ exports.createProject =  function(projectJson,callback){
         track.name = projectJson.name;
         track.description = projectJson.description;
         track.genre = projectJson.genre;
+        track.version = 'ver 1.0';
         track.save(function(err){
             if (err) 
                 return callback(errors.errorCreate((err?err:'')));
@@ -121,7 +122,7 @@ exports.getVersions = function(projectId,callback){
     });
 };
 
-exports.makeProjectVersion = function(projectId,trackId,callback){
+exports.makeProjectVersion = function(projectId,trackId,body,callback){
     Track
     .findOne({_id: trackId })
     .exec(function (err, _track) {
@@ -129,6 +130,8 @@ exports.makeProjectVersion = function(projectId,trackId,callback){
             return callback(errors.errorNotFound((err?err:'')));
         // create track
         _track._id = mongoose.Types.ObjectId();
+        if(body.version)
+            _track.version = body.version;
         _track.isNew = true; 
         _track.save(function(err,data){
             if (err) 

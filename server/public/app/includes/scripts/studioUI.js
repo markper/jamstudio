@@ -1,5 +1,10 @@
 function studioUI(){
 
+	this.userWidjet = function(userJson){
+
+	}
+
+/*
 	function openWhiteWindow(_width,_height,_title){
 		$('#black_screen > section').fadeOut(250);
 		$('#black_screen > section').html('<div id="close_white_window" href="#">&times;</div>');
@@ -167,5 +172,5 @@ function studioUI(){
 	$(document).on('click','#nav_exit',function(){
 		closeNav();
 	});
-
+*/
 }

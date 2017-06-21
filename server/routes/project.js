@@ -87,7 +87,7 @@ router.put('/:projectId/SetVersion/:trackId', function(req, res, next) {
     });
 });
 router.put('/:projectId/CreateVersion/:trackId', function(req, res, next) {
-    projectCtrl.makeProjectVersion(req.params.projectId,req.params.trackId,function(data){
+    projectCtrl.makeProjectVersion(req.params.projectId,req.params.trackId,req.body,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else

@@ -1,11 +1,8 @@
 function controllerAPI(){
-
-	var localDB = 'http://localhost:3000';
-	var localFiles = 'http://localhost:3300';
-	var remoteDB = 'https://jammeapp.herokuapp.com';
-	var remoteFiles = 'https://oran1.herokuapp.com';
-	var serverDB = remoteDB;
-	var serverFiles = remoteFiles;
+	var url = window.location.href
+	var arr = url.split("/");
+	var serverDB = arr[0] + "//" + arr[2]
+	var serverFiles = 'https://oran1.herokuapp.com';
 
 	//
 	// User
@@ -150,11 +147,12 @@ function controllerAPI(){
 	        }
 		});	
 	}
-	this.createVersion = function(projectId,trackId,callback){
+	this.createVersion = function(projectId,trackId,version,callback){
 		$.ajax({
 			type: "Put",
 			dataType: "json",
  			url: serverDB+'/Project/'+projectId+'/CreateVersion/'+trackId,
+ 			data:({version:version}),
  			success:  function(result){
 				callback(result);
 			},
@@ -644,11 +642,11 @@ function controllerAPI(){
 		});
 	};
 
-	this.export = function(track,callback){
+	this.export = function(track,start,end,callback){
 		$.ajax({
 			method: "POST",
 			//url: '/export/mp3/'+prompt('sec to start')+'/'+prompt('sec to end'),
-			url: serverFiles+'/export/wav/'+prompt('sec to start')+'/'+prompt('sec to end'),
+			url: serverFiles+'/export/wav/'+start+'/'+end,
 			data:JSON.stringify(track),
 			error: function(e) {
 				$(e.target).removeClass('loading');

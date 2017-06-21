@@ -11,7 +11,7 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <title>Bootstrap 101 Template</title>
     <!-- Bootstrap -->
-    <link href="https://jammeapp.herokuapp.com/static/includes/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../../static/includes/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -20,16 +20,16 @@
     <![endif]-->
 	<!--  -->
 
-	<link rel="icon" type="image/png" href="https://jammeapp.herokuapp.com/satic/includes/images/favicon.png">
-	<link rel="stylesheet" type="text/css" href="https://jammeapp.herokuapp.com/static/includes/style/stylesheetstudio.css">
+	<link rel="icon" type="image/png" href="http://localhost:3000/satic/includes/images/favicon.png">
+	<link rel="stylesheet" type="text/css" href="../../static/includes/style/stylesheetstudio.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-	<script src="https://jammeapp.herokuapp.com/static/includes/scripts/spectrum.js"></script>
-	<link rel="stylesheet" href="https://jammeapp.herokuapp.com/static/includes/style/jquery-ui.min.css">
-	<script src="https://jammeapp.herokuapp.com/static/includes/scripts/jquery-ui.min.js"></script>
-	<script src="https://jammeapp.herokuapp.com/static/includes/scripts/controllerAPI.js"></script>
-	<script src="https://jammeapp.herokuapp.com/static/includes/scripts/studio.js"></script>
-	<script src="https://jammeapp.herokuapp.com/static/includes/scripts/studioUI.js"></script>
-	<script src="https://jammeapp.herokuapp.com/static/includes/scripts/recorder.js"></script>
+	<script src="../../static/includes/scripts/spectrum.js"></script>
+	<link rel="stylesheet" href="../../static/includes/style/jquery-ui.min.css">
+	<script src="../../static/includes/scripts/jquery-ui.min.js"></script>
+	<script src="../../static/includes/scripts/controllerAPI.js"></script>
+	<script src="../../static/includes/scripts/studio.js"></script>
+	<script src="../../static/includes/scripts/studioUI.js"></script>
+	<script src="../../static/includes/scripts/recorder.js"></script>
 	<script src="https://cdn.socket.io/socket.io-1.0.0.js"></script>
 
 
@@ -38,14 +38,9 @@
 	<header>
 		<ul>
 			<li id="logo">J</li>
-			<li id="connected_user">
-				<div class="user_img" style="background-image: url()"></div>
-				<div class="username"><span>israel.israeli@gmail.com</span> <span>&#x25BC;</span></div>
-				<section id="connected_user_menu">
-					<ul>
-						<li id="logout">Logout</li>
-					</ul>
-				</section>
+			<li id="board">
+				<h2>Prohect Name</h2>
+				<h3>Version Name</h4>
 			</li>
 			<li id="toolbox">
 				<ul>
@@ -71,14 +66,52 @@
 					<li id="toolbox_btn_delete"></li>
 				</ul>
 				<ul>
-					<li id="toolbox_btn_export"></li>
-					<li id="toolbox_btn_ver-set"></li>
-					<li id="toolbox_btn_ver-add"></li>
-					<li id="toolbox_btn_create_music"></li>					
-					<li id="toolbox_btn_wav"></li>
+					<li id="toolbox_btn_export_menu">
+						  <div>
+						    <span class="glyphicon glyphicon-share" aria-hidden="true"></span> Export
+						  </div>
+					</li>
+				</ul>
+				<ul>
+					<li id="toolbox_btn_import_menu">
+						  <div>
+						    <span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span> Import
+						  </div>
+					</li>
+				</ul>
+				<ul>
+					<li id="toolbox_btn_version_menu">
+						<div class="dropdown">
+						  <div id="dVersion" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+
+						    <span class="glyphicon glyphicon-tree-conifer" aria-hidden="true"></span> Versions 
+						    <span class="caret"></span>
+						  </div>
+						  <ul class="dropdown-menu" aria-labelledby="dVersion">
+						    <li id="btn-version-roll-back">Roll Back</li>	
+						    <li id="btn-version-create">Create</li>		    
+						  </ul>
+						</div>
+					</li>
+				</ul>
+				<ul>
+					<li id="toolbox_btn_contributors_menu">
+						<div class="dropdown">
+						  <div id="dContributor">
+						    <span class="glyphicon glyphicon-star" aria-hidden="true"></span> Share 
+						  </div>
+						</div>
+					</li>
 				</ul>
 			</li>
-			<li id="searchbox"></li>
+			<li id="connected_user" class="dropdown">
+				<div class="user_img" style="background-image: url()"></div>
+				<div class="username" id="dUsername" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>israel.israeli@gmail.com</span> <span>&#x25BC;</span></div>
+				<ul class="dropdown-menu" aria-labelledby="dUsername">
+				    <li  id="settings">Settings</li>
+				    <li  id="logout">Logout</li>
+				</ul>
+			</li>
 		</ul>
 	</header>
 	<main class="scrolls">
@@ -96,6 +129,8 @@
 			<article class="channels_grid_title"></article>
 		</section>
 		<div id="cursorLine"></div>
+		<div id="range-start" class="range"></div>
+		<div id="range-end" class="range"></div>
 		<section id="file_explorer">
 			<article class="file_explorer_title">
 				File Explorer	
@@ -207,6 +242,30 @@
 	    </div>
 	  </div>
 	</div>
+
+
+
+
+	<div class="modal fade" id="modal-list"  tabindex="-1" role="dialog" aria-labelledby="modal-list-label">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="listModalLabel">Title</h4>
+	      </div>
+	      <div class="modal-body">
+	        <form>
+	        </form>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+
+
 	<div class="modal fade" id="modal-prompt"  tabindex="-1" role="dialog" aria-labelledby="modal-prompt-label">
 	  <div class="modal-dialog" role="document">
 	    <div class="modal-content">
@@ -215,12 +274,12 @@
 	        <h4 class="modal-title" id="promptModalLabel">Title</h4>
 	      </div>
 	      <div class="modal-body">
-	        <form>
-           		<div class="row">
-	              <div class="col-ms-10">
-	              	<input type="text" class="form-control" id="project-prompt" placeholder="Enter value">
-	              </div>
-	            </div>
+			<form class="form-horizontal">
+			  <div class="form-group">
+			    <div class="col-sm-11">
+			      <input type="text" class="form-control" id="inputPrompt" placeholder="Value">
+			    </div>
+			  </div>
 	        </form>
 	      </div>
 	      <div class="modal-footer">
@@ -239,17 +298,17 @@
 		    </div>
 	    </div>
 	</section>
+
 	<script>
 		(function(){
 			var s = new studio();
 			var sui = new studioUI(s);
 			s.init();
 		})();
+
 	</script>
 	
-    <script src="https://jammeapp.herokuapp.com/static/includes/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="../../static/includes/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-
-    
 </body>
 </html>

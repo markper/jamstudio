@@ -24,31 +24,58 @@ var studio = function studio(){
 	var ctlLoader = new loaderWindow();
 	var ctlMessage = new messages();
 
+	function range(){
+		var start = 0;
+		var end = 60000;
+		this.setStart = function(_start){
+			start = _start;
+		}
+		this.setEnd = function(_end){
+			end = _end;
+		}
+	}
+
+	function board(text){
+		var lastText = $('#board h3').text();
+		$('#board h3').hide().addClass('alert-success').text(text).fadeIn();
+		setTimeout(function(){
+			$('#board h3').hide().removeClass('alert-success').text(lastText).fadeIn();
+		},3000);
+	}
 	function messages(){
+		
 		var socket = io.connect("https://oran-p2p2-yale.herokuapp.com/");
 		socket.emit("subscribe", { room: getURLID() });
+		
 		this.send = function(action,msg){
 			socket.emit('broadcast', {room:getURLID(),emit:action,msg:msg});
 		}
+		
+		socket.on("moveSample", function(data) {
+			ctlProject.moveSample(data.oldChannelId,data.newChannelId,data.sampleId,data.start);
+			board("sample moved..");
+		});
+		
+		socket.on("updateSampleId", function(data) {
+			ctlProject.updateSampleId(data.channelId,data.oldSampleId,data.newSampleId);
+		});
 		socket.on("newSample", function(data) {
+			console.log('wow');
 		    var channel = ctlProject.get(data.channelId);
 	    	ctlAPI.getSample(data.channelId,data.sampleId,function(result){
 	    		ctlLoader.visibleOneTime(false);
 	    		ctlProject.addSample(result);
 	    	});
+	    	board("new sample..");
 		});
 		socket.on("removeSample", function(data) {
-			var sample = ctlProject.getSample(data.sampleId);
-			ctlProject.removeSample(sample);
-		});
-		socket.on("updateSample", function(data) {
-	    	ctlAPI.getSample(data.channelId,data.sampleId,function(result){
-	    		ctlProject.updateSample(result);
-	    	});
+			ctlProject.removeSample(data.sampleId);
+			board("sample removed..");
 		});
 		socket.on("deleteChannel", function(data) {
 			var channel = ctlProject.get(data.channelId);
 	    	ctlProject.remove(channel);
+	    	board("channel removed..");
 		});
 		socket.on("addChannel", function(data) {
 			ctlAPI.getChannel(data.channelId,function(channelObject){
@@ -56,12 +83,28 @@ var studio = function studio(){
 									,channelObject.trackId,channelObject.userId);
 	    		ctlProject.add(channel);
 	    	});
+	    	board("new channel..");
 		});
+		socket.on("updateSample", function(data) {
+			ctlProject.removeSample(data.sampleId);
+	    	ctlAPI.getSample(data.channelId,data.sampleId,function(result){
+	    		ctlProject.addSample(result);
+	    	});
+	    	board("sample updated..");
+		});
+		/*
 		socket.on("updateChannel", function(data) {
 			ctlAPI.getChannel(data.channelId,function(channelObject){
 	    		ctlProject.update(channelObject);
 	    	});
 		});
+		socket.on("updateSample", function(data) {
+	    	ctlAPI.getSample(data.channelId,data.sampleId,function(result){
+	    		ctlProject.updateSample(result);
+	    	});
+		});
+
+		*/
 	}
 
 	function loaderWindow(){
@@ -98,6 +141,9 @@ var studio = function studio(){
 				
 				// get user PROJECT 
 				ctlAPI.getProject(getURLID(),function(result){
+
+					$('#board h2').text(result.name);
+					$('#board h3').text(result.track_version.version);
 					
 					// set project name and prepare project grid
 					drawGrid((result==null?"":result.name));
@@ -155,13 +201,11 @@ var studio = function studio(){
 
 	function user(){
 
-		user.user = null;
-		user.files = null;
-		user.sharedFiles = null;
-
+		this.info = null;
 		this.init = function(data){
-			user.user = data;
-            $('div.username span:first').text(data.email);
+			this.info = data;
+			var email = (data.email.length >13?data.email.substring(0,13)+'..':data.email);
+            $('div.username span:first').text(email);
             $('header #connected_user .user_img').css('background-image','url('+data.picture+')');
 		};
 	};
@@ -260,12 +304,34 @@ var studio = function studio(){
 	    	Channel.allSamples[sample.id] = sample;
 	    	sample.draw();
 		}
-		this.updateSample = function(sampleJson){
-			var sample = _this.jsonToSample(sampleJson);
-			this.removeSample(sample);
-			this.addSample(sampleJson);
+		this.updateSampleId = function(channelId,sampleId,newSampleId){
+			// var sample = _this.jsonToSample(sampleJson);
+			// this.removeSample(sample);
+			// this.addSample(sampleJson);
+			var channel = this.get(channelId);
+			var sample = ctlProject.getSample(sampleId);			
+			var clone = jQuery.extend(true, {}, sample);			
+			clone.id = newSampleId;
+			channel.removeSample(sample);
+			channel.addSample(clone);
+			clone.draw();
+			p.reset();
 		}
-		this.removeSample = function(sample){
+		this.moveSample = function(fromChannelId,toChannelId,sampleId,sec){
+			var sample = ctlProject.getSample(sampleId);			
+		    var newChannel = ctlProject.get(toChannelId);
+		    var lastChannel = ctlProject.get(fromChannelId);
+		    if(fromChannelId!=toChannelId)
+				lastChannel.removeSample(sample);
+			sample.channelId = toChannelId;
+			sample.start = sec;
+			if(fromChannelId!=toChannelId)
+				newChannel.addSample(sample);
+			sample.draw();
+			p.reset();
+		}
+		this.removeSample = function(sampleId){
+			var sample = ctlProject.getSample(sampleId);
 			$('#'+sample.id).remove();
 			ctlProject.get(sample.channelId).removeSample(sample);
 		}
@@ -593,99 +659,107 @@ var studio = function studio(){
 			 });
 		};
 		this.play = function(){
-				if(player.isPlaying)
+			ctlProject.eachSample(function(sample) {
+			console.log(sample);	
+			});
+			
+			if(player.isPlaying)
+				return;
+			console.log('play: '+ player.playTime);
+			player.isPlaying = true;
+			var a = 0;
+			var startTime =  new Date();
+			var playSecond = player.playTime;
+			startTimer();
+			function startTimer(){
+				var countingMS =  (Math.abs(new Date()-startTime) +parseInt(playSecond));
+				player.playTime=countingMS									
+				updateTimer(countingMS);	
+				var t = setTimeout(startTimer, 10);
+				player.timeouts.push(t);
+			}
+
+			ctlProject.eachSample(function(sample) {
+				var playerTimeSec = parseFloat(player.playTime)/1000;
+				var a = parseFloat(sample.start);  // second of start sample
+				var b = parseFloat(sample.start) + parseFloat(sample.duration); // second of end sample
+				var c = playerTimeSec; // second of cursor position
+				var remainToStart = a-c;
+				var remainToEnd = b-c;
+				var startAt = c-a;
+				if((player.channelId && player.channelId != sample.channelId )|| (player.mutedChannels.indexOf(sample.channelId)>-1&&player.mutedChannelsFlag))
+					return; // sample channel muted
+				if(c<a){ // play from start
+					startAt = 0;
+				}
+				if(a<c&&c<b){ // play from middle
+					remainToStart = 0;
+					startAt = parseFloat(c-a)%parseFloat(sample.duration);
+				}
+				if(c>b){ // play after ends
 					return;
-				console.log('play: '+ player.playTime);
-				player.isPlaying = true;
-				var a = 0;
-				var startTime =  new Date();
-				var playSecond = player.playTime;
-				startTimer();
-				function startTimer(){
-					var countingMS =  (Math.abs(new Date()-startTime) +parseInt(playSecond));
-					player.playTime=countingMS									
-					updateTimer(countingMS);	
-					var t = setTimeout(startTimer, 10);
-					player.timeouts.push(t);
+				}
+				console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
+
+				var st1 = setTimeout(function(){	
+					if(!sample.aud.readyState)
+						return;
+					sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume));
+					sample.aud.currentTime = startAt+ parseFloat(sample.delay);
+					sample.aud.play();
+				},remainToStart*1000);	
+				player.timeouts.push(st1);
+
+				var st2 = setTimeout(function(){
+					if(!sample.aud.readyState)
+						return;
+					sample.aud.currentTime = sample.delay;
+					sample.aud.pause();
+				},remainToEnd*1000);	
+				player.timeouts.push(st2);
+
+				// fadeIn
+				if(sample.fadeIn>0){			
+					var stFadeIn = setTimeout(function(){
+						var fadeCounter = 0;
+						var countdown = (parseFloat(c-a) - remainToStart<0?0:parseFloat(c-a) - remainToStart);
+						var stFadeOutInter = setInterval(function(){
+							var channelVol = parseFloat(ctlProject.channels[sample.channelId].volume);
+							if(countdown>sample.fadeIn)	
+								clearInterval(stFadeOutInter);
+							else{
+								countdown +=0.1;
+								sample.aud.volume = (countdown/sample.fadeIn)*sample.volume*channelVol*player.volume;
+							}
+						},100);
+						player.intervals.push(stFadeOutInter);
+					},(remainToStart)*1000);
+					player.timeouts.push(stFadeIn);
 				}
 
-				ctlProject.eachSample(function(sample) {
-					var playerTimeSec = parseFloat(player.playTime)/1000;
-					var a = parseFloat(sample.start);  // second of start sample
-					var b = parseFloat(sample.start) + parseFloat(sample.duration); // second of end sample
-					var c = playerTimeSec; // second of cursor position
-					var remainToStart = a-c;
-					var remainToEnd = b-c;
-					var startAt = c-a;
-					if((player.channelId && player.channelId != sample.channelId )|| (player.mutedChannels.indexOf(sample.channelId)>-1&&player.mutedChannelsFlag))
-						return; // sample channel muted
-					if(c<a){ // play from start
-						startAt = 0;
-					}
-					if(a<c&&c<b){ // play from middle
-						remainToStart = 0;
-						startAt = parseFloat(c-a)%parseFloat(sample.duration);
-					}
-					if(c>b){ // play after ends
-						return;
-					}
-					console.log('start: ' + remainToStart + ' end: ' + remainToEnd + ' at: ' + startAt);
-
-					var st1 = setTimeout(function(){		
-						sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume));
-						sample.aud.currentTime = startAt+ parseFloat(sample.delay);
-						sample.aud.play();
-					},remainToStart*1000);	
-					player.timeouts.push(st1);
-
-					var st2 = setTimeout(function(){
-						sample.aud.currentTime = sample.delay;
-						sample.aud.pause();
-					},remainToEnd*1000);	
-					player.timeouts.push(st2);
-
-					// fadeIn
-					if(sample.fadeIn>0){			
-						var stFadeIn = setTimeout(function(){
-							var fadeCounter = 0;
-							var countdown = (parseFloat(c-a) - remainToStart<0?0:parseFloat(c-a) - remainToStart);
-							var stFadeOutInter = setInterval(function(){
-								var channelVol = parseFloat(ctlProject.channels[sample.channelId].volume);
-								if(countdown>sample.fadeIn)	
-									clearInterval(stFadeOutInter);
-								else{
-									countdown +=0.1;
-									sample.aud.volume = (countdown/sample.fadeIn)*sample.volume*channelVol*player.volume;
-								}
-							},100);
-							player.intervals.push(stFadeOutInter);
-						},(remainToStart)*1000);
-						player.timeouts.push(stFadeIn);
-					}
-
-					// fadeOut
-					if(sample.fadeOut>0){
-						var stFadeOut = setTimeout(function(){
-							var countdown =  (remainToEnd>sample.fadeOut?sample.fadeOut:remainToEnd);
-							var stFadeOutInter = setInterval(function(){
-								var channelVol = parseFloat(ctlProject.channels[sample.channelId].volume);
-								if(countdown<0)
-									clearInterval(stFadeOutInter);
-								else{
-									sample.aud.volume = countdown/sample.fadeOut*sample.volume*channelVol*player.volume;
-									(countdown -=0.1)
-								}
-							},100);
-							player.intervals.push(stFadeOutInter);
-						},(remainToEnd-parseFloat(sample.fadeOut))*1000);
-						player.timeouts.push(stFadeOut);
-					}
-				});
-			
-				// cursor
-				$('#cursorLine , .cursorCircle').stop().css({'left':secondsToOffset(player.playTime/1000)})
-				.animate({'left':secondsToOffset(max_time)},(max_time*1000-player.playTime), 'linear');
-			};
+				// fadeOut
+				if(sample.fadeOut>0){
+					var stFadeOut = setTimeout(function(){
+						var countdown =  (remainToEnd>sample.fadeOut?sample.fadeOut:remainToEnd);
+						var stFadeOutInter = setInterval(function(){
+							var channelVol = parseFloat(ctlProject.channels[sample.channelId].volume);
+							if(countdown<0)
+								clearInterval(stFadeOutInter);
+							else{
+								sample.aud.volume = countdown/sample.fadeOut*sample.volume*channelVol*player.volume;
+								(countdown -=0.1)
+							}
+						},100);
+						player.intervals.push(stFadeOutInter);
+					},(remainToEnd-parseFloat(sample.fadeOut))*1000);
+					player.timeouts.push(stFadeOut);
+				}
+			});
+		
+			// cursor
+			$('#cursorLine , .cursorCircle').stop().css({'left':secondsToOffset(player.playTime/1000)})
+			.animate({'left':secondsToOffset(max_time)},(max_time*1000-player.playTime), 'linear');
+		};
 		this.pause = function(){
 			console.log('pause: '+player.playTime);
 			player.isPlaying = false;
@@ -849,7 +923,7 @@ var studio = function studio(){
 		   			var formData  = new FormData();
 		   			var fileCast = new File([blob], hf.download);
 		   			formData.append('file', fileCast);
-				 	ctlDBHelper.uploadFile(user.user._id,formData,audio.duration,blob.size,function(file){
+				 	ctlDBHelper.uploadFile(ctlUser.info._id,formData,audio.duration,blob.size,function(file){
 				 		drawRecord({file:file},sr.recordChannelId,startAt/1000);
 				 	});
 				};
@@ -984,7 +1058,7 @@ var studio = function studio(){
 			// styles
 			$(row).find('div.time-box').css('width',unit_width*time_units);
 			$(row).find('.channel_grid_row').css('width',secondsToOffset(max_time)+5);
-			$('#cursorLine').css('height',$('.channel_grid_row:visible').length*(unit_width*3/4*10+1)+24);
+			$('#cursorLine , .range').css('height',$('.channel_grid_row:visible').length*(unit_width*3/4*10+1)+24);
 			$(row).css('height',unit_width*3/4*10);
 			// draw samples
 			$.each( this.samples, function( i, sample ){
@@ -1002,7 +1076,7 @@ var studio = function studio(){
 
 	  constructor(id,channelId,file,fileId,duration,start,volume,delay,fadeIn,fadeOut) {
 	     var _this = this;
-	     var isloaded = false;
+	    this.isloaded = false;
 	    this.id = id;
 	    this.channelId = channelId;
 	    this.file = file;
@@ -1105,7 +1179,7 @@ var studio = function studio(){
 			    _this.aud.currentTime = parseFloat(_this.start)+ parseFloat(_this.delay);
 			    p.reset();		    
 				$('#'+_this.id).animate({opacity:1},1000);
-				isloaded = true;
+				_this.isloaded = true;
 			  }
 			}
 			request.send();
@@ -1113,43 +1187,46 @@ var studio = function studio(){
 
 	    this.draw = function(){
 			var _this = this;
+			try{
+		    	if($('#'+this.id).length>0)
+		    		$('#'+this.id).remove();
+		    	var row = $('.channels_list_row[data-channel="'+ this.channelId +'"]');
+				var _sample = $('<article class="sample" id="'+this.id+'" draggable="true" data-duration="'+this.duration+'" data-start="'+this.start+'"><div class="sample-info">'+this.id+'</div></article>');
+				var width = this.duration*unit_width+ (this.duration/time_units);
+				var height = unit_width*3/4*10-2;
+				
+				$(_sample).css('width',Math.floor(width))
+				.css('height',Math.floor(height))
+				.css('left',Math.floor(secondsToOffset(this.start)));
 
-	    	if($('#'+this.id).length>0)
-	    		$('#'+this.id).remove();
-	    	var row = $('.channels_list_row[data-channel="'+ this.channelId +'"]');
-			var _sample = $('<article class="sample" id="'+this.id+'" draggable="true" data-duration="'+this.duration+'" data-start="'+this.start+'"><div class="sample-info">'+ctlFiles.map['file'+this.fileId].name+'</div></article>');
-			var width = this.duration*unit_width+ (this.duration/time_units);
-			var height = unit_width*3/4*10-2;
-			
-			$(_sample).css('width',Math.floor(width))
-			.css('height',Math.floor(height))
-			.css('left',Math.floor(secondsToOffset(this.start)));
+				if(!_this.isloaded){
+					$(_sample).css('opacity','0.2');
+					_this.reload(_this);
+				}
 
-			if(!isloaded){
-				$(_sample).css('opacity','0.2');
-				_this.reload(_this);
+				$(row).find('.channel_grid_row .sample_placeholder').append(_sample);			
+				createSoundSpectrum($(_sample),width,height);
+				var resizeTimer;
+				var state = this;
+				$($(row).find('#'+this.id)).resizable({
+				  	handles: 'e, w'
+				}).on('resize', function (e) {
+						_this.duration = offsetToSeconds($(e.target).width());
+						_this.start = 	offsetToSeconds(parseFloat($(e.target).css('left')));
+						_this.aud.loop = true;
+						createSoundSpectrum($(e.target),$(e.target).width(),$(e.target).height());	
+						clearTimeout(resizeTimer);
+						resizeTimer = setTimeout(function(){
+							if(player.isPlaying){
+								p.pause();
+								p.play();
+							}
+							ctlDBHelper.updateSample(_this.id);
+						},250);		
+				});
+			}catch(exc){
+				console.log(exc);
 			}
-			
-			$(row).find('.channel_grid_row .sample_placeholder').append(_sample);			
-			createSoundSpectrum($(_sample),width,height);
-			var resizeTimer;
-			var state = this;
-			$($(row).find('#'+this.id)).resizable({
-			  	handles: 'e, w'
-			}).on('resize', function (e) {
-					_this.duration = offsetToSeconds($(e.target).width());
-					_this.start = 	offsetToSeconds(parseFloat($(e.target).css('left')));
-					_this.aud.loop = true;
-					createSoundSpectrum($(e.target),$(e.target).width(),$(e.target).height());	
-					clearTimeout(resizeTimer);
-					resizeTimer = setTimeout(function(){
-						if(player.isPlaying){
-							p.pause();
-							p.play();
-						}
-						ctlDBHelper.updateSample(_this.id);
-					},250);		
-			});
 	    }
 	  }	 
 	};
@@ -1286,31 +1363,15 @@ var studio = function studio(){
 		this.createSample = function(sampleId,callback){
 			var sample = ctlProject.getSample(sampleId);
 			var sj = sample.toJson();
+			sj.channelId = sample.channelId;
 			ctlAPI.createSample(sample.channelId,sj,function(data){
-				var clone = jQuery.extend(true, {}, sample);
-				clone.id = data._id;
-				var channel = ctlProject.get(sample.channelId);
-				clone.file = sample.file;
-		  //   	var request = new XMLHttpRequest();
-				// console.log(clone.file);
-				// request.open("GET", clone.file, true);
-				// request.responseType = "blob";    
-				// request.onload = function() {
-				//   if (this.status == 200) {
-				//     var audio = new Audio(URL.createObjectURL(this.response));
-				//     clone.aud = audio;
-				//     clone.aud.load();
-				//     clone.aud.currentTime = parseFloat(clone.delay);		    
-				//     $('#'+clone.id).animate({opacity:1},1000);
-				//     p.reset();
-				//   }
-				// }
-				// request.send();
-				channel.removeSample(sample);
-				channel.addSample(clone);
-				clone.draw();
-				$('#'+clone.id).css('opacity','0.1');
-				ctlMessage.send("newSample",{"sampleId":clone.id,"channelId":channel.channelId});
+				ctlProject.updateSampleId(sample.channelId,
+											sample.id,
+											data._id);
+				ctlMessage.send("newSample",{
+				 	"channelId":data.channelId,
+				 	"sampleId":data._id
+				});
 			});
 		}
 		this.updateSample = function(sampleId){
@@ -1341,28 +1402,33 @@ var studio = function studio(){
 			}
 		}
 		this.dropSample = function(changes){
+			ctlMessage.send("moveSample",{
+				"oldChannelId":changes.lastChannel,
+				"newChannelId":changes.newChannel,
+				"sampleId":changes.sampleId,
+				"start":changes.start
+			});			
 			ctlAPI.deleteSample(changes.lastChannel,changes.sampleId,function(data){
-				if(!data) console.log('error updating server..');
+				if(!data)
+					console.log('error updating server..');
 				else
 				{
-					ctlMessage.send("removeSample",{"sampleId":changes.sampleId,"channelId":changes.lastChannel});	
 					var sample = ctlProject.getSample(changes.sampleId);
 					sample.channelId = changes.newChannel;
-					var sj = sample.toJson();
-					sj.channelId = changes.newChannel;
-					ctlAPI.createSample(changes.newChannel,sj,function(data){
-						var channel = ctlProject.get(sample.channelId);
-						var clone = jQuery.extend(true, {}, sample);
-						clone.id = data._id;
-						channel.removeSample(sample);
-						channel.addSample(clone);
-						clone.draw();
-						p.reset();
-						ctlMessage.send("newSample",{"sampleId":clone.id,"channelId":channel.channelId});
+					var samplejson = sample.toJson();
+					samplejson.channelId = changes.newChannel;
+					ctlAPI.createSample(changes.newChannel,samplejson,function(data){
+						ctlProject.updateSampleId(sample.channelId,
+													sample.id,
+													data._id);
+						ctlMessage.send("updateSampleId",{
+						 	"channelId":sample.channelId,
+						 	"oldSampleId":sample.id,
+						 	"newSampleId":data._id
+						});
 					});
 				}
 			});
-
 		}
 		this.uploadFile	= function(userId,form,duration,size,callback){
 			ctlAPI.upload(userId,form,duration,size,function(result){
@@ -1375,7 +1441,10 @@ var studio = function studio(){
 	}
 	/* UI Helper */
 	function getURLID(){
-		return location.href.substr(location.href.lastIndexOf('/') + 1);
+		var url = location.href.substr(location.href.lastIndexOf('/') + 1);
+		if(url.lastIndexOf('?')!=-1)
+			url = url.substring(0, url.lastIndexOf('?'));
+		return url;
 	}
 	Object.size = function(obj) {
 	    var size = 0, key;
@@ -1587,7 +1656,7 @@ var studio = function studio(){
 
 	function resetCursor(){
 		setCursorOnSec(player.playTime/1000);
-		$('#cursorLine ').css('height',$('.channel_grid_row:visible').length*(unit_width*3/4*10+1)+24);
+		$('#cursorLine , .range').css('height',$('.channel_grid_row:visible').length*(unit_width*3/4*10+1)+24);
 	}
 
 	function updateSampleComponents(){
@@ -1718,22 +1787,23 @@ var studio = function studio(){
 	    var sample = getSampletById(data);
 	    var newChannel = ctlProject.get(channelId);
 	    var lastChannel = ctlProject.get(sample.channelId);
-		var changes = {newChannel:newChannel.channelId,lastChannel:lastChannel.channelId,sampleId:sample.id};
+		var changes = {newChannel:newChannel.channelId,lastChannel:lastChannel.channelId,sampleId:sample.id,start:all};
 		
 		$('#'+data).attr('data-start', all);
 	  
 		ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
 		updateUndoRedoIcons();
 
-		if(lastChannel.channelId != newChannel.channelId){
-			lastChannel.removeSample(sample);
-			sample.channelId = channelId;
-			newChannel.addSample(sample);
-		}
-		sample.start = all; 
-		sample.draw();
-
-		p.reset();		
+		sample.start = all;
+		ctlProject.moveSample(lastChannel.channelId,newChannel.channelId,data,all);
+		
+		// if(lastChannel.channelId != newChannel.channelId){
+		// 	// lastChannel.removeSample(sample);
+		// 	// sample.channelId = channelId;
+		// 	// newChannel.addSample(sample);
+		// }
+		 
+		
 
 		return changes;
 	}
@@ -1766,6 +1836,7 @@ var studio = function studio(){
 	}
 
 	function changeCursorPlace(e){
+		e.preventDefault();
 		if(offsetToSeconds($('main').scrollLeft()+ e.pageX  < grid_offset))
 			return;
 		var secTime = offsetToSeconds($('main').scrollLeft()+ e.pageX  - grid_offset);
@@ -1815,6 +1886,7 @@ var studio = function studio(){
 		console.log(sample.delay);
 
 		ctlProject.get(sample.channelId).addSample(clone);
+		clone.isloaded = false;
 		clone.draw();
 
 		cursorType = 'arrow';
@@ -1881,39 +1953,55 @@ var studio = function studio(){
 		mouseOffsetSampleClicked=0;
 		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
 			var sample = getSampletById(selectedSamples.list[i]);
-			ctlDBHelper.updateAfterMovingSample(moveSample(e,sample.id))
-
+			ctlDBHelper.dropSample(moveSample(e,sample.id));
 			$('#'+sample.id).show();
 			ac.addAction(new Action('sample_show',jQuery.extend(true, {}, sample)));
 			ac.addAction(new Action('sample_cut_copy',null));
 		}
 		ss.clean();
 	}
-	function copypaste(e){
+	function copypaste(e){	
 		mouseOffsetSampleClicked=0;
-		selectedSamples.operation = 'copypaste'		
 		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
-			var sample = getSampletById(selectedSamples.list[i]);
-			console.log('copypaste....: ');
+			var sample = ctlProject.getSample(selectedSamples.list[i]);
 			var time = offsetToSeconds(mouseOffsetSampleClicked);
 			var clone = new jQuery.extend(true, {}, sample);
-			clone.clone(sample);			
-			clone.delay =  parseFloat(parseFloat(sample.delay) +  parseFloat(time)).toString();
-			clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toString();
 			clone.id = 'newSample'+sampleIndexGenerator++;
-			
-			ctlProject.get(sample.channelId).addSample(clone);
-			clone.draw();
-			
-			changeCursorPlace(e);
-			
-			ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
+		 	clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toString();	
+		 	clone.isloaded = false;
+		 	var channel = ctlProject.get(clone.channelId);
+			channel.addSample(clone);
 			moveSample(e,clone.id);
-			ac.addAction(new Action('sample_paste',null));
-			console.log('0----------0');
+			//clone.channelId = newChannel
+			//clone.draw();
+			ctlDBHelper.createSample(clone.id);
+			changeCursorPlace(e);
 		}
-		var channelId = $(e.target).closest('.channels_list_row').attr('data-channel');
-		ctlDBHelper.updateChannel(channelId);
+
+		// mouseOffsetSampleClicked=0;
+		// selectedSamples.operation = 'copypaste'		
+		// for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
+		// 	var sample = getSampletById(selectedSamples.list[i]);
+		// 	console.log('copypaste....: ');
+		// 	var time = offsetToSeconds(mouseOffsetSampleClicked);
+		// 	var clone = new jQuery.extend(true, {}, sample);
+		// 	clone.clone(sample);			
+		// 	clone.delay =  parseFloat(parseFloat(sample.delay) +  parseFloat(time)).toString();
+		// 	clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toString();
+		// 	clone.id = 'newSample'+sampleIndexGenerator++;
+			
+		// 	ctlProject.get(sample.channelId).addSample(clone);
+		// 	clone.draw();
+			
+		// 	changeCursorPlace(e);
+			
+		// 	ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
+		// 	moveSample(e,clone.id);
+		// 	ac.addAction(new Action('sample_paste',null));
+		// 	console.log('0----------0');
+		// }
+		// var channelId = $(e.target).closest('.channels_list_row').attr('data-channel');
+		// ctlDBHelper.updateChannel(channelId);
 	}
 
 	function deleteSample(e){
@@ -1959,7 +2047,7 @@ var studio = function studio(){
 	function createChannel(e){
 		var channelObject = {			
 				"trackId": ctlProject.track_version,
-				"userId": user.user._id,
+				"userId": ctlUser.info._id,
 				"name": "New Channel",
 				"instrument": "",
 				"volume":"0.6",
@@ -1975,18 +2063,20 @@ var studio = function studio(){
 
 
 	function textFieldChange(element,callback){
+		event.preventDefault();
 		console.log('called..');
 		var input = $('<input type="text" value="'+$(element).text()+'">');
 		$(element).parent().prepend(input);
 		$(element).hide();
 		$(input)
 		.focus()
-		.select()
-		.focusout(function() {
-			callback($(input).val());
+		.select();
+		$(input).focusout(function() {
+			var inp = $(input).val();
 			$(input).remove();
 			$(element).html($(input).val());
 		  	$(element).show();
+		  	callback(inp);
 		});
 		$(input).keydown(function( event ) {
 		  if ( event.which == 13 ) {
@@ -2172,17 +2262,153 @@ var studio = function studio(){
 		$("#modal-prompt").attr("action","fadein");
 		p.pause();
 	});
-	$(document).on('click','#toolbox_btn_ver-set',function(e){
+
+
+	$(document).on('click','#btn-version-create',function(e){
+		$("#modal-prompt").modal();
+		$("#modal-prompt").attr("action","create-version");	
+		$(".modal-title").text('Save Version');
+	});
+	$(document).on('click','#btn-version-roll-back',function(e){
+		$("#modal-list .modal-title").text('Roll Back');
 		ctlAPI.getVersions(getURLID(),function(result){
-			$("#modal-select").attr("action","versions");
-			var select = $("#modal-select").find('select');
+			$("#modal-list").attr("action","versions");
+			$('#modal-list .modal-body form').html('');
 			$(result.tracks).each(function(key,value){
-				$(select).append($('<option data-track="'+value._id+'">'+value._id+'</option>'));
+				var btn  = (ctlProject.track_version==value._id? 'btn-default':'btn-primary');
+				var disable = (ctlProject.track_version==value._id? 'disabled="disabled"':'');
+				var item = 	'<div class="row" style="margin-top: 10px;">'+
+				  			'	<div class="col-md-4">'+value.version+'</div>'+
+				  			'	<div class="col-md-4">'+value._id+'</div>'+
+							'	<div class="col-md-2">'+
+							'		<button type="submit" class="btn '+btn+' set-version-btn" '+disable+' style="float:none;margin:0 auto;" data-version="'+value._id+'">Restore</button>'+
+							'	</div>'+
+							'</div>';
+				$('#modal-list .modal-body form').append($(item));
 			});
-			$(select).find('option').filter(function(e) {
-				    return $(this).text() == ctlProject.track_version; 
-			}).prop('selected', true);
-			$("#modal-select").modal();
+			$("#modal-list").modal();
+		});
+	});
+
+	$(document).on('click','#dContributor',function(e){
+		$("#modal-list .modal-title").text('Share Project');
+		//ctlAPI.getContributors(getURLID(),function(result){
+			$("#modal-list").attr("action","versions");
+			$('#modal-list .modal-body form').html('');
+			$('#modal-list .modal-body form').append($(buildUserPickerContainer()));
+
+			var users = ctlProject.contributors;
+			for (var i = Object.size(users) - 1; i >= 0; i--) {
+				$('#modal-list .modal-body form').append($(buildContributor(users[Object.keys(users)[i]])));
+			}
+			$(users).each(function(key,value){
+				var user = value;
+				
+			});
+			
+			$("#modal-list").modal();
+		//});
+
+		function buildContributor(userJson){
+			return ' <li class="list-group-item" data-userid="'+userJson.user._id+'">'+
+					'	<div class="row">'+
+			    	'	  <div class="col-md-3">'+
+					'		<img src="'+userJson.user.picture+'" style="width:40px;" alt="..." class="img-circle"> '+ userJson.user.firstName + ' ' + userJson.user.lastName +
+			    	'	  </div>'+
+			    	'	  <div class="col-md-4">'+
+					'		<div class="btn-group contributors-access-btns" data-toggle="buttons">'+
+					'		  <label class="btn btn-primary '+
+						(userJson.access=='1'?'active':'')
+					+'">'+
+					'		    <input type="radio" name="options" class="btn-manager" autocomplete="off" '+
+						(userJson.access?'checked':'')
+					+'"> Manager'+
+					'		  </label>'+
+					'		  <label class="btn btn-primary '+
+						(userJson.access=='1'?'':'active')
+					+'">'+
+					'		    <input type="radio" name="options" class="btn-limited" autocomplete="off" '+
+						(userJson.access?'checked':'')
+					+'">Limited'+
+					'		  </label>'+
+					'		</div>'+
+					'	  </div>'+
+					'	  <div class="col-md-3">'+
+					'		<div class="btn-group" role="group" aria-label="...">'+
+					'		  <button type="button" class="btn btn-danger remove">Remove</button>'+
+					'		</div>'+
+			    	'	  </div>'+
+			    	'	</div>'+
+				    '</li>'
+		}
+
+		function buildUserPickerContainer(){
+			return	'<li class="list-group-item">'+
+					'	<div class="row">'+
+			    	'	  	<div class="col-md-9">'+
+					'   		<input type="text" class="form-control" id="form-contributor-user" placeholder="Enter a name of user"  autocomplete="off">'+					
+					'  			<section style="position: absolute;z-index: 1;" id="contributors-picker"></section>'+
+					'		</div>'+
+					'	  	<div class="col-md-1">'+
+					'		  	<button type="button" class="btn btn-primary" id="add-contributor">Add</button>'+
+					'		</div>'+
+					'	</div>'+
+					'</li>';
+		}
+		function buidUser(userObject){
+			if(userObject)
+			return '<img src="'+userObject.picture+'" alt="..." class="img-circle" style="width:40px;"> '+ userObject.firstName+' '+userObject.lastName;
+		}
+		$('#form-contributor-user').on('input',function(e){
+			$("#contributors-picker").show();
+			ctlAPI.getUsersPrefix($(e.target).val(),function(result){
+				console.log(buildUserPicker(result));
+				$("#contributors-picker").html($(buildUserPicker(result)));
+			});
+	    });
+	    // Pick user to input element 
+	    $(document).on('click','#contributors-picker li',function(e){
+	    	var userId = $(e.target).attr('data-userid'),
+	    		userName = $(e.target).attr('data-username');
+	    	$('#form-contributor-user').attr('data-userid',userId);
+	    	$('#form-contributor-user').val(userName);
+	    	$("#contributors-picker").hide();
+	    });
+	    function buildUserPicker(users){
+	    	var items = '';
+	    	for (var i = users.length - 1; i >= 0; i--) {
+	    		items += '<li class="list-group-item" data-userid="'+users[i]._id+'" data-username="'+users[i].firstName + ' ' +users[i].lastName +'">'+ buidUser(users[i]) +'</li>';
+	    	}
+		    return	'<ul class="list-group">'+
+				  	items +
+					'</ul>';
+	    }
+	    $(document).on('click',"#add-contributor",function(e) {
+			var data ={
+	            user: $('#form-contributor-user').attr('data-userid'),//$('#issues-users').find(":selected").text(),
+	            access: 1
+			}			
+			ctlAPI.addContributor(getURLID(),data.user,data.access,function(result){
+				window.location.reload();
+			});
+		 	event.preventDefault();
+		});
+				// Update user limitations	
+		$(document).on('click','.contributors-access-btns',function(e){
+			var userId = $(e.target).closest('.list-group-item').attr('data-userid');
+			var active = ($(e.target).hasClass('active')?true:false);
+			var type = ($(e.target).find('input').hasClass('btn-limited')?'0':'1');
+			ctlAPI.updateContributorStatus(getURLID(),userId,type,function(result){
+				ctlProject.contributors[userId].access = type;
+			});
+		});
+
+		// remove contributor	
+		$(document).on('click','#modal-list .remove',function(e){
+			var userId = $(e.target).closest('.list-group-item').attr('data-userid');
+			ctlAPI.removeContributor(getURLID(),userId,function(result){
+				location.reload();
+			});
 		});
 	});
 
@@ -2191,31 +2417,25 @@ var studio = function studio(){
 		$("#modal-prompt").attr("action","create-version");
 	});
 
-	$(document).on('click','#btn-select',function(e){
-		var action = $("#modal-select").attr("action");
-		var value = $("#modal-select").find("option:selected").attr('data-track');
-		switch(action){
-			case 'versions':{
-				setVersion(value);
-				break;
-			}
-		}
-		location.reload();
-		$("#modal-select").modal("hide");
+	$(document).on('mousedown','.set-version-btn',function(e){
+		var track = $(e.target).attr('data-version');
+		setVersion(track);
+		window.location.reload();
 	});
+
 	function setVersion(value){
 		ctlAPI.setVersions(getURLID(),value,function(result){
 			
 		});
 	}
-	function createVersion(value){
-		ctlAPI.createVersion(getURLID(),ctlProject.track_version, function(result){
+	function createVersion(version){
+		ctlAPI.createVersion(getURLID(),ctlProject.track_version,version, function(result){
 			location.reload();
 		});
 	}
 	$(document).on('click','#btn-prompt',function(e){
 		var action = $("#modal-prompt").attr("action");
-		var value = $("#modal-prompt").find("input").val();
+		var value = $("#inputPrompt").val();
 		$("#promptModalLabel").html(value);
 		switch(action){
 			case 'fadein':{
@@ -2259,13 +2479,36 @@ var studio = function studio(){
 		deleteSample();
 	});
 
-	$(document).on('click','#toolbox_btn_create_music',function(e){
-		console.log(ctlProject.toJson());
+	$( "#range-start" ).css({ left: '170px' })
+	.draggable({
+		 axis: 'x',
+		 drag: function(event, ui) {
+			    var leftPosition = ui.position.left;
+			    if (leftPosition < 160) {
+			        ui.position.left = 160;
+			    }
+			    else if (leftPosition >= $( "#range-end" ).position().left) {
+			        ui.position.left = $( "#range-end" ).position().left-5;
+			    }}
+	});
+	$( "#range-end" ).css({ left: '560px' })
+	.draggable({
+		 axis: 'x',
+		 drag: function(event, ui) {
+			    var leftPosition = ui.position.left;
+			    if (leftPosition < 160) {
+			        ui.position.left = 160;
+			    }
+			    else if (leftPosition <= $( "#range-start" ).position().left) {
+			        ui.position.left = $( "#range-start" ).position().left+5;
+			    }}
+	});
+	$(document).on('click','#toolbox_btn_export_menu',function(e){
 
-		if($(e.target).hasClass('loading'))
+		if($(e.target).find('span').hasClass('loading'))
 			return;
 		else
-			$(e.target).addClass('loading');
+			$(e.target).find('span').addClass('loading');
 
 		var channels = ctlProject.toJson().track_version.channels;
 		var channelsArray = {'channels':[]};
@@ -2273,13 +2516,15 @@ var studio = function studio(){
 			channelsArray['channels'].push(channels[i].channel);
 		}
 		channels = JSON.stringify(channelsArray);
+		var start = Math.floor(offsetToSeconds($('#range-start').position().left-grid_offset));
+		var end = Math.floor(offsetToSeconds($('#range-end').position().left-grid_offset));
 
-		ctlAPI.export(channels,function(msg){
+		ctlAPI.export(channels,start,end,function(msg){
 			var link = document.createElement("a");
 		    link.download = msg;
 		    link.href = msg;
 		    link.click();
-		    $(e.target).removeClass('loading');
+		    $(e.target).find('span').removeClass('loading');
 		});
 	});
 
@@ -2559,7 +2804,7 @@ var studio = function studio(){
 			}
 	});
 
-	$(document).on('click','.file_explorer_uploader',function(){
+	$(document).on('click','.file_explorer_uploader , #toolbox_btn_import_menu',function(){
 	    var form = $('<form enctype="multipart/form-data"><input name="file" type="file" /><input type="button" value="Upload" /></form><progress></progress>');
 	    var input = $(form).find('input[name="file"]');
 	    setTimeout(function(){
@@ -2571,7 +2816,7 @@ var studio = function studio(){
 	   		var audio = new Audio();
 	   		audio.src= URL.createObjectURL(file);
 	   		audio.onloadedmetadata = function() {
-			 	ctlDBHelper.uploadFile(user.user._id,new FormData($(form)[0]),audio.duration,file.size,function(result){
+			 	ctlDBHelper.uploadFile(ctlUser.info._id,new FormData($(form)[0]),audio.duration,file.size,function(result){
 			 		console.log(result);
 			 	},function(res){
 			 		console.log(res);
