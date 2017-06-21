@@ -194,6 +194,18 @@ input.form-control{
 	background: -moz-linear-gradient(right, silver,black); /* For Firefox 3.6 to 15 */
 	background: linear-gradient(to right, silver,black); /* Standard syntax */
 }
+.range > div{
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	font-family: Helvetica;
+	background-color: #706a03;
+	color: #ffffff;
+	border-radius: 3px;
+	padding-left: 3px;
+	padding-right: 3px;
+	display: none;
+}
 
 /* Nav */
 
@@ -349,6 +361,9 @@ ul{
 }
 
 /* Tool Box */
+#toolbox ul li div:hover , #toolbox ul li div:active{
+	color: #f3e500;
+}
 
 #toolbox li#toolbox_btn_zoomin{
 	background-image: url(../images/studio_icon_zoomin.png);

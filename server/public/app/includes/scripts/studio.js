@@ -1042,7 +1042,7 @@ var studio = function studio(){
 		  	    }
 			});
 			var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channel.name +'</span><div><div class="channel_details"><span class="channel_user">'+
-			ctlProject.contributors[channel.userId].user.firstName
+			ctlProject.contributors[channel.userId].user.firstName + ' ' +ctlProject.contributors[channel.userId].user.lastName
 				+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="checkbox">'+checkbox+'</li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
 			$(list_item).find('.volume_placeholder').append(slider);
 			$(row).find('.channel_list_row').append(list_item);
@@ -1135,7 +1135,7 @@ var studio = function studio(){
 	    this.toJson = function(){
 	    	return {
 	    			"sampleId" : this.id,
-	    			"channelId": this,channelId,
+	    			"channelId": this.channelId,
 					"fadein": this.fadeIn,
 					"fadeout": this.fadeOut,
 					"start": this.start,
@@ -1150,7 +1150,7 @@ var studio = function studio(){
 	    this.toJson2 = function(){
 	    	return {
 	    			"sampleId" : this.id,
-	    			"channelId": this,channelId,
+	    			"channelId": this.channelId,
 					"fadein": this.fadeIn,
 					"fadeout": this.fadeOut,
 					"start": this.start,
@@ -2488,8 +2488,11 @@ var studio = function studio(){
 			        ui.position.left = 160;
 			    }
 			    else if (leftPosition >= $( "#range-end" ).position().left) {
-			        ui.position.left = $( "#range-end" ).position().left-5;
-			    }}
+			        ui.position.left = $( "#range-end" ).position().left-1;
+			    }
+			    //$("#range-start > div").text(Math.floor(offsetToSeconds($( "#range-start" ).position().left-160)));
+			}
+
 	});
 	$( "#range-end" ).css({ left: '560px' })
 	.draggable({
@@ -2500,9 +2503,23 @@ var studio = function studio(){
 			        ui.position.left = 160;
 			    }
 			    else if (leftPosition <= $( "#range-start" ).position().left) {
-			        ui.position.left = $( "#range-start" ).position().left+5;
-			    }}
+			        ui.position.left = $( "#range-start" ).position().left+1;
+			    }
+			    //$("#range-end > div").text(Math.floor(offsetToSeconds($( "#range-end" ).position().left-160)));
+			}
 	});
+	$(document).on('mouseover , drag','.range',
+	    function(e){
+	    	console.log(e.pageY-50);
+	    	$(e.target).find('div').text(
+	    		Math.floor(offsetToSeconds($( e.target ).position().left-160))).css('top',e.pageY-50).show();
+		}
+	); 
+	$(document).on('mouseleave','.range',
+	    function(e){
+	    	$(e.target).find('div').hide();
+	    }
+	); 
 	$(document).on('click','#toolbox_btn_export_menu',function(e){
 
 		if($(e.target).find('span').hasClass('loading'))
