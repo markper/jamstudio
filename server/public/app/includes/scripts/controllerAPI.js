@@ -5,6 +5,26 @@ function controllerAPI(){
 	var serverFiles = 'https://oran1.herokuapp.com';
 
 	//
+	// Requsets
+	//
+
+	this.getRequsets = function(userId,callback){
+		$.ajax({
+	        type: "Get",
+	        datatype:"json",
+	        url: serverDB+'/Requsets/'+userId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	callback(null);
+	        }
+	    });
+	};
+
+	//
 	// User
 	//
 
@@ -55,6 +75,21 @@ function controllerAPI(){
 	        }
 	    });
 	};
+	this.getUser = function(userId,callback){
+		$.ajax({
+	        type: "Get",
+	        datatype:"json",
+	        url: serverDB+'/user/'+ userId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result)
+	        },
+	        error: function(err){
+	        	console.log(err);
+	        }
+	    });
+	};
 
 	this.logout = function(callback){
 		$.ajax({
@@ -93,6 +128,22 @@ function controllerAPI(){
 	//
 	// Project
 	//
+
+	this.deleteProject = function(projectId,callback){
+		$.ajax({
+			type: "DELETE",
+			dataType: "json",
+ 			url: serverDB+'/Project/' + projectId,
+ 			data: ({}),
+ 			success:  function(result){
+				callback(result);
+			},
+	        error: function(err){
+	        	callback(null);
+	        }
+		});
+	}
+
 	this.syncChannels = function(channelsJson,callback){
 		$.ajax({
 			type: "Post",
@@ -732,5 +783,57 @@ function controllerAPI(){
 	        },error: function(err){
 	        }
 	    });
+	}
+
+	//
+	//	Notification
+	//
+	this.createNotification = function(notificationJson,callback){
+		$.ajax({
+			url: serverDB+'/Notification',
+			type: "POST",
+			dataType: "json",
+			data:notificationJson,
+			error: function(e) {
+				callback(false);
+			},
+			success: function(result){
+				callback(result);
+			}
+		})
+		.done(function(msg) {
+		});
+	}
+	this.setNotificationReadByUser = function(notificationId,userId,callback){
+		$.ajax({
+			method: "PUT",
+			datatype:"json",
+			url: serverDB+'/Notification/'+ notificationId +'/ReadByUser/'+userId,
+			data:({}),
+			error: function(e) {
+				callback(false);
+			},
+			success: function(result){
+				callback(result);
+			}
+		})
+		.done(function(msg) {
+		});
+	}
+	this.getNotificationByUser = function(userId,type,callback){
+		$.ajax({
+			method: "GET",
+			datatype:"json",
+			url: serverDB+'/Notification/GetList/'+ userId +'/'+type,
+			data:({}),
+			error: function(e) {
+				callback(false);
+			},
+			success: function(result){
+				callback(result);
+			}
+		})
+		.done(function(msg) {
+		});
 	}
 }

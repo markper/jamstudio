@@ -13,15 +13,18 @@ exports.getNotification = function(notificationId, callback){
 	});
 };
 
-exports.getNotificationByUser = function(userId, callback){
-  Notification.findOne({"subscribes.user": userId})
-  .populate({path:'factor',select: ['firstName','lastName']})
-  .populate({path:'subscribes.user',select: ['firstName','lastName']})
-  .exec(function (err, notification) {
-    if (err || !notification) {
+exports.getNotificationByUser = function(userId,type, callback){
+  console.log(userId);
+  Notification.find({"subscribes.user": userId, "type":type , subscribes: { $elemMatch:{user: userId}}})
+  .sort({_id:-1}).limit(3)
+  .populate({path:'factor',select: ['firstName','lastName','picture']})
+  .populate({path:'subscribes.user',select: ['firstName','lastName','picture']})
+  .exec(function (err, notifications) {
+    console.log();
+    if (err || !notifications) {
       return callback(errors.errorNotFound((err ? err : '')));
     } else {
-      return callback(notification);
+      return callback(notifications);
     }
 	});
 };
@@ -37,10 +40,13 @@ exports.updateNotificationStatus = function(notificationId, userId, callback) {
 };
 
 exports.newNotification = function(notificationJson,callback){
-	var notification = new Notification(notificationJson);
+	var userId = notificationJson['subscribes'];
+  delete notificationJson['subscribes'];
+  var notification = new Notification(notificationJson);
+  notification.subscribes.push({user:userId,read: false});
 	notification.save(function (err, notification) {
 		if(err)
-			return callback(errors.errorCreate());
+			return callback(err);
 		return callback(notification);
 	});
 };

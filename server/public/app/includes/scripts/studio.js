@@ -22,6 +22,7 @@ var studio = function studio(){
 	var ctlAPI = new controllerAPI();
 	var ctlDBHelper = new dbHelper();
 	var ctlLoader = new loaderWindow();
+	var socket = io.connect("https://oran-p2p2-yale.herokuapp.com/");
 	var ctlMessage = new messages();
 
 	function range(){
@@ -43,8 +44,6 @@ var studio = function studio(){
 		},3000);
 	}
 	function messages(){
-		
-		var socket = io.connect("https://oran-p2p2-yale.herokuapp.com/");
 		socket.emit("subscribe", { room: getURLID() });
 		
 		this.send = function(action,msg){
@@ -1329,10 +1328,27 @@ var studio = function studio(){
 
 	function dbHelper(){
 		var _this = this;
+		function makeNotification(type){
+				var notJson = {
+				    projectId: getURLID(),
+				    factor:ctlUser.info._id,
+				    type: type,
+				    typeId: getURLID(),
+				    action: type,
+				    subscribes: ctlUser.info._id
+				};
+
+				ctlAPI.createNotification( notJson,function(result){
+					console.log(result);
+						socket.emit("subscribe", { room: getURLID() });
+						socket.emit('broadcast', { room:'all',emit:'notifications',msg:'set'});
+				});
+		}
 		this.deleteChannel = function(channelId){
 			ctlAPI.deleteChannels(channelId,function(data){
 				console.log('delete..');
 				ctlMessage.send("deleteChannel",{"channelId":channelId});
+				makeNotification('Channel deleted');
 			});
 		};
 		this.createChannel = function(channelObject){
@@ -1352,6 +1368,7 @@ var studio = function studio(){
 					ac.addAction(new Action('channel_new',jQuery.extend(true, {}, channel)));
 				}
 			});
+			makeNotification('Channel created');
 		};
 		this.updateChannel = 	function(channelId){
 			var channel = ctlProject.channels[channelId];	

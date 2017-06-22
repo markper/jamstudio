@@ -8,10 +8,7 @@ var ctlAPI = new controllerAPI();
 
 			ctlUser.init(result);
 
-			ctlAPI.getProjectList(result._id,function(_result){
-				initSlider(_result.admin.concat(_result.contributor));
-				projects = _result.admin.concat(_result.contributor);
-			});
+			loadAllProjects(result._id);
 			
 		});
 
@@ -53,12 +50,11 @@ var ctlAPI = new controllerAPI();
 
 		function user(){
 
-			user.user = null;
-			user.files = null;
-			user.sharedFiles = null;
+			this.info = null;
+			
 
 			this.init = function(data){
-				user.user = data;
+				this.info = data;
 	            $('div.username span:first').text(data.email);
 	            $('header #connected_user .user_img').css('background-image','url('+data.picture+')');
 			};
@@ -69,7 +65,7 @@ var ctlAPI = new controllerAPI();
 		});
 		$(document).on('click','#btn-create-project',function(e){
 			ctlAPI.createProject({
-				adminUser: user.user._id,
+				adminUser: ctlUser.info._id,
 			    name: $('#project-name').val(),
 			    description: $('#project-description').val(),
 			    genre: $('#project-genre').val()
@@ -90,12 +86,21 @@ var ctlAPI = new controllerAPI();
 			}
 			$('#connected_user_menu').toggle();
 		});
-
-		$(document).on('click','#search-line .btn',function(e){
-			var word = $("#input-search").val();
-			ctlAPI.getProjectsByWord(word,function(_result){
+		function loadAllProjects(userId){
+			ctlAPI.getProjectList(userId,function(_result){
 				initSlider(_result.admin.concat(_result.contributor));
 				projects = _result.admin.concat(_result.contributor);
 			});
+		}
+		$(document).on('click','#search-line .btn',function(e){
+			var word = $("#input-search").val();
+			if(word)
+				ctlAPI.getProjectsByWord(word,function(_result){
+					initSlider(_result.admin.concat(_result.contributor));
+					projects = _result.admin.concat(_result.contributor);
+				});
+			else{
+				loadAllProjects(ctlUser.info._id);
+			}
 		});
 		

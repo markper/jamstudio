@@ -13,9 +13,6 @@
 	<script src="../static/includes/scripts/studioUI.js"></script>
 	<script src="../static/includes/scripts/slider-widjet.js"></script>
 
-
-
-
 	<!-- -->
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -32,33 +29,31 @@
 	<!--  -->
 </head>
 <body class="dashboard noselect">
-	<header>
-		<ul>
-			<li id="logo">J</li>
-			<li id="connected_user">
-				<div class="user_img" style="background-image: url()"></div>
-				<div class="username"><span>israel.israeli@gmail.com</span> <span>&#x25BC;</span></div>
-				<section id="connected_user_menu">
-					<ul>
-						<li id="logout">Logout</li>
-					</ul>
-				</section>
-			</li>
-			<li id="search-line">
-				<div>
-                    <div class="input-group col-md-12">
-                        <input type="text" class="  search-query form-control" placeholder="Search" />
-                        <span class="input-group-btn">
-                            <button class="btn" type="button">
-                                <span class=" glyphicon glyphicon-search"></span>
-                            </button>
-                        </span>
-                    </div>
-				</div>
-			</li>
-			<li id="searchbox"></li>
-		</ul>
-	</header>
+  <header>
+    <ul>
+      <li id="logo">J</li>
+      <li id="search-line">
+        <div>
+          <div class="input-group col-md-12">
+              <input type="text" class="  search-query form-control" placeholder="Search" id="input-search"/>
+              <span class="input-group-btn">
+                  <button class="btn" type="button">
+                      <span class=" glyphicon glyphicon-search"></span>
+                  </button>
+              </span>
+          </div>
+        </div>
+      </li>
+      <li id="connected_user" class="dropdown">
+        <div class="user_img" style="background-image: url()"></div>
+        <div class="username" id="dUsername" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>israel.israeli@gmail.com</span> <span>&#x25BC;</span></div>
+        <ul class="dropdown-menu" aria-labelledby="dUsername">
+            <li  id="settings">Settings</li>
+            <li  id="logout">Logout</li>
+        </ul>
+      </li>
+    </ul>
+  </header>
 	<main class="scrolls">
 	 	<br>
 		<div class="wrapper">

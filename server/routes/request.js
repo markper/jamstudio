@@ -9,6 +9,18 @@ router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
 
 /* GET project. */
+
+
+router.get('/admin/:userId', function(req, res, next) {
+    requestCtrl.getRequestByAdmin(req.params.userId,function(data){
+      if(data instanceof Error)
+        res.status(500).send(data.message);
+      else
+        res.status(200).send(data);
+    });
+  });
+
+
 router.get('/:requestId', function(req, res, next) {
     requestCtrl.getRequest(req.params.requestId,function(data){
   		if(data instanceof Error)

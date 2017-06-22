@@ -56,9 +56,18 @@ header #logo{
 	line-height: 50px;
 }
 header #connected_user{
+	float: right;
 	line-height: 50px;
-	width: 300px;
+	width: 200px;
 	/*overflow: auto;*/
+}
+header .dropdown-menu li{
+	float: initial;
+	padding-left: 15px;
+	line-height: 30px;
+	height: 30px;
+	color: initial;
+	font-family: Helvetica;
 }
 header #connected_user:after{
 	clear: both;
