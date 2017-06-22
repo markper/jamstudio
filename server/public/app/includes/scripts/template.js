@@ -1,6 +1,6 @@
 var ctlAPI = new controllerAPI();
 var ctlUserComponent = new userComponent();
-var ctlMessage = new messages();
+var ctlMessage = {};
 var ctlNotificationFactory = new notificationFactory();
 
 /* User */
@@ -15,6 +15,7 @@ function userComponent(){
 		notifications: 0
 	};
 	this.init = function(data){
+		ctlMessage =  new messages(data._id);
 		this.info = data;
         $('div.username span:first').text(data.email);
         $('header #connected_user .user_img').css('background-image','url('+data.picture+')');
@@ -77,13 +78,13 @@ function notificationFactory(){
 }
 
 /* Notifications */
-function messages(){
+function messages(id){
 	
 	var socket = io.connect("https://oran-p2p2-yale.herokuapp.com/");
-	socket.emit("subscribe", { room: 'all' });
+	socket.emit("subscribe", { room: id});
 	
-	this.send = function(action,msg){
-		socket.emit('broadcast', {room:'all',emit:action,msg:msg});
+	this.send = function(room,action,msg){
+		socket.emit('broadcast', {room:room,emit:action,msg:msg});
 	}
 
 	socket.on("requests", function(data) {
@@ -125,13 +126,17 @@ $(document).on('click','#rt',function(e){
 	    typeId: "594a865273cea258ad0dbaa7",
 	    action: "project_request",
 	    info: "Name",
-	    subscribes: "594ba859734d1d4e66f01ce5"
+	    subscribes: []
 	};
+	var item = {user: "594ba859734d1d4e66f01ce5",read: false};
+	notJson.subscribes.push(item);
+
 	ctlAPI.createNotification( notJson,function(result){
-		ctlMessage.send('requests','set..');
+		ctlMessage.send('594ba859734d1d4e66f01ce5','requests','set..');
 	});
 });
 $(document).on('click','#nt',function(e){
+	
 	var notJson = {
 	    projectId: "594a865273cea258ad0dbaa7",
 	    factor:ctlUserComponent.info._id,
@@ -139,11 +144,15 @@ $(document).on('click','#nt',function(e){
 	    typeId: "594a865273cea258ad0dbaa7",
 	    action: "project_new_version",
 	    info: "Name",
-	    subscribes: "594ba859734d1d4e66f01ce5"
+	    subscribes: []
 	};
+	var item = {user: "594ba859734d1d4e66f01ce5",read: false};
+	notJson.subscribes.push(item);
+
 	ctlAPI.createNotification( notJson,function(result){
-		ctlMessage.send('notifications','set..');
+		ctlMessage.send('594ba859734d1d4e66f01ce5','notifications','set..');
 	});
+
 });
 
 /* NavBar */

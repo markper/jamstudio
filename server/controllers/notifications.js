@@ -40,11 +40,12 @@ exports.updateNotificationStatus = function(notificationId, userId, callback) {
 };
 
 exports.newNotification = function(notificationJson,callback){
-	var userId = notificationJson['subscribes'];
-  delete notificationJson['subscribes'];
+	// var userId = notificationJson['subscribes'];
+ //  delete notificationJson['subscribes'];
   var notification = new Notification(notificationJson);
-  notification.subscribes.push({user:userId,read: false});
+  //notification.subscribes.push({user:userId,read: false});
 	notification.save(function (err, notification) {
+    console.log(err);
 		if(err)
 			return callback(err);
 		return callback(notification);

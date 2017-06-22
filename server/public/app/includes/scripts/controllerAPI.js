@@ -792,8 +792,8 @@ function controllerAPI(){
 		$.ajax({
 			url: serverDB+'/Notification',
 			type: "POST",
-			dataType: "json",
-			data:notificationJson,
+			contentType: "application/json",
+			data:JSON.stringify(notificationJson),
 			error: function(e) {
 				callback(false);
 			},
