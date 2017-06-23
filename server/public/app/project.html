@@ -2,18 +2,18 @@
 <html>
 <head>
 	<meta charset="UTF-8">
-	<title>Studio</title>
+	<title>Project Management</title>
 
 	<link rel="icon" type="image/png" href="../../static/includes/images/favicon.png">
-	<link rel="stylesheet" type="text/css" href="../../static/includes/style/dashboard.css">
+	<link rel="stylesheet" type="text/css" href="../../static/includes/style/tamplate.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="../../static/includes/style/jquery-ui.min.css">
 	<link rel="stylesheet" type="text/css" href="../../static/includes/style/projectStyle.css">
 	<script src="../../static/includes/scripts/jquery-ui.min.js"></script>
+	<script src="https://cdn.socket.io/socket.io-1.0.0.js"></script>
 	<script src="../../static/includes/scripts/controllerAPI.js"></script>
-	<script src="../../static/includes/scripts/studioUI.js"></script>
-	<script src="../../static/includes/scripts/slider-widjet.js"></script>
-
+	<script src="../../static/includes/scripts/template.js"></script>
+	<script src="../../static/includes/scripts/project.js"></script>
 
 
 	<!-- -->
@@ -35,29 +35,44 @@
 <body class="dashboard noselect">
 	<header>
 		<ul>
-			<li id="logo">J</li>
-			<li id="connected_user">
-				<div class="user_img" style="background-image: url()"></div>
-				<div class="username"><span>israel.israeli@gmail.com</span> <span>&#x25BC;</span></div>
-				<section id="connected_user_menu">
-					<ul>
-						<li id="logout">Logout</li>
-					</ul>
-				</section>
-			</li>
-			<li id="search-line">
-				<div>
-                    <div class="input-group col-md-12">
-                        <input type="text" class="  search-query form-control" placeholder="Search" />
-                        <span class="input-group-btn">
-                            <button class="btn" type="button">
-                                <span class=" glyphicon glyphicon-search"></span>
-                            </button>
-                        </span>
-                    </div>
-				</div>
-			</li>
-			<li id="searchbox"></li>
+		  <li id="hamburger">
+
+		  </li>
+		  <li id="logo"></li>
+		  <li id="search-line">
+		    <div>
+		      <div class="input-group col-md-12">
+		          <input type="text" class="  search-query form-control" placeholder="Search" id="input-search"/>
+		          <span class="input-group-btn">
+		              <button class="btn" type="button">
+		                  <span class=" glyphicon glyphicon-search"></span>
+		              </button>
+		          </span>
+		      </div>
+		    </div>
+		  </li>
+		  <li id="connected_user" class="dropdown">
+		    <div class="user_img" style="background-image: url()"></div>
+		    <div class="username" id="dUsername" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>israel.israeli@gmail.com</span> <span>&#x25BC;</span></div>
+		    <ul class="dropdown-menu" aria-labelledby="dUsername">
+		        <li  id="settings">Settings</li>
+		        <li  id="logout">Logout</li>
+		    </ul>
+		  </li>
+		  <li class="alerts dropdown" id="alerts-request">
+		      <span class="glyphicon glyphicon-user"  id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></span>
+		      <div class="requests-counter label label-danger"></div>
+		      <ul class="dropdown-menu" aria-labelledby="dLabel">
+		        ...
+		      </ul>
+		  </li>
+		  <li class="alerts dropdown" id="alerts-notification">
+		      <span class="glyphicon glyphicon-globe"  id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></span>
+		      <div class="notifications-counter label label-danger"></div>
+		      <ul class="dropdown-menu" aria-labelledby="dLabel">
+		        
+		      </ul>
+		  </li>
 		</ul>
 	</header>
 	<main class="scrolls">
@@ -90,7 +105,7 @@
 							  <!-- Tab panes -->
 							  <div class="tab-content">
 							    <div role="tabpanel" class="tab-pane active" id="project-info">
-									<form class="form-horizontal" id="form-update-project" action="project.html">
+									<form class="form-horizontal" id="form-update-project" >
 									  <div class="form-group">
 									    <label class="control-label col-sm-2" for="project-info-name">Name:</label>
 									    <div class="col-sm-10">
@@ -337,6 +352,25 @@
 			</div>
 		</div>	
 	</main>
+	<nav id="mySidenav" class="sidenav">
+		<ul>
+		  	<li>
+		  		<a href="#" id="close_nav" class="closebtn">&times;</a>
+		  	</li>
+			<li id="nav_settings">
+				<a href="#">Home</a>
+			</li>
+			<li id="nav_versions">
+				<a href="../dashboard">Dashboard</a>
+			</li>
+			<li id="nav_contributors">
+				<a href="../search">Search</a>
+			</li>
+			<li id="nav_exit">
+				<a href="../usersettings">Settings</a>
+			</li>
+		</ul>
+	</nav>
 	<section>
 		<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
 		  <div class="modal-dialog" role="document">
@@ -439,35 +473,12 @@
 		  </div>
 		</div>
 	</section>
-	<nav id="mySidenav" class="sidenav">
-		<ul>
-		  	<li>
-		  		<a href="#" id="close_nav" class="closebtn">&times;</a>
-		  	</li>
-			<li id="nav_settings">
-				<a href="#">Settings</a>
-			</li>
-			<li id="nav_versions">
-				<a href="#">Versions</a>
-			</li>
-			<li id="nav_contributors">
-				<a href="#">Contributors</a>
-			</li>
-			<li id="nav_issues">
-				<a href="#">Issues</a>
-			</li>
-			<li id="nav_exit">
-				<a href="#">Exit</a>
-			</li>
-		</ul>
-	</nav>
 	<section id="loader">
 		<div></div>
 	</section>
 	<section id="contextmenu"></section>
 
 
-    <script src="../../static/includes/scripts/project.js"></script>
     <script src="../../static/includes/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -1,6 +1,5 @@
 
 var ctlAPI = new controllerAPI();
-var ctlUI = new studioUI();
 var ctlUser = new user();
 var project = {};
 var user = {};
@@ -63,7 +62,7 @@ ctlAPI.getUserInfo(function(result){
 });
 
 // update project info
-$( "#form-update-project" ).submit(function(e) {
+$( document ).on('submit',"#form-update-project",function(e) {
 	var data ={
 		name : $('#project-info-name').val(),
 		description : $('#project-info-description').val(),
@@ -72,7 +71,6 @@ $( "#form-update-project" ).submit(function(e) {
 	ctlAPI.updateProjectInfo(project._id,data,function(result){
 		console.log(result);
 	})
- 	event.preventDefault();
 });
 
 // update project privacy
@@ -87,7 +85,7 @@ $( "#form-update-privacy" ).submit(function(e) {
 });
 
 // delete project 
-$( "#form-project-delete" ).submit(function(e) {
+$( document ).on("submit","#form-project-delete",function(e) {
 	ctlAPI.deleteProject(project._id,function(result){
 		window.location.replace("../dashboard");
 	});
@@ -133,12 +131,16 @@ $( "#form-issues-new" ).submit(function(e) {
 
 // Show users picker
 //$('#form-contributor-user').attr('data-userid','592c04f9f36d2873685a5dbc');
-$('#form-contributor-user').on('input',function(e){
+$(document).on('input , click','#form-contributor-user',function(e){
+	console.log("aa");
 	$("#contributors-picker").show();
 	ctlAPI.getUsersPrefix($(e.target).val(),function(result){
 		console.log(buildUserPicker(result));
 		$("#contributors-picker").html($(buildUserPicker(result)));
 	});
+});
+$(document).on('focusout','#form-contributor-user',function(e){
+	$("#contributors-picker").hide();
 });
 
 // Pick user to input element 
@@ -425,8 +427,4 @@ $(document).on('click','#connected_user',function(e){
 	$('#connected_user_menu').toggle();
 });
 
-// relaod at submit..
-$(document).submit(function(e){
-	//location.reload();
-});
 

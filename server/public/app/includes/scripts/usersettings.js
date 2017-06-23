@@ -59,9 +59,10 @@ $(document).on('click','#btn-user-set',function(e){
 
 $(document).on('click','#btn-user-privacy',function(e){
   e.preventDefault();
-     var plan = $('#user-privacy-input option:selected').attr('data-planid');
-     ctlAPI.updateUserPlan(loggedUser._id, plan, function(result){
-       console.log(result);
-     });
-
+   var plan = $('#user-privacy-input option:selected').attr('data-planid');
+   ctlAPI.updateUserPlan(loggedUser._id, plan, function(result){
+     console.log(result);
+   });
 });
+
+
