@@ -23,6 +23,19 @@ exports.getIcqByProject = function(projectId, callback){
         });
 };
 
+
+exports.getIcqByAdmin = function(userId, callback){
+       Icq.findOne({'projectId': userId})
+        .populate({path:'applicants.user',select:["firstName","lastName","picture"]})
+        .exec(function (err, icq) {
+          console.log(icq);
+            if (err || !icq)
+                return callback(errors.errorNotFound((err?err:'')));
+            else
+                return callback(icq);
+        });
+};
+
 exports.getIcqByInstrument = function(instruments, callback){
   Icq.find({instruments: { $in: instruments}}, function(err, cq) {
     if (err || !cq) {

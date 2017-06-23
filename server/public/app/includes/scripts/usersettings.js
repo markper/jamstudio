@@ -1,4 +1,5 @@
 var ctlAPI = new controllerAPI();
+var crlUser = new user();
 var loggedUser = {};
 
 init();
@@ -7,10 +8,20 @@ function init(){
   // Init
   ctlAPI.getUserInfo(function(result){
     loggedUser = result;
+    crlUser.init(result);
     bindFormUserEditData();
     bindFormUserPlanData();
   });
 }
+
+function user(){
+  this.info = null;
+  this.init = function(data){
+    this.info = data;
+          $('div.username span:first').text(data.email);
+          $('header #connected_user .user_img').css('background-image','url('+data.picture+')');
+  };
+};
 
 function bindFormUserEditData(){
   $('#user-set-fname').val(loggedUser.firstName);
@@ -48,9 +59,10 @@ $(document).on('click','#btn-user-set',function(e){
 
 $(document).on('click','#btn-user-privacy',function(e){
   e.preventDefault();
-     var plan = $('#user-privacy-input option:selected').attr('data-planid');
-     ctlAPI.updateUserPlan(loggedUser._id, plan, function(result){
-       console.log(result);
-     });
-
+   var plan = $('#user-privacy-input option:selected').attr('data-planid');
+   ctlAPI.updateUserPlan(loggedUser._id, plan, function(result){
+     console.log(result);
+   });
 });
+
+

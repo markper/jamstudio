@@ -57,6 +57,12 @@ router.get('/app/dashboard', ensureLoggedIn, function (req, res, next) {
   return res.sendFile(path2);
   next();
 })
+router.get('/app/tamplate', ensureLoggedIn, function (req, res, next) {
+  var path2 = path.join(__dirname, '../public', 'app/template.html');
+  console.log(path2);
+  return res.sendFile(path2);
+  next();
+})
 
 
 router.get('/login',

@@ -1,101 +1,84 @@
 var ctlAPI = new controllerAPI();
-		var ctlUI = new studioUI();
-		var ctlUser = new user();
-		var projects = {};
+var ctlUser = new userComponent();
+var projects = {};
 
-		// Init studio
-		ctlAPI.getUserInfo(function(result){
+/* User */
+ctlAPI.getUserInfo(function(result){
+	ctlUser.init(result);
+	loadProjectByUserId(result._id);
+});
+function userComponent(){
+	this.info = null;
+	this.alerts = {
+		requests: 0,
+		notifications: 0
+	};
+	this.init = function(data){
+		ctlMessage =  new messages(data._id);
+		this.info = data;
+        $('div.username span:first').text(data.email);
+        $('header #connected_user .user_img').css('background-image','url('+data.picture+')');
+        $('.profile h1').text(data.firstName + ' ' + data.lastName);
+        $('.profile h4').text(data.email);
+	};
+};
 
-			ctlUser.init(result);
 
-			ctlAPI.getProjectList(result._id,function(_result){
-				initSlider(_result.admin.concat(_result.contributor));
-				projects = _result.admin.concat(_result.contributor);
-			});
-			
-		});
+function loadProjectByUserId(userId){
+	ctlAPI.getProjectList(userId,function(_result){
+		printProjects(_result.admin,'main .wrapper .project-list-my');
+		printProjects(_result.contributor,'main .wrapper .project-list-others');
+	});
+}
 
-		function initSlider(projects){
-			var slider = new slider_widjet({
-					container: '.slider-widjet',
-					itemHeight: 250,
-					itemWidth: 180,
-					arr: projects
-				});
-			slider.print();
-			$(document).on('click','.next',function(e){			
-				slider.next();
-			});
-			$(document).on('click','.back',function(e){
-				slider.back()
-			});
+function loadProjectByWord(word){
+	ctlAPI.getProjectsByWord(word,function(_result){
+		printProjects(_result.admin,'main .wrapper .project-list-my');
+		printProjects(_result.contributor,'main .wrapper .project-list-others');
+	});
+}
+
+function printProjects(projects,selector){
+	if(projects && projects.length)
+		for (var i = projects.length - 1; i >= 0; i--) {
+			var element = $(buildProject(projects[i]));
+			$(selector).append(element);
 		}
+	else
+		$(selector).text("No projects yet..");
+}
+function buildProject(project){
+	return  '<article class="project_item">'+
+					'<div class="project_item_cover"></div>'+
+					'<div class="project_item_info">'+
+					'<div><a href="studio/'+project._id+'">'+project.name+'</a></div><div><a href="studio/'+project._id+'">'+project.genre+'</a></div></div>'+
+					'<div class="settings" data-project="'+project._id+'"></div>'+
+				   '</article>';		
+}
 
-		var rtime;
-		var timeout = false;
-		var delta = 200;
-		$(window).resize(function() {
-		    rtime = new Date();
-		    if (timeout === false) {
-		        timeout = true;
-		        setTimeout(resizeend, delta);
-		    }
-		});
-		function resizeend() {
-		    if (new Date() - rtime < delta) {
-		        setTimeout(resizeend, delta);
-		    } else {
-		        timeout = false;
-		        console.log(projects);
-		        initSlider(projects);
-		    }               
-		}
+$(document).on('click','.settings',function(e){
+	console.log(window.location.host)
+	window.location = 'project/'+$(e.target).attr("data-project");
+});
 
-		function user(){
+$(document).on('click','#btn-create-project',function(e){
+	ctlAPI.createProject({
+		adminUser: ctlUser.info._id,
+	    name: $('#project-name').val(),
+	    description: $('#project-description').val(),
+	    genre: $('#project-genre').val()
+	},function(result){
+		if(result)
+			window.location.href = 'studio/'+result._id;
+	});
+});
 
-			user.user = null;
-			user.files = null;
-			user.sharedFiles = null;
-
-			this.init = function(data){
-				user.user = data;
-	            $('div.username span:first').text(data.email);
-	            $('header #connected_user .user_img').css('background-image','url('+data.picture+')');
-			};
-		};
-		$(document).on('click','.settings',function(e){
-			console.log(window.location.host)
-			window.location = 'project/'+$(e.target).attr("data-project");
-		});
-		$(document).on('click','#btn-create-project',function(e){
-			ctlAPI.createProject({
-				adminUser: user.user._id,
-			    name: $('#project-name').val(),
-			    description: $('#project-description').val(),
-			    genre: $('#project-genre').val()
-			},function(result){
-				if(result)
-					window.location.href = 'studio/'+result._id;
-			});
-		});
-		
-		$(document).on('click','#connected_user',function(e){
-			switch(e.target.id){
-				case 'logout':{
-					ctlAPI.logout(function(data){					
-						location.reload();					  
-					});
-					break;
-				}
-			}
-			$('#connected_user_menu').toggle();
-		});
-
-		$(document).on('click','#search-line .btn',function(e){
-			var word = $("#input-search").val();
-			ctlAPI.getProjectsByWord(word,function(_result){
-				initSlider(_result.admin.concat(_result.contributor));
-				projects = _result.admin.concat(_result.contributor);
-			});
-		});
+$(document).on('click','#search-line .btn',function(e){
+	var word = $("#input-search").val();
+	if(word)
+		loadProjectByWord(word);
+	else{
+		loadProjectByUserId(ctlUser.info._id);
+	}
+});
 		

@@ -17,6 +17,17 @@ router.get('/:icqId', function(req, res, next) {
 	});
 });
 
+router.get('/Admin/:userId', function(req, res, next) {
+  var userId = req.params.userId;
+  icqCtrl.getIcqByAdmin(userId, function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);
+		else
+			res.status(200).send(data);
+	});
+});
+
+
 router.get('/project/:projectId', function(req, res, next) {
   var projectId = req.params.projectId;
   icqCtrl.getIcqByProject(projectId, function(data){

@@ -10,5 +10,6 @@ module.exports = mongoose.model('Notification', new Schema({
     type: String,
     typeId: String,
     action: String,
+    info: String,
     subscribes: [{user: {type: String, ref: 'User'}, read: Boolean}]
 }));

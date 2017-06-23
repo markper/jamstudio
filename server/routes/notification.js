@@ -9,12 +9,11 @@ var notificationCtrl = require('../controllers/notifications');
 
 /* POST - notification. */
 router.post('/', function(req, res, next) {
-	var notification = new Notification(req.body);
-	notificationCtrl.newNotification(notification, function(data){
-	if(data instanceof Error)
-		res.status(500).send(data.message);
-	else
-		res.status(200).send(data);
+	notificationCtrl.newNotification(req.body, function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);
+		else
+			res.status(200).send(data);
 	});
 });
 
@@ -31,9 +30,8 @@ router.get('/:notificationId', function(req, res, next) {
 });
 
 // done controllers
-router.get('/GetList/:userId', function(req, res, next) {
-	var userId = req.params.userId;
-	notificationCtrl.getNotificationByUser(userId, function(data){
+router.get('/GetList/:userId/:type', function(req, res, next) {
+	notificationCtrl.getNotificationByUser(req.params.userId,req.params.type, function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);
 		else

@@ -13,6 +13,18 @@ exports.getRequest = function(requestId, callback) {
   });
 };
 
+exports.getRequestByAdmin = function(userId, callback) {
+  Request.findOne({'projectId.adminUser._id': userId})
+  .populate({path: 'user', select: ['firstName','lastName', 'picture', 'userId'] })
+  .exec(function(err, requests) {
+    if (err || !requests) {
+      return callback(errors.errorNotFound((err ? err : '')));
+    } else {
+      return callback(requests);
+    }
+  });
+};
+
 exports.updateRequest = function(requestId, reqJson, callback) {
   Request.findOne({_id: requestId}, function(err, request) {
     if (err || !request) {
