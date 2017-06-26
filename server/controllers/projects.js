@@ -133,36 +133,45 @@ exports.makeProjectVersion = function(projectId,trackId,body,callback){
         if(body.version)
             _track.version = body.version;
         _track.isNew = true; 
-        _track.save(function(err,data){
-            if (err) 
-                return;
-            for (var i = _track.channels.length - 1; i >= 0; i--) {
-                Channel.findOne({_id: _track.channels[i]}).
-                exec(function (err, _channel) {
-                    if(err || !_channel)
+        var copyChannelList = _track.channels;
+        _track.channels = [];
+        var newChannelList = [];
+        for (var i = copyChannelList.length - 1; i >= 0; i--) {
+            Channel.findOne({_id: copyChannelList[i]}).
+            exec(function (err, _channel) {
+                if(err || !_channel)
+                    return;     
+                var lastId = _channel._id;
+                _channel.trackId = _track._id;
+                var newId = mongoose.Types.ObjectId();
+                _channel._id = newId;
+                _channel.isNew = true; 
+                 for (var i = _channel.samples.length - 1; i >= 0; i--) {
+                    sample = _channel.samples[i];
+                    sample.isNew = true;
+                    sample._id = mongoose.Types.ObjectId();
+                    sample.channelId = newId;
+                 }
+
+                _channel.save(function(err,data){
+                    if(err)
                         return;
-                    var lastId = _channel._id;
-                    _channel.trackId = _track._id;
-                    _channel._id = mongoose.Types.ObjectId();
-                    _channel.isNew = true; 
-                     for (var i = _channel.samples.length - 1; i >= 0; i--) {
-                        _channel.samples[i]._id = mongoose.Types.ObjectId();
-                        _channel.samples[i].channelId = _channel._id;
-                     }
-                    _channel.save(function(err,data){
-                        if(err)
-                            return;
-                        _track.channels.pull(lastId);
-                        _track.channels.push(data._id);
+                    newChannelList.push(data._id);
+                    //_track.channels.pull(lastId);
+                  
+                    //_track.channels.push(data._id);
+                    console.log('lastId :'+ lastId + ' newId:'+newId);
+                    if(newChannelList.length == copyChannelList.length){
+                        _track.channels = newChannelList;
                         _track.save(function(err,data){
-                            if(err)
-                                return; 
+                            if (err) 
+                                return;
                         });
-                    });
+                    }
                 });
-                
-            }
-        });
+            });
+        }
+
         Project.findOne({_id: projectId}).
         exec(function (err, _project) {
             _project.track_version = _track._id;

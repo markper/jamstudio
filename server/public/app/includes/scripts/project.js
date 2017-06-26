@@ -74,7 +74,7 @@ $( document ).on('submit',"#form-update-project",function(e) {
 });
 
 // update project privacy
-$( "#form-update-privacy" ).submit(function(e) {
+$( document ).on('submit',"#form-update-privacy",function(e) {
 	var data ={
 		privacy : $('#project-privacy').find(":selected").text()
 	}
@@ -94,7 +94,7 @@ $( document ).on("submit","#form-project-delete",function(e) {
 });
 
 // new icq
-$( "#form-icq-new" ).submit(function(e) {
+$( document ).on('submit',"#form-icq-new",function(e) {
 	var instruments = [];
 	$('#project-icq-instrument').find(":selected").map(function(key,value){
 		instruments.push($(value).text());
@@ -113,7 +113,7 @@ $( "#form-icq-new" ).submit(function(e) {
 });
 
 // new issue
-$( "#form-issues-new" ).submit(function(e) {
+$( document ).on('submit',"#form-issues-new",function(e) {
 	var data ={
         projectId: project._id,
         fromUserId: user._id,
@@ -144,7 +144,7 @@ $(document).on('focusout','#form-contributor-user',function(e){
 });
 
 // Pick user to input element 
-$(document).on('click','#contributors-picker li',function(e){
+$(document).on('mousedown','#contributors-picker li',function(e){
 	var userId = $(e.target).attr('data-userid'),
 		userName = $(e.target).attr('data-username');
 	$('#form-contributor-user').attr('data-userid',userId);
@@ -248,7 +248,7 @@ function buildUserPicker(users){
 		  	items +
 			'</ul>';
 }
-$( "form#form-contributors" ).submit(function(e) {
+$( document ).on('submit','form#form-contributors',function(e) {
 	var data ={
         user: $('#form-contributor-user').attr('data-userid'),//$('#issues-users').find(":selected").text(),
         access: "all"
