@@ -38,6 +38,14 @@ router.delete('/:channelId', function(req, res) {
 });
 
 /* PUT channel */
+router.put('/Sort', function(req, res) {
+    channelCtrl.sortChannels(req.body.list,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message);
+        else
+            res.status(200).send(data);
+    }); 
+});
 router.put('/:channelId', function(req, res) {
     channelCtrl.updateChannel(req.params.channelId,req.body,function(data){
         if(data instanceof Error)
@@ -46,7 +54,6 @@ router.put('/:channelId', function(req, res) {
             res.status(200).send(data);
     }); 
 });
-
 
 router.post('/Sync', function(req, res) {
     channelCtrl.syncChannels(req.body,function(data){

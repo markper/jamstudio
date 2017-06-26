@@ -1,14 +1,14 @@
 var ctlAPI = new controllerAPI();
-var ctlUserComponent = new userComponent();
+var ctlUser = new user();
 var ctlMessage = {};
 var ctlNotificationFactory = new notificationFactory();
 
 /* User */
 ctlAPI.getUserInfo(function(result){
-	ctlUserComponent.init(result);
+	ctlUser.init(result);
 });
 
-function userComponent(){
+function user(){
 	this.info = null;
 	this.alerts = {
 		requests: 0,
@@ -56,7 +56,7 @@ function notificationFactory(){
 		// 	case 'projectVersion':{
 				var isRead = false;
 				for (var i = notification.subscribes.length - 1; i >= 0; i--) {
-					if(notification.subscribes[i].user._id==ctlUserComponent.info._id)
+					if(notification.subscribes[i].user._id==ctlUser.info._id)
 						isRead = notification.subscribes[i].read;
 				}
 				return $('<li class="notification '+(isRead?'':'not-read')+'" data-id="'+notification._id+'">'+ _this.buidUser(notification.factor) +' set new version at '+ notification.info +' project.. </li>');
@@ -67,7 +67,7 @@ function notificationFactory(){
 	this.buildRequest = function(request){
 		var isRead = false;
 		for (var i = request.subscribes.length - 1; i >= 0; i--) {
-			if(request.subscribes[i].user._id==ctlUserComponent.info._id)
+			if(request.subscribes[i].user._id==ctlUser.info._id)
 				isRead = request.subscribes[i].read;
 		}
 		return $('<li class="notification '+(isRead?'':'not-read')+'" data-id="'+request._id+'">'+ _this.buidUser(request.factor) +' ask to join '+ request.info +' project.. </li>');
@@ -88,18 +88,18 @@ function messages(id){
 	}
 
 	socket.on("requests", function(data) {
-		$('.requests-counter').text(++ctlUserComponent.alerts.requests).show();
+		$('.requests-counter').text(++ctlUser.alerts.requests).show();
 	});
 
 	socket.on("notifications", function(data) {
-		$('.notifications-counter').text(++ctlUserComponent.alerts.notifications).show();
+		$('.notifications-counter').text(++ctlUser.alerts.notifications).show();
 	});
 }
 
 /* menu */
 $(document).on('click','.notification',function(e){
 	var id = $(this).attr('data-id');
-	ctlAPI.setNotificationReadByUser(id,ctlUserComponent.info._id,function(result){
+	ctlAPI.setNotificationReadByUser(id,ctlUser.info._id,function(result){
 		$(this).closest('.dropdown-menu').hide();
 	});
 	e.preventDefault();
@@ -107,21 +107,21 @@ $(document).on('click','.notification',function(e){
 });
 $(document).on('mousedown','#alerts-request span',function(e){
 	e.preventDefault();
-	ctlUserComponent.alerts.requests = 0;
+	ctlUser.alerts.requests = 0;
 	$('.requests-counter').text('');
-	ctlNotificationFactory.readAndPrintRequests(ctlUserComponent.info._id);
+	ctlNotificationFactory.readAndPrintRequests(ctlUser.info._id);
 });
 
 $(document).on('mousedown','#alerts-notification span',function(e){
 	e.preventDefault();
-	ctlUserComponent.alerts.notifications = 0;
+	ctlUser.alerts.notifications = 0;
 	$('.notifications-counter').text('');
-	ctlNotificationFactory.readAndPrintNotifications(ctlUserComponent.info._id);
+	ctlNotificationFactory.readAndPrintNotifications(ctlUser.info._id);
 });
 $(document).on('click','#rt',function(e){
 	var notJson = {
 	    projectId: "594a865273cea258ad0dbaa7",
-	    factor:ctlUserComponent.info._id,
+	    factor:ctlUser.info._id,
 	    type: "request",
 	    typeId: "594a865273cea258ad0dbaa7",
 	    action: "project_request",
@@ -139,7 +139,7 @@ $(document).on('click','#nt',function(e){
 	
 	var notJson = {
 	    projectId: "594a865273cea258ad0dbaa7",
-	    factor:ctlUserComponent.info._id,
+	    factor:ctlUser.info._id,
 	    type: "notification",
 	    typeId: "594a865273cea258ad0dbaa7",
 	    action: "project_new_version",
@@ -153,6 +153,11 @@ $(document).on('click','#nt',function(e){
 		ctlMessage.send('594ba859734d1d4e66f01ce5','notifications','set..');
 	});
 
+});
+
+/* Search */
+$(document).on('click','#search-line .input-group-btn',function(e){
+	window.location('search?word=' + $('#search-line input').val());
 });
 
 /* NavBar */

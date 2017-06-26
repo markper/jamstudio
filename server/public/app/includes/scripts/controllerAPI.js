@@ -533,6 +533,21 @@ function controllerAPI(){
 	        }
 	    });
 	};
+	this.sortChannels = function(list,callback){
+		$.ajax({
+	        type: "Put",
+	        url: serverDB+'/Channel/Sort',
+			contentType: "application/json",
+			data:JSON.stringify(list),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	callback(null);
+	        }
+	    });
+	};
 
 	this.deleteChannels = function(channelId,callback){
 		$.ajax({

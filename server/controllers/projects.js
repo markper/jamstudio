@@ -53,20 +53,20 @@ exports.getLastProject =  function(userId,callback){
 exports.getProjectByString = function(string,callback){
     console.log(string);
     Project
-        .findOne({$or:[
+        .find({$or:[
         {"name": new RegExp('^'+string, "i")},
         {"genre": new RegExp('^'+string, "i")},
         {"description": new RegExp('^'+string, "i")}        
-        ]})
+        ], "privacy":"Public"})
         .select(["name","_id","description","adminUser","users","genre"])
         .populate({path:'adminUser',select: ['firstName','lastName','email','picture']})
         .populate({path:'users',select:['_id','firstName','lastName','email','picture']})
-        .exec(function (err, contributorProject) {
-            console.log(contributorProject);
+        .exec(function (err, list) {
+            console.log(list);
             if (err)
                 return callback(errors.errorUpdate((err?err:'')));
             else
-                return callback({'admin':[], 'contributor': contributorProject});
+                return callback({'projects':list});
         });
      
 }
@@ -79,6 +79,7 @@ exports.getProject =  function(projectId,callback){
                         model: 'Track',
                             populate: {
                                 path: 'channels',
+                                options: { sort: { 'created_at': 1,'orderLevel': 1} } ,
                                 model: 'Channel',
                                     populate: {
                                         path: 'samples.file',

@@ -28,7 +28,10 @@
 	<script src="../../static/includes/scripts/jquery-ui.min.js"></script>
 	<script src="../../static/includes/scripts/controllerAPI.js"></script>
 	<script src="https://cdn.socket.io/socket.io-1.0.0.js"></script>
-	
+
+	<link rel="stylesheet" href="../../static/includes/style/userComponent.css">
+	<script src="../../static/includes/scripts/userComponent.js"></script>
+
 	<script src="../../static/includes/scripts/studio.js"></script>
 	<script src="../../static/includes/scripts/studioUI.js"></script>
 	<script src="../../static/includes/scripts/recorder.js"></script>
@@ -105,14 +108,29 @@
 					</li>
 				</ul>
 			</li>
-			<li id="connected_user" class="dropdown">
-				<div class="user_img" style="background-image: url()"></div>
-				<div class="username" id="dUsername" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>israel.israeli@gmail.com</span> <span>&#x25BC;</span></div>
-				<ul class="dropdown-menu" aria-labelledby="dUsername">
-				    <li  id="settings">Settings</li>
-				    <li  id="logout">Logout</li>
-				</ul>
-			</li>
+		      <li id="connected_user" class="dropdown">
+		        <div class="user_img" style="background-image: url()"></div>
+		        <div class="username" id="dUsername" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>israel.israeli@gmail.com</span> <span>&#x25BC;</span></div>
+		        <ul class="dropdown-menu" aria-labelledby="dUsername">
+		            <li  id="settings">Settings</li>
+		            <li  id="logout">Logout</li>
+		        </ul>
+		      </li>
+		      <li class="alerts dropdown" id="alerts-request">
+		          <span class="glyphicon glyphicon-user"  id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></span>
+		          <div class="requests-counter label label-danger"></div>
+		          <ul class="dropdown-menu" aria-labelledby="dLabel">
+		            ...
+		          </ul>
+		      </li>
+		      <li class="alerts dropdown" id="alerts-notification">
+		          <span class="glyphicon glyphicon-globe"  id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></span>
+		          <div class="notifications-counter label label-danger"></div>
+		          <ul class="dropdown-menu" aria-labelledby="dLabel">
+		            
+		          </ul>
+		      </li>
+
 		</ul>
 	</header>
 	<main class="scrolls">
@@ -306,9 +324,10 @@
 
 	<script>
 		(function(){
-			var s = new studio();
-			var sui = new studioUI(s);
-			s.init();
+			var ctlUserComponent = new userComponent(function(user){
+				var studioCtl = new studio(user);
+				studioCtl.init();
+			});
 		})();
 	</script>
 	

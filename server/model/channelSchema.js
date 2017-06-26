@@ -12,7 +12,7 @@ module.exports = mongoose.model('Channel', new Schema({
     volume:String,
     lock: Boolean,
     visible: Boolean,
-    order: Number,
+    orderLevel: Number,
     samples: [{
         sampleId: Schema.Types.ObjectId,
         channelId: { type: String, ref: 'Channel' },

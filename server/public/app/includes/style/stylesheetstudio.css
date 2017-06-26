@@ -155,7 +155,7 @@ header #board h4{
 	font-family: Helvetica;
 }
 header #toolbox{
-	width: calc(100% - 500px);
+	width: calc(100% - 550px);
 }
 header #toolbox > ul{
 	color: #ffffff;

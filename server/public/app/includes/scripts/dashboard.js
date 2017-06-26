@@ -1,84 +1,114 @@
-var ctlAPI = new controllerAPI();
-var ctlUser = new userComponent();
-var projects = {};
+function loadDashboard(user){
 
-/* User */
-ctlAPI.getUserInfo(function(result){
-	ctlUser.init(result);
-	loadProjectByUserId(result._id);
-});
-function userComponent(){
-	this.info = null;
-	this.alerts = {
-		requests: 0,
-		notifications: 0
-	};
-	this.init = function(data){
-		ctlMessage =  new messages(data._id);
-		this.info = data;
-        $('div.username span:first').text(data.email);
-        $('header #connected_user .user_img').css('background-image','url('+data.picture+')');
-        $('.profile h1').text(data.firstName + ' ' + data.lastName);
-        $('.profile h4').text(data.email);
-	};
-};
+	var ctlAPI = new controllerAPI();
+	var projects = {};
 
+	loadProjectByUserId(user.info._id);
+    $('.profile h1').text(user.info.firstName + ' ' + user.info.lastName);
+    $('.profile h4').text(user.info.email);
 
-function loadProjectByUserId(userId){
-	ctlAPI.getProjectList(userId,function(_result){
-		printProjects(_result.admin,'main .wrapper .project-list-my');
-		printProjects(_result.contributor,'main .wrapper .project-list-others');
-	});
-}
-
-function loadProjectByWord(word){
-	ctlAPI.getProjectsByWord(word,function(_result){
-		printProjects(_result.admin,'main .wrapper .project-list-my');
-		printProjects(_result.contributor,'main .wrapper .project-list-others');
-	});
-}
-
-function printProjects(projects,selector){
-	if(projects && projects.length)
-		for (var i = projects.length - 1; i >= 0; i--) {
-			var element = $(buildProject(projects[i]));
-			$(selector).append(element);
-		}
-	else
-		$(selector).text("No projects yet..");
-}
-function buildProject(project){
-	return  '<article class="project_item">'+
-					'<div class="project_item_cover"></div>'+
-					'<div class="project_item_info">'+
-					'<div><a href="studio/'+project._id+'">'+project.name+'</a></div><div><a href="studio/'+project._id+'">'+project.genre+'</a></div></div>'+
-					'<div class="settings" data-project="'+project._id+'"></div>'+
-				   '</article>';		
-}
-
-$(document).on('click','.settings',function(e){
-	console.log(window.location.host)
-	window.location = 'project/'+$(e.target).attr("data-project");
-});
-
-$(document).on('click','#btn-create-project',function(e){
-	ctlAPI.createProject({
-		adminUser: ctlUser.info._id,
-	    name: $('#project-name').val(),
-	    description: $('#project-description').val(),
-	    genre: $('#project-genre').val()
-	},function(result){
-		if(result)
-			window.location.href = 'studio/'+result._id;
-	});
-});
-
-$(document).on('click','#search-line .btn',function(e){
-	var word = $("#input-search").val();
-	if(word)
-		loadProjectByWord(word);
-	else{
-		loadProjectByUserId(ctlUser.info._id);
+	function loadProjectByUserId(userId){
+		ctlAPI.getProjectList(userId,function(_result){
+			printProjects(_result.admin,'main .wrapper .project-list-my');
+			printProjects(_result.contributor,'main .wrapper .project-list-others');
+		});
 	}
-});
-		
+
+	function loadProjectByWord(word){
+		ctlAPI.getProjectsByWord(word,function(_result){
+			printProjects(_result.admin,'main .wrapper .project-list-my');
+			printProjects(_result.contributor,'main .wrapper .project-list-others');
+		});
+	}
+
+	function printProjects(projects,selector){
+		if(projects && projects.length)
+			for (var i = projects.length - 1; i >= 0; i--) {
+				var element = $(buildProject(projects[i]));
+				$(selector).append(element);
+			}
+		else
+			$(selector).text("No projects yet..");
+	}
+	function buildProject(project){
+		return  '<article class="project_item">'+
+						'<div class="project_item_cover"></div>'+
+						'<div class="project_item_info">'+
+						'<div><a href="studio/'+project._id+'">'+project.name+'</a></div><div><a href="studio/'+project._id+'">'+project.genre+'</a></div></div>'+
+						'<div class="settings" data-project="'+project._id+'"></div>'+
+					   '</article>';		
+	}
+
+	$(document).on('click','.settings',function(e){
+		console.log(window.location.host)
+		window.location = 'project/'+$(e.target).attr("data-project");
+	});
+
+	$(document).on('click','#btn-create-project',function(e){
+		ctlAPI.createProject({
+			adminUser: user.info._id,
+		    name: $('#project-name').val(),
+		    description: $('#project-description').val(),
+		    genre: $('#project-genre').val()
+		},function(result){
+			if(result)
+				window.location.href = 'studio/'+result._id;
+		});
+	});
+	
+	/* NavBar */
+	$(document).on('click','#hamburger',function(e){
+		$('.sidenav').toggleClass("open");
+	});
+	$(document).on('click','.closebtn',function(e){
+		$('.sidenav').toggleClass("open");
+	});
+
+
+	// TEXT JUSTIFIED
+// 	function SplitText(node)
+// 	{
+// 	    var text = node.nodeValue.replace(/^\s*|\s(?=\s)|\s*$/g, "");
+
+// 	    for(var i = 0; i < text.length; i++)
+// 	    {
+// 	        var letter = document.createElement("span");
+// 	        letter.style.display = "inline-block";
+// 	        letter.style.position = "absolute";
+// 	        letter.appendChild(document.createTextNode(text.charAt(i)));
+// 	        node.parentNode.insertBefore(letter, node);
+
+// 	        var positionRatio = i / (text.length - 1);
+// 	        var textWidth = letter.clientWidth;
+
+// 	        var indent = 100 * positionRatio;
+// 	        var offset = -textWidth * positionRatio;
+// 	        letter.style.left = indent + "%";
+// 	        letter.style.marginLeft = offset + "px";
+
+// 	        //console.log("Letter ", text[i], ", Index ", i, ", Width ", textWidth, ", Indent ", indent, ", Offset ", offset);
+// 	    }
+
+// 	    node.parentNode.removeChild(node);
+// 	}
+// 	Justify('user_email');
+// 	Justify('user_fullname');
+// 	function Justify(selector)
+// 	{
+// 	    var TEXT_NODE = 3;
+// 	    var elem = document.getElementById(selector);
+// 	    elem = elem.firstChild;
+
+// 	    while(elem)
+// 	    {
+// 	        var nextElem = elem.nextSibling;
+
+// 	        if(elem.nodeType == TEXT_NODE)
+// 	            SplitText(elem);
+
+// 	        elem = nextElem;
+// 	    }
+// 	}
+
+ }
+

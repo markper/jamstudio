@@ -18,16 +18,34 @@ exports.createChannel = function(channelJson,callback){
      Track.findOne({_id:channelJson.trackId},function(err,track){
         if(err || !track)
             return callback(errors.errorNotFound((err?err:'')));
-        newChannel.save(function(err) {
-            if (err) 
-                return callback(errors.errorSave((err?err:'')));
-            track.channels.push(newChannel._id);
-            track.save(function(err,project){
-                if(err)
-                    return callback(errors.errorUpdate((err?err:'')));
-                return callback(newChannel);
-            });
-        });
+        // Channel
+        //   .find({trackId:channelJson.trackId})
+        //   .sort({"orderLevel":-1})
+        //   .limit(1)
+        //   .exec(function (err, channel) {
+        //     console.log(channel);
+        //     channel = channel[0];
+        //      if(!channel || err || channel.orderLevel==undefined)
+        //         newChannel.orderLevel = 0;
+        //      else{
+        //         console.log("a");
+        //         console.log();
+        //         var counter = channel.orderLevel+1;
+        //         newChannel.orderLevel = counter;
+                
+        //      }
+             newChannel.save(function(err) {
+                    if (err) 
+                        return callback(errors.errorSave((err?err:'')));
+                    track.channels.push(newChannel._id);
+                    track.save(function(err,project){
+                        if(err)
+                            return callback(errors.errorUpdate((err?err:'')));
+                        return callback(newChannel);
+                    });
+                });
+          // });
+       
     });
 };
 
@@ -49,6 +67,28 @@ exports.deleteChannel = function(channelId,callback){
 
     });
 };
+exports.sortChannels = function(list,callback){
+    var err = null;
+    for (var i = 0;  i < list.length; i++) { 
+        sortChannel(list[i].channelId,list[i].level,callback);
+    }
+};
+
+function sortChannel(channelId,level,callback){
+    Channel.findOne({_id:channelId}, function(err,channel){
+    console.log("find");   
+    if (err || !channel) 
+        return callback(errors.errorNotFound((err?err:'')));
+    else
+        try{      
+            channel.orderLevel = parseInt(level); 
+            channel.save(function(_err){
+            });          
+        }catch(exc){  
+            console.log(exc.message);   
+        }
+    });
+}
 
 exports.updateChannel = function(channelId,channelJson,callback){
     Channel.findOne({_id:channelId}, function(err,channel){
@@ -56,13 +96,14 @@ exports.updateChannel = function(channelId,channelJson,callback){
         	return callback(errors.errorNotFound((err?err:'')));
         // to do:
 		// if trackId changed update track too..
-        channel.trackId = channelJson.trackId
-        channel.userId = channelJson.userId
-        channel.name = channelJson.name
-        channel.instrument = channelJson.instrument
-        channel.volume = channelJson.volume
-        channel.lock = channelJson.lock
-        channel.visible = channelJson.visible
+        channel.trackId = channelJson.trackId;
+        channel.userId = channelJson.userId;
+        channel.name = channelJson.name;
+        channel.instrument = channelJson.instrument;
+        channel.volume = channelJson.volume;
+        channel.lock = channelJson.lock;
+        channel.visible = channelJson.visible;
+        channel.orderLevel = channelJson.orderLevel;
         channel.samples = [];
         var samples = JSON.parse(channelJson.samples);
         for (var i = 0; i < samples.length; i++) {

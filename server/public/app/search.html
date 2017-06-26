@@ -90,17 +90,16 @@
 			<div class="row">			  
 			  <div id="projects" class="col-md-12">
 			  	<h4>Projects</h4>
-				<section class="project-list clearfix project-list-my">
+				<section class="project-list clearfix project-list-projects">
 					
 				</section>
 				<h4>People</h4>
-				<section class="project-list clearfix project-list-others">
+				<section class="project-list clearfix project-list-users">
 					
 				</section>
 			  </div>
 			</div>
 		</section>
-		<div id="create_project" data-toggle="modal" data-target="#exampleModal"></div>
 	</main>
 	<section>
 		<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
@@ -177,7 +176,13 @@
 	</section>
 	<section id="contextmenu"></section>
 
-	<script src="../static/includes/scripts/template.js"></script>
+	<script src="../static/includes/scripts/userComponent.js"></script>
+	<script>
+		(function(){
+			var ctlUserComponent = new userComponent(function(user){
+			});
+		})();
+	</script>
 	<script src="../static/includes/scripts/search.js"></script>
     <script src="../static/includes/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </body>

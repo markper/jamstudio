@@ -1,28 +1,7 @@
 var ctlAPI = new controllerAPI();
-var ctlUser = new userComponent();
 var projects = {};
 
 /* User */
-ctlAPI.getUserInfo(function(result){
-	ctlUser.init(result);
-});
-function userComponent(){
-	this.info = null;
-	this.alerts = {
-		requests: 0,
-		notifications: 0
-	};
-	this.init = function(data){
-		ctlMessage =  new messages(data._id);
-		this.info = data;
-        $('div.username span:first').text(data.email);
-        $('header #connected_user .user_img').css('background-image','url('+data.picture+')');
-        $('.profile h1').text(data.firstName + ' ' + data.lastName);
-        $('.profile h4').text(data.email);
-        loadProjects();
-        loadUsers();
-	};
-};
 
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
@@ -34,20 +13,32 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 
+loadProjects();
 function loadProjects(){
 	var word = getParameterByName('word');
 	console.log(word);
 	ctlAPI.getProjectsByWord(word,function(_result){
-		printProjects(_result.admin.conact(_result.contributor),'main .wrapper .project-list-others');
+		printProjects(_result.projects,'#projects .project-list-projects');
 	});
 }
 
+loadUsers();
 function loadUsers(){
 	var word = getParameterByName('word');
 	console.log(word);
-	ctlAPI.getProjectsByWord(word,function(_result){
-		console.log(_result.admin);
-		printProjects(_result.contributor,'main .wrapper .project-list-others');
+	ctlAPI.getUsersPrefix(word,function(users){
+		if(users && users.length){
+			var items = '';
+			for (var i = users.length - 1; i >= 0; i--) {
+				items += '<li class="list-group-item" data-userid="'+users[i]._id+'" data-username="'+users[i].firstName + ' ' +users[i].lastName +'"><a href="dashboard/'+users[i]._id+'">'+ buidUser(users[i]) +'</a></li>';
+			}
+			var all =	'<ul class="list-group">'+
+				  		items +
+						'</ul>';
+			$('#projects .project-list-users').append($(all));
+		}		
+		else
+			$('#projects .project-list-users').text("No people found..");
 	});
 }
 
@@ -58,7 +49,11 @@ function printProjects(projects,selector){
 			$(selector).append(element);
 		}
 	else
-		$(selector).text("No projects yet..");
+		$(selector).text("No projects found..");
+}
+function buidUser(userObject){
+	if(userObject)
+	return '<img src="'+userObject.picture+'" alt="..." class="img-circle" style="width:40px;"> &nbsp;'+ userObject.firstName+' '+userObject.lastName;
 }
 function buildProject(project){
 	return  '<article class="project_item">'+
@@ -86,12 +81,13 @@ $(document).on('click','#btn-create-project',function(e){
 	});
 });
 
-$(document).on('click','#search-line .btn',function(e){
-	var word = $("#input-search").val();
-	if(word)
-		loadProjectByWord(word);
-	else{
-		loadProjectByUserId(ctlUser.info._id);
-	}
+/* NavBar */
+$(document).on('click','#hamburger',function(e){
+	$('.sidenav').toggleClass("open");
 });
+$(document).on('click','.closebtn',function(e){
+	$('.sidenav').toggleClass("open");
+});
+
+
 		
