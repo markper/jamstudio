@@ -613,12 +613,28 @@ function controllerAPI(){
 	    });
 	};
 
-	this.updateSample = function(channelId,sampleId,samplelJson,callback){
+	// this.updateSample = function(channelId,sampleId,samplelJson,callback){
+	// 	$.ajax({
+	//         type: "Put",
+	//         datatype:"json",
+	//         url: serverDB+'/Channel/'+channelId+'/Sample/'+sampleId,
+	//         data:(samplelJson),
+	//         success: function(result)
+	//         {
+	//         	callback(result);
+	//         },
+	//         error:function(err){
+	//         	callback(null);
+	//         }
+	//     });
+	// };
+
+	this.updateSample = function(samplelJson,callback){
 		$.ajax({
 	        type: "Put",
-	        datatype:"json",
-	        url: serverDB+'/Channel/'+channelId+'/Sample/'+sampleId,
-	        data:(samplelJson),
+			contentType: "application/json",
+			data:JSON.stringify(samplelJson),
+	        url: serverDB+'/Channel/'+samplelJson.channelId+'/Sample',
 	        success: function(result)
 	        {
 	        	callback(result);
@@ -634,6 +650,22 @@ function controllerAPI(){
 	        type: "Delete",
 	        datatype:"json",
 	        url: serverDB+'/Channel/'+channelId+'/Sample/'+sampleId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	callback(null);
+	        }
+	    });
+	};
+
+	this.moveSample = function(channelId,sampleId,toChannelId,callback){
+		$.ajax({
+	        type: "Put",
+	        datatype:"json",
+	        url: serverDB+'/Channel/'+channelId+'/Sample/'+sampleId+'/NewChannel/'+toChannelId,
 	        data:({}),
 	        success: function(result)
 	        {

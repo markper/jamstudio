@@ -508,15 +508,17 @@ var studio = function studio(ctlUser){
 			console.log(action.state);
 			switch(action.type){
 				case 'sample':{
-					//p.updateSample();
-					//console.log(action.state);
-					//var s = getSampletById(action.state.id);
-					//s.clone(jQuery.extend(true, {}, action.state));
-					//s.draw();
-				
-					// var clone = jQuery.extend(true, {}, action.state);
-					// ctlProject.removeSample(action.state.id);
-					// ctlProject.addSample(clone.toJson2());
+					 var clone = jQuery.extend(true, {}, action.state);
+					 ctlProject.removeSample(action.state.id);
+					 ctlDBHelper.deleteSample(action.state.id);
+					 ctlProject.addSample(clone.toJson2());
+					break;
+				}
+				case 'move_sample':{
+					 var clone = jQuery.extend(true, {}, action.state);
+					 ctlProject.removeSample(action.state.id);
+					 ctlDBHelper.deleteSample(action.state.id);
+					 ctlProject.addSample(clone.toJson2());
 					break;
 				}
 				case 'sample_new':{
@@ -532,11 +534,11 @@ var studio = function studio(ctlUser){
 					break;
 				}
 				case 'sample_show':{
-					//$('#'+action.state.id).hide();
+					$('#'+action.state.id).hide();
 					break;
 				}
 				case 'sample_hide':{
-					//$('#'+action.state.id).show();
+					$('#'+action.state.id).show();
 					break;
 				}
 				case 'channel':{
@@ -1061,17 +1063,34 @@ var studio = function studio(ctlUser){
 
 	    this.toJson = function(){
 	    	return {
-	    			"sampleId" : this.id,
-	    			"channelId": this.channelId,
-					"fadein": this.fadeIn,
-					"fadeout": this.fadeOut,
-					"start": this.start,
-					"volume": this.volume,
-					"duration": this.duration,
-					"delay": this.delay,
-					"file":  this.fileId,
-					"path":  this.file					
+    			"sampleId" : this.id,
+    			"channelId": this.channelId,
+				"fadein": this.fadeIn,
+				"fadeout": this.fadeOut,
+				"start": this.start,
+				"volume": this.volume,
+				"duration": this.duration,
+				"delay": this.delay,
+				"file":  this.fileId,
+				"path":  this.file					
 	    	}
+	    }
+
+	    this.toJson2 = function(){
+	    	return {
+    			"_id" : this.id,
+    			"channelId": this.channelId,
+				"fadein": this.fadeIn,
+				"fadeout": this.fadeOut,
+				"start": this.start,
+				"volume": this.volume,
+				"duration": this.duration,
+				"delay": this.delay,
+				"file":  {
+					"_id":  this.fileId,
+					"path":  this.file		
+				}
+			}				
 	    }
 
 	    this.reload = function(_this){	 
@@ -1322,7 +1341,10 @@ var studio = function studio(ctlUser){
 		}
 		this.updateSample = function(sampleId){
 			var sample = ctlProject.getSample(sampleId);
-			ctlAPI.updateSample(sample.channelId,sample.id,sample.toJson(),function(data){
+			var sampleJson = sample.toJson();
+			delete sampleJson["sampleId"];
+			sampleJson["_id"] = sampleId;
+			ctlAPI.updateSample(sampleJson,function(data){
 				if(!data)
 					console.log('error updating server..'+ data);
 				else{
@@ -1353,28 +1375,14 @@ var studio = function studio(ctlUser){
 				"newChannelId":changes.newChannel,
 				"sampleId":changes.sampleId,
 				"start":changes.start
-			});			
-			ctlAPI.deleteSample(changes.lastChannel,changes.sampleId,function(data){
-				if(!data)
-					console.log('error updating server..');
-				else
-				{
-					var sample = ctlProject.getSample(changes.sampleId);
-					sample.channelId = changes.newChannel;
-					var samplejson = sample.toJson();
-					samplejson.channelId = changes.newChannel;
-					ctlAPI.createSample(changes.newChannel,samplejson,function(data){
-						ctlProject.updateSampleId(sample.channelId,
-													sample.id,
-													data._id);
-						ctlMessage.send("updateSampleId",{
-						 	"channelId":sample.channelId,
-						 	"oldSampleId":sample.id,
-						 	"newSampleId":data._id
-						});
-					});
-				}
-			});
+			});		
+			_this.updateSample(changes.sampleId);
+			// ctlAPI.moveSample(changes.lastChannel,changes.sampleId,changes.newChannel,function(data){
+			// 	if(!data)
+			// 		console.log('error updating server..');
+			// 	else
+			// 		console.log('error updating server..');
+			// });	
 		}
 		this.uploadFile	= function(userId,form,duration,size,callback){
 			ctlAPI.upload(userId,form,duration,size,function(result){
@@ -1731,13 +1739,13 @@ var studio = function studio(ctlUser){
 	    var all = ((new_offset-borders)/(time_units*unit_width))*time_units;
 	    var channelId = $(target).closest('.sample_placeholder').attr('data-channel');
 	    var sample = getSampletById(data);
+		ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
 	    var newChannel = ctlProject.get(channelId);
 	    var lastChannel = ctlProject.get(sample.channelId);
 		var changes = {newChannel:newChannel.channelId,lastChannel:lastChannel.channelId,sampleId:sample.id,start:all};
 		
 		$('#'+data).attr('data-start', all);
 	  
-		ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
 		updateUndoRedoIcons();
 
 		sample.start = all;
@@ -1882,6 +1890,7 @@ var studio = function studio(ctlUser){
 			$('#'+sample.id).hide();
 			ac.addAction(new Action('sample_hide',jQuery.extend(true, {}, sample)));
 		};
+		updateUndoRedoIcons();
 	}
 	function copy(e){
 		selectedSamples.operation = 'copy'

@@ -100,6 +100,15 @@ router.delete('/:channelId/Sample/:sampleId'/*, ensureLoggedIn*/, function(req, 
 });
 
 /* PUT sample  */
+router.put('/:channelId/Sample'/*,ensureLoggedIn*/, function(req, res, next) {
+    channelCtrl.updateSample(req.body,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message);
+        else
+            res.status(200).send(data);
+    }); 
+});
+/* PUT sample  */
 router.put('/:channelId/Sample/:sampleId'/*,ensureLoggedIn*/, function(req, res, next) {
     req.body._id = req.params.sampleId;
     channelCtrl.updateSample(req.params.channelId,req.body,function(data){
@@ -108,8 +117,17 @@ router.put('/:channelId/Sample/:sampleId'/*,ensureLoggedIn*/, function(req, res,
         else
             res.status(200).send(data);
     }); 
+});
 
 
+router.put('/:channelId/Sample/:sampleId/NewChannel/:channel2Id'/*,ensureLoggedIn*/, function(req, res, next) {
+    req.body._id = req.params.sampleId;
+    channelCtrl.moveSample(req.params.channelId,req.params.channel2Id,req.params.sampleId,function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message);
+        else
+            res.status(200).send(data);
+    }); 
 });
 
 

@@ -2,8 +2,10 @@ var Channel = require('../model/channelSchema');
 var Track = require('../model/trackSchema');
 var errors = require('./errors')
 
-exports.getChannel = function(channelId,callback){
-	Channel.findOne({_id: channelId})
+exports.getChannel = getChannel;
+
+function getChannel(channelId,callback){
+    Channel.findOne({_id: channelId})
     .populate({path:'samples.file', model:'File'})
     .exec(function (err, channel) {
         if (err || !channel)
@@ -11,7 +13,7 @@ exports.getChannel = function(channelId,callback){
         else
             return callback(channel);
     });
-};
+}
 
 exports.createChannel = function(channelJson,callback){
     var newChannel = new Channel(channelJson);
@@ -182,6 +184,35 @@ exports.createSample = function(channelId,sampleJson,callback){
     });
 }
 
+exports.moveSample = moveSample;
+
+function moveSample(oldChannelId,newChannelId,sampleId,callback){
+   Channel
+    .findOne({ '_id': oldChannelId, 'samples._id': sampleId }, { 'samples.$': 1 })
+    .exec(function (err, channel) {
+        if (err || !channel || !channel.samples[0]) 
+            return callback(errors.errorNotFound((err?err:'')));
+        else{
+            var sample = channel.samples[0];
+            deleteSample(sample.channelId,sample._id,function(result){
+                if(err)
+                    return callback(errors.errorNotFound((err?err:'')));
+                else
+                    getChannel(newChannelId,function(channel){
+                        sample.channelId = newChannelId;
+                        channel.samples.push(sample);
+                        channel.save(function(err){
+                            if(err)
+                                return callback(errors.errorNotFound((err?err:'')));
+                            else
+                                return callback({success: true});
+                        });
+                    });
+            })
+        }
+    });
+}
+
 exports.getSample = function(channelId,sampleId,callback){
 	Channel
 	.findOne({ '_id': channelId, 'samples._id': sampleId }, { 'samples.$': 1 })
@@ -194,31 +225,23 @@ exports.getSample = function(channelId,sampleId,callback){
 	});
 };
 
-exports.deleteSample = function(channelId,sampleId,callback){
+exports.deleteSample = deleteSample;
+
+function deleteSample(channelId,sampleId,callback){
     Channel.update( {_id:channelId}, {$pull: {samples: {_id:sampleId}}}, function(err, data){
         if(err || !data.nModified) {
             return callback(errors.errorUpdate((err?err:'')));
         }
         return callback(data);
     });
-};
+}
 
-exports.updateSample = function(channelId,sampleJson,callback){
-	Channel.update( {_id:channelId,samples: { $elemMatch: { _id:sampleJson._id } }},  { $set:{ "samples.$":sampleJson }}, function(err, data){
+function updateSample(channelId,sampleJson,callback){
+    Channel.update( {_id:channelId,samples: { $elemMatch: { _id:sampleJson._id } }},  { $set:{ "samples.$":sampleJson }}, function(err, data){
         if(err || !data.nModified) {
-            var sample = {
-                "channelId": sampleJson,channelId,
-                "fadein": sampleJson.fadein,
-                "fadeout": sampleJson.fadeout,
-                "start": sampleJson.start,
-                "volume": sampleJson.volume,
-                "duration": sampleJson.duration,
-                "file":  sampleJson.file,
-                "delay": sampleJson.delay
-            };
             Channel.findByIdAndUpdate(
                 channelId,
-                {$push: {"samples": sample}},
+                {$push: {"samples": sampleJson}},
                 {safe: true, upsert: true},
                 function(err, model) {
                     if(err) {
@@ -236,5 +259,41 @@ exports.updateSample = function(channelId,sampleJson,callback){
             return callback(data);
     });
 };
+
+exports.updateSample = function(sampleJson,callback){
+    console.log('111111');
+    Channel
+    .findOne({'samples._id': sampleJson._id }, { 'samples.$': 1 })
+    .exec(function (err, channel) {
+        if (err || !channel || !channel.samples[0]) {
+            console.log('111111');
+            return callback(errors.errorNotFound((err?err:'')));
+        }
+        else{
+            var sample = channel.samples[0];
+            console.log('sample');
+            console.log(sample);
+            if(sample.channelId != sampleJson.channelId)
+                moveSample(sample.channelId,sampleJson.channelId,sampleJson._id,function(result){
+                    console.log('movesample result..');
+                    console.log(result);
+                    if(result){                        
+                        updateSample(sampleJson.channelId,sampleJson,function(result){
+                            return callback(result);
+                        });
+                    }
+                    else
+                        return callback(errors.errorNotFound((err?err:'')));
+                });
+            else
+                updateSample(sampleJson.channelId,sampleJson,function(result){
+                    console.log('updatesample result..');
+                    console.log(result);
+                    return callback(result);
+                });
+        }
+    });
+};
+
 
 
