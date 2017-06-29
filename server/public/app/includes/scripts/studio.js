@@ -423,7 +423,7 @@ var studio = function studio(ctlUser){
 			if(actionController.actionsUndo.length<=0)
 				return;
 			var action = actionController.actionsUndo.pop();
-			var before = ctlProject.getSample(action.state.id);
+			var before = (action.state!=null?getSampletById(action.state.id):null);
 			switch(action.type){
 				case 'sample':{
 					sample(this);
@@ -439,7 +439,9 @@ var studio = function studio(ctlUser){
 				}
 				case 'sample_split':{
 					this.undo();
+					console.log("a");
 					this.undo();
+					console.log("b");
 					actionController.actionsRedo.push(new Action('sample_split',null));	
 					break;
 				}
@@ -510,27 +512,20 @@ var studio = function studio(ctlUser){
 				case 'sample':{
 					 var clone = jQuery.extend(true, {}, action.state);
 					 ctlProject.removeSample(action.state.id);
-					 ctlDBHelper.deleteSample(action.state.id);
 					 ctlProject.addSample(clone.toJson2());
-					break;
-				}
-				case 'move_sample':{
-					 var clone = jQuery.extend(true, {}, action.state);
-					 ctlProject.removeSample(action.state.id);
-					 ctlDBHelper.deleteSample(action.state.id);
-					 ctlProject.addSample(clone.toJson2());
+					 ctlDBHelper.updateSample(action.state.id);
 					break;
 				}
 				case 'sample_new':{
-					// $('#'+action.state.id).remove();
-					// ctlProject.get(action.state.channelId).removeSample(action.state);
-					// ctlDBHelper.deleteSample(action.state.id);					
+					$('#'+action.state.id).remove();
+					ctlDBHelper.deleteSample(action.state.id);					
+					ctlProject.get(action.state.channelId).removeSample(action.state);
 					break;
 				}
 				case 'sample_delete':{
-					// ctlProject.get(action.state.channelId).addSample(action.state);	
-					// action.state.draw();
-					// ctlDBHelper.createSample(action.state.id);
+					ctlProject.get(action.state.channelId).addSample(action.state);	
+					action.state.draw();
+					ctlDBHelper.createSample(action.state.id);
 					break;
 				}
 				case 'sample_show':{
@@ -1328,6 +1323,8 @@ var studio = function studio(ctlUser){
 		this.createSample = function(sampleId,callback){
 			var sample = ctlProject.getSample(sampleId);
 			var sj = sample.toJson();
+			delete sj["sampleId"];
+			sj["_id"] = sampleId;
 			sj.channelId = sample.channelId;
 			ctlAPI.createSample(sample.channelId,sj,function(data){
 				ctlProject.updateSampleId(sample.channelId,
@@ -1337,6 +1334,7 @@ var studio = function studio(ctlUser){
 				 	"channelId":data.channelId,
 				 	"sampleId":data._id
 				});
+				callback(data._id);
 			});
 		}
 		this.updateSample = function(sampleId){
@@ -1348,8 +1346,6 @@ var studio = function studio(ctlUser){
 				if(!data)
 					console.log('error updating server..'+ data);
 				else{
-					console.log(data);
-
 					ctlMessage.send("updateSample",{"sampleId":sample.id,"channelId":sample.channelId});
 				}
 			});
@@ -1377,12 +1373,6 @@ var studio = function studio(ctlUser){
 				"start":changes.start
 			});		
 			_this.updateSample(changes.sampleId);
-			// ctlAPI.moveSample(changes.lastChannel,changes.sampleId,changes.newChannel,function(data){
-			// 	if(!data)
-			// 		console.log('error updating server..');
-			// 	else
-			// 		console.log('error updating server..');
-			// });	
 		}
 		this.uploadFile	= function(userId,form,duration,size,callback){
 			ctlAPI.upload(userId,form,duration,size,function(result){
@@ -1809,40 +1799,38 @@ var studio = function studio(ctlUser){
 	}
 
 	function cutSample(e){
-
+		// get sample
 		var sample = ctlProject.getSample(($(e.target).closest('.sample')).attr("id"));
 		ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
 		var time = offsetToSeconds(mouseOffsetSampleClicked);
-
+		// make clone 
 		var clone = jQuery.extend(true, {}, sample);
 		clone.delay =  parseFloat(parseFloat(sample.delay) +  parseFloat(time)).toString();
 		clone.start = parseFloat(parseFloat(sample.start)+parseFloat(time)).toString();
 		clone.duration = parseFloat(parseFloat(sample.duration)-parseFloat(time)).toString();
 		clone.id = 'newSample'+sampleIndexGenerator++;
 		clone.fadeIn = 0;
-
-		console.log('clone.delay')
-		console.log(clone.delay);
-
+		// draw sample
 		sample.duration = time.toFixed(1);
 		sample.fadeOut = 0;
 		sample.draw();
-
-		console.log('sample.delay')
-		console.log(sample.delay);
-
+		ctlDBHelper.updateSample(sample.id);// update db
+		// draw clone
 		ctlProject.get(sample.channelId).addSample(clone);
 		clone.isloaded = false;
 		clone.draw();
+		ctlDBHelper.createSample(clone.id,function(newId){
+			clone.id = newId;
+			ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
+			ac.addAction(new Action('sample_split',null));
+		});
 
+		// update ui
 		cursorType = 'arrow';
 		changeCursorPlace(e);
-		ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
-		ac.addAction(new Action('sample_split',null));
 		updateUndoRedoIcons();
-		//ctlDBHelper.updateChannel(sample.channelId);
-		ctlDBHelper.updateSample(sample.id);
-		ctlDBHelper.createSample(clone.id);
+		
+		
 	}
 
 	function fadeIn(sec){
@@ -1919,8 +1907,14 @@ var studio = function studio(ctlUser){
 		 	var channel = ctlProject.get(clone.channelId);
 			channel.addSample(clone);
 			moveSample(e,clone.id);
-			ctlDBHelper.createSample(clone.id);
+			ctlDBHelper.createSample(clone.id,function(sampleId){
+				actionController.actionsUndo.pop(); // remove move action
+				clone.id = sampleId;
+				ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
+			});
 			changeCursorPlace(e);
+
+			updateUndoRedoIcons();
 		}
 
 	}

@@ -1,6 +1,7 @@
 var Channel = require('../model/channelSchema');
 var Track = require('../model/trackSchema');
 var errors = require('./errors')
+var mongoose = require('mongoose');
 
 exports.getChannel = getChannel;
 
@@ -80,16 +81,18 @@ function sortChannel(channelId,level,callback){
     Channel.findOne({_id:channelId}, function(err,channel){
     console.log("find");   
     if (err || !channel) 
-        return callback(errors.errorNotFound((err?err:'')));
+          return callback(errors.errorNotFound((err?err:'')));
     else
         try{      
             channel.orderLevel = parseInt(level); 
             channel.save(function(_err){
+                    return callback({success: true});
             });          
         }catch(exc){  
             console.log(exc.message);   
         }
     });
+  
 }
 
 exports.updateChannel = function(channelId,channelJson,callback){
@@ -172,7 +175,11 @@ exports.createSample = function(channelId,sampleJson,callback){
         	return callback(errors.errorNotFound((err?err:'')));            
         }
         
-        delete sampleJson["sampleId"]
+        if(!mongoose.Types.ObjectId.isValid(sampleJson["_id"]))
+            delete sampleJson["_id"]
+        if(!mongoose.Types.ObjectId.isValid(sampleJson["sampleId"]))
+            delete sampleJson["sampleId"]
+
         channel.samples.push(sampleJson);
         channel.save(function(err,channel){
 	        if (err) {
