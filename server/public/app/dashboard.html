@@ -16,6 +16,7 @@
 
 	<link rel="stylesheet" href="../../../static/includes/style/userComponent.css">
 	<script src="../../../static/includes/scripts/userComponent.js"></script>
+	<script src="../../static/includes/scripts/controllerAPI.js"></script>
 	<script src="../../static/includes/scripts/dashboard.js"></script>
 
 	<!-- -->
@@ -200,10 +201,24 @@
 	<section id="contextmenu"></section>
 
 	<script>
-		(function(){
-			var ctlUserComponent = new userComponent(function(user){
-				var ctlLoadDashboard = new loadDashboard(user);
+		(function(){			
+			new userComponent(function(user){
+				var userId = location.href.substr(location.href.lastIndexOf('/') + 1);
+				if(userId && userId !='dashboard'){
+					var ctlAPI = new controllerAPI();
+					ctlAPI.getUser(userId,function(_user){	
+						if(!(_user.status==500)){					
+							new loadDashboard({info:_user});
+							return false;
+						}
+						else
+							new loadDashboard(user);
+					});	
+				}
+				else
+					new loadDashboard(user);
 			});
+
 		})();
 	</script>
     <script src="../../static/includes/bootstrap/3.3.7/js/bootstrap.min.js"></script>

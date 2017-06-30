@@ -71,26 +71,27 @@ exports.deleteChannel = function(channelId,callback){
     });
 };
 exports.sortChannels = function(list,callback){
-    var err = null;
+    var err = {success: true};
+    var counter = 0;
     for (var i = 0;  i < list.length; i++) { 
-        sortChannel(list[i].channelId,list[i].level,callback);
+        sortChannel(list[i].channelId,list[i].level,function(result){
+            if (result instanceof Error)
+                err = errors.errorUpdate((err?err:''));
+            if(++counter== list.length)
+                return callback({success: err});
+        });
     }
 };
 
 function sortChannel(channelId,level,callback){
     Channel.findOne({_id:channelId}, function(err,channel){
-    console.log("find");   
     if (err || !channel) 
           return callback(errors.errorNotFound((err?err:'')));
     else
-        try{      
-            channel.orderLevel = parseInt(level); 
-            channel.save(function(_err){
-                    return callback({success: true});
-            });          
-        }catch(exc){  
-            console.log(exc.message);   
-        }
+        channel.orderLevel = parseInt(level); 
+        channel.save(function(_err){
+            return callback(_err);               
+        });          
     });
   
 }

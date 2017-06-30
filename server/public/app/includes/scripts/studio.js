@@ -1099,10 +1099,13 @@ var studio = function studio(ctlUser){
 			    _this.aud = audio;
 			    _this.aud.load();
 			    _this.aud.pause();
+			    _this.aud.loop = true;
 			    _this.aud.currentTime = parseFloat(_this.start)+ parseFloat(_this.delay);
-			    p.reset();		    
-				$('#'+_this.id).animate({opacity:1},1000);
+			    $('#'+_this.id).animate({opacity:1},1000);
 				_this.isloaded = true;
+			    (_this.aud).onloadeddata = function() {
+				   p.reset();
+				};    		
 			  }
 			}
 			request.send();
@@ -2010,7 +2013,7 @@ var studio = function studio(ctlUser){
 
 	$( "#channels_list" ).sortable({
 	    revert: true,
-	    connectWith: '#channels_list',
+	    connectWith: '.channel_user',
 		cancel: '.channel_grid_row',
 		update: function(event, ui) {
             ctlDBHelper.sortChannels();
@@ -2860,7 +2863,7 @@ var studio = function studio(ctlUser){
 	});
 
 	$(document).on('click','#logo',function() {
-		window.location.href = '../dashboard';
+		window.location.href = '../dashboard/'+ ctlUser.info._id;
 	});
 	
 	

@@ -42,6 +42,28 @@ function loadUsers(){
 	});
 }
 
+loadIcqs();
+function loadIcqs(){
+	var word = getParameterByName('word');
+	console.log(word);
+	ctlAPI.getIcqByPrefix(word,function(icqs){
+		icqs = icqs.icqs;
+		if(icqs && icqs.length){
+			var items = '';
+			for (var i = icqs.length - 1; i >= 0; i--) {
+				items += buildIcq(icqs[i]);
+			}
+			var all =	'<ul class="list-group">'+
+				  		items +
+						'</ul>';
+			$('#projects .project-list-icqs').append($(all));
+		}		
+		else
+			$('#projects .project-list-icqs').text("No people found..");
+	});
+}
+
+
 function printProjects(projects,selector){
 	if(projects && projects.length)
 		for (var i = projects.length - 1; i >= 0; i--) {
@@ -55,6 +77,19 @@ function buidUser(userObject){
 	if(userObject)
 	return '<img src="'+userObject.picture+'" alt="..." class="img-circle" style="width:40px;"> &nbsp;'+ userObject.firstName+' '+userObject.lastName;
 }
+function buildIcq(icq){
+	return  '<li class="list-group-item" data-icqid="'+icq._id+'">'+
+			'	<div class="row">'+
+	    	'	  <div class="col-md-9">'+
+			'		<img src="https://icons.iconarchive.com/icons/flat-icons.com/flat/128/Guitar-icon.png" style="width: 40px; height:40px;" alt="..." class="img-circle">'+ icq.title +', '+icq.description +
+	    	'	  </div>'+
+	    	'	  <div class="col-md-3">'+
+	    	'      <span class="glyphicon glyphicon-play-circle play" style="font-size: 25px;margin-top:10px;" data-projectId="'+icq.projectId._id+'"></span>'+
+	    	'	  </div>'+
+	    	'	</div>'+
+		    '</li>'
+}
+
 function buildProject(project){
 	return  '<article class="project_item">'+
 					'<div class="project_item_cover"></div>'+

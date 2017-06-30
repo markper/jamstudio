@@ -18,7 +18,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/app/p',ensureLoggedIn, function (req, res, next) {
-  var path2 = path.join(__dirname, '../public', 'app/p.html');
+  var path2 = path.join(__dirname, '../public', 'app/preview.html');
   console.log(path2);
   return res.sendFile(path2);
   next();

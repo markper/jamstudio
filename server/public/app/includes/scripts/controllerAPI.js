@@ -86,6 +86,7 @@ function controllerAPI(){
 	        	callback(result)
 	        },
 	        error: function(err){
+	        	callback(err);
 	        	console.log(err);
 	        }
 	    });
@@ -454,6 +455,22 @@ function controllerAPI(){
 	        type: "Get",
 	        datatype:"json",
 	        url: serverDB+'/Icq/Project/'+projectId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err);
+	        }
+	    });
+	}
+
+	this.getIcqByPrefix = function(string,callback){
+		$.ajax({
+	        type: "Get",
+	        datatype:"json",
+	        url: serverDB+'/Icq/Search/'+string,
 	        data:({}),
 	        success: function(result)
 	        {

@@ -23,6 +23,24 @@ exports.getIcqByProject = function(projectId, callback){
         });
 };
 
+exports.getIcqByString = function(string,callback){
+    console.log(string);
+    Icq
+        .find({$or:[
+        {"title": new RegExp('^'+string, "i")},
+        {"description": new RegExp('^'+string, "i")},
+        {"instruments": new RegExp('^'+string, "i")}
+        ]})
+        .select(["_id","projectId","title","description","instruments"])
+        .populate({path:'projectId',select: ['name','description','genre']})
+        .exec(function (err, list) {
+            console.log(list);
+            if (err)
+                return callback(errors.errorUpdate((err?err:'')));
+            else
+                return callback({'icqs':list});
+        });    
+}
 
 exports.getIcqByAdmin = function(userId, callback){
        Icq.findOne({'projectId': userId})

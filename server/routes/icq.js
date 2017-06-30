@@ -27,6 +27,15 @@ router.get('/Admin/:userId', function(req, res, next) {
 	});
 });
 
+router.get('/search/:string', function(req, res, next) {
+  icqCtrl.getIcqByString(req.params.string, function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);
+		else
+			res.status(200).send(data);
+	});
+});
+
 
 router.get('/project/:projectId', function(req, res, next) {
   var projectId = req.params.projectId;

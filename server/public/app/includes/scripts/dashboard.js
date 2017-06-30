@@ -34,7 +34,7 @@ function loadDashboard(user){
 		return  '<article class="project_item">'+
 						'<div class="project_item_cover"></div>'+
 						'<div class="project_item_info">'+
-						'<div><a href="studio/'+project._id+'">'+project.name+'</a></div><div><a href="studio/'+project._id+'">'+project.genre+'</a></div></div>'+
+						'<div><a href="'+window.location.href.split("/")[0]+'/app/studio/'+project._id+'">'+project.name+'</a></div><div><a href="studio/'+project._id+'">'+project.genre+'</a></div></div>'+
 						'<div class="settings" data-project="'+project._id+'"></div>'+
 					   '</article>';		
 	}
