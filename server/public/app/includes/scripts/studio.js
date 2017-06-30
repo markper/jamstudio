@@ -670,7 +670,7 @@ var studio = function studio(ctlUser){
 					if(!sample.aud.readyState)
 						return;
 					sample.aud.volume = (sample.fadeIn>0&&remainToStart>0?0:parseFloat(ctlProject.channels[sample.channelId].volume * sample.volume * player.volume));
-					sample.aud.currentTime = startAt+ parseFloat(sample.delay);
+					sample.aud.currentTime = (startAt+ parseFloat(sample.delay)) % sample.aud.duration;
 					sample.aud.play();
 				},remainToStart*1000);	
 				player.timeouts.push(st1);
