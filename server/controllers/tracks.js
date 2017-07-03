@@ -3,11 +3,13 @@ var Project = require('../model/projectSchema');  // get our mongoose model
 var errors = require('./errors')
 
 exports.createTrack = function(trackJson,callback){
+    console.log(trackJson);
 	var newTrack = new Track(trackJson);
      Project.findOne({_id:newTrack.projectId},function(err,project){
         if(err || !project)
         	return callback(errors.errorNotFound((err?err:'')));
         newTrack.save(function(err) {
+             console.log(newTrack);
             if (err) 
         		return callback(errors.errorSave((err?err:'')));
             project.tracks.push(newTrack._id);

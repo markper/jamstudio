@@ -1005,11 +1005,15 @@ var studio = function studio(ctlUser){
 					},250);	
 		  	    }
 			});
-			var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channel.name +'</span><div><div class="channel_details"><span class="channel_user">'+
-			ctlProject.contributors[channel.userId].user.firstName + ' ' +ctlProject.contributors[channel.userId].user.lastName
-				+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="checkbox">'+checkbox+'</li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
-			$(list_item).find('.volume_placeholder').append(slider);
-			$(row).find('.channel_list_row').append(list_item);
+			try{
+				var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channel.name +'</span><div><div class="channel_details"><span class="channel_user">'+
+				ctlProject.contributors[channel.userId].user.firstName + ' ' +ctlProject.contributors[channel.userId].user.lastName
+					+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="checkbox">'+checkbox+'</li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
+				$(list_item).find('.volume_placeholder').append(slider);
+				$(row).find('.channel_list_row').append(list_item);
+			}catch(e){
+
+			}
 			// create and append, grid cells to grid row
 			var cells = Math.round(max_time/time_units);						
 			for (var j = 0; j < cells; j++) {

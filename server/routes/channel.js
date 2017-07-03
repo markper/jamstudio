@@ -7,8 +7,17 @@ var channelCtrl = require('../controllers/channels');
 
 /* GET a channel */
 router.get('/:channelId', function(req, res) {
-
     channelCtrl.getChannel( req.params.channelId , function(data){
+        if(data instanceof Error)
+            res.status(500).send(data.message);
+        else
+            res.status(200).send(data);
+    });
+});
+
+router.get('/:channelId/user/:userId/access', function(req, res) {
+
+    channelCtrl.checkChannelPermitions(req.params.channelId,req.params.userId , function(data){
         if(data instanceof Error)
             res.status(500).send(data.message);
         else
@@ -19,7 +28,7 @@ router.get('/:channelId', function(req, res) {
 
 /* POST a new channel */
 router.post('/', function(req, res) {
-    channelCtrl.createChannel(req.body,function(data){
+    channelCtrl.createChannel(req.body,getUserId(req),function(data){
         if(data instanceof Error)
             res.status(500).send(data.message);
         else
@@ -29,7 +38,7 @@ router.post('/', function(req, res) {
 
 /* DELETE channel */
 router.delete('/:channelId', function(req, res) {
-    channelCtrl.deleteChannel(req.params.channelId,function(data){
+    channelCtrl.deleteChannel(req.params.channelId,getUserId(req),function(data){
         if(data instanceof Error)
             res.status(500).send(data.message);
         else
@@ -47,7 +56,7 @@ router.put('/Sort', function(req, res) {
     }); 
 });
 router.put('/:channelId', function(req, res) {
-    channelCtrl.updateChannel(req.params.channelId,req.body,function(data){
+    channelCtrl.updateChannel(req.params.channelId,req.body,getUserId(req),function(data){
         if(data instanceof Error)
             res.status(500).send(data.message);
         else
@@ -55,15 +64,6 @@ router.put('/:channelId', function(req, res) {
     }); 
 });
 
-router.post('/Sync', function(req, res) {
-    channelCtrl.syncChannels(req.body,function(data){
-        if(data instanceof Error){
-            console.log(data.message);
-            res.status(500).send(data.message);}
-        else
-            res.status(200).send(data);
-    }); 
-});
 
 //
 /* SAMPLES */
@@ -71,7 +71,7 @@ router.post('/Sync', function(req, res) {
 
 /* POST add sample to project */
 router.post('/:channelId/Sample', function(req, res, next) {
-    channelCtrl.createSample(req.params.channelId,req.body,function(data){
+    channelCtrl.createSample(req.params.channelId,req.body,getUserId(req),function(data){
         if(data instanceof Error)
             res.status(500).send(data.message);
         else
@@ -101,7 +101,7 @@ router.delete('/:channelId/Sample/:sampleId'/*, ensureLoggedIn*/, function(req, 
 
 /* PUT sample  */
 router.put('/:channelId/Sample'/*,ensureLoggedIn*/, function(req, res, next) {
-    channelCtrl.updateSample(req.body,function(data){
+    channelCtrl.updateSample(req.body,getUserId(req),function(data){
         if(data instanceof Error)
             res.status(500).send(data.message);
         else
@@ -122,13 +122,22 @@ router.put('/:channelId/Sample/:sampleId'/*,ensureLoggedIn*/, function(req, res,
 
 router.put('/:channelId/Sample/:sampleId/NewChannel/:channel2Id'/*,ensureLoggedIn*/, function(req, res, next) {
     req.body._id = req.params.sampleId;
-    channelCtrl.moveSample(req.params.channelId,req.params.channel2Id,req.params.sampleId,function(data){
+    channelCtrl.moveSample(getUserId(req),req.params.channelId,req.params.channel2Id,req.params.sampleId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message);
         else
             res.status(200).send(data);
     }); 
 });
+
+function getUserId(req){
+    try{
+        return req.user.id.split("|")[1];
+    }catch(exc){
+        return "";
+    }
+};
+
 
 
 module.exports = router;

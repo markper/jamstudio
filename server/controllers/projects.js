@@ -7,14 +7,13 @@ var errors = require('./errors');
 var channels = require('./channels');
 var mongoose = require('mongoose');
 
-
 exports.createProject =  function(projectJson,callback){
 	var project = new Project(projectJson);
     project.save(function(err) {
         if (err) 
         	return callback(errors.errorCreate((err?err:'')));
         var track = new Track();
-        track.projectId = projectJson.projectId;
+        track.project = project._id;
         track.name = projectJson.name;
         track.description = projectJson.description;
         track.genre = projectJson.genre;
@@ -22,7 +21,6 @@ exports.createProject =  function(projectJson,callback){
         track.save(function(err){
             if (err) 
                 return callback(errors.errorCreate((err?err:'')));
-            console.log('done..'+ track._id);
             project.track_version = track._id;
             project.tracks.push(track._id);
             project.save(function(err) {
