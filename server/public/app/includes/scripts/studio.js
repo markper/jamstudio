@@ -976,10 +976,22 @@ var studio = function studio(ctlUser){
 				}
 	    }
 
-		this.draw = function(){					
+	    this.hasPermission = function(){
+	    	return (this.userId==ctlUser.info._id
+	    	 || ctlProject.contributors[ctlUser.info._id].access=="admin"
+	    	 || ctlProject.contributors[ctlUser.info._id].access=="1")
+	    }
+
+		this.draw = function(){	
+
+
+
 			var channel = this;
+			// channel perrmissions
+			
+					
 			// create grid row
-			var row = $('<div class="channels_list_row" data-channel="'+ channel.channelId +'"><article class="channel_list_row" ></article><article class="channel_grid_row" id="channel_grid_row_'+channel.channelId+'"></article></article></div>');
+			var row = $('<div class="channels_list_row '+(this.hasPermission()?'':'noPermission')+'" data-channel="'+ channel.channelId +'"><article class="channel_list_row" ></article><article class="channel_grid_row" id="channel_grid_row_'+channel.channelId+'"></article></article></div>');
 			// create and append, grid cells to grid row
 			var svg = '<?xml version="1.0" ?><svg  class="channel_play player-icon" data-channel="'+ channel.channelId +'" version="1.1" viewBox="0 0 20 20" width="20px" xmlns="http://www.w3.org/2000/svg" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns" xmlns:xlink="http://www.w3.org/1999/xlink"><title/><desc/><defs/><g fill="none" fill-rule="evenodd" id="Page-1" stroke="none" stroke-width="1"><g  id="Icons-AV" transform="translate(-126.000000, -85.000000)"><g class="player-fill" transform="translate(126.000000, 85.000000)"><path d="M10,0 C4.5,0 0,4.5 0,10 C0,15.5 4.5,20 10,20 C15.5,20 20,15.5 20,10 C20,4.5 15.5,0 10,0 L10,0 Z M8,14.5 L8,5.5 L14,10 L8,14.5 L8,14.5 Z" id="Shape"/></g></g></g></svg>';
 			var svg2 = '<svg version="1.1"  class="channel_pause player-icon" data-channel="'+ channel.channelId +'" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 300.003 300.003" style="enable-background:new 0 0 300.003 300.003;" xml:space="preserve"><g><path class="player-fill" d="M150.001,0c-82.838,0-150,67.159-150,150c0,82.838,67.162,150.003,150,150.003c82.843,0,150-67.165,150-150.003C300.001,67.159,232.846,0,150.001,0z M134.41,194.538c0,9.498-7.7,17.198-17.198,17.198s-17.198-7.7-17.198-17.198V105.46c0-9.498,7.7-17.198,17.198-17.198s17.198,7.7,17.198,17.198V194.538z M198.955,194.538c0,9.498-7.701,17.198-17.198,17.198c-9.498,0-17.198-7.7-17.198-17.198V105.46c0-9.498,7.7-17.198,17.198-17.198s17.198,7.7,17.198,17.198V194.538z"/></g></svg>'
@@ -1138,9 +1150,10 @@ var studio = function studio(ctlUser){
 				createSoundSpectrum($(_sample),width,height);
 				var resizeTimer;
 				var state = this;
+				if(!row.hasClass('noPermission'))
 				$($(row).find('#'+this.id)).resizable({
 				  	handles: 'e, w'
-				}).on('resize', function (e) {
+				}).on('resize', function (e) {						
 						_this.duration = offsetToSeconds($(e.target).width());
 						_this.start = 	offsetToSeconds(parseFloat($(e.target).css('left')));
 						_this.aud.loop = true;
@@ -2014,6 +2027,7 @@ var studio = function studio(ctlUser){
 	var isAlt  = false;
 
 	// Channels
+	// this will prevent drop on section   
 
 	$( "#channels_list" ).sortable({
 	    revert: true,
@@ -2030,7 +2044,11 @@ var studio = function studio(ctlUser){
 		e.preventDefault();
 	});
 	$(document).on('drop','.channel_grid_row',function(e){
-		if(!$('#'+e.originalEvent.dataTransfer.getData("text")).hasClass('file'))
+		if($(this).closest('.channels_list_row').hasClass('noPermission')){
+			e.preventDefault();
+			return;	
+		}
+		if(!$('#'+e.originalEvent.dataTransfer.getData("text")).hasClass('file') )
 			drop(e);
 		else
 			dropFile(e);
@@ -2057,6 +2075,10 @@ var studio = function studio(ctlUser){
 	});
 
 	$(document).on('mousedown', '.sample , * > .sample',function(e){
+		if($(this).closest('.channels_list_row').hasClass('noPermission')){
+			e.preventDefault();
+			return;	
+		}
 		if(isControl){
 			console.log('ss');
 			ss.add($(this));
@@ -2069,6 +2091,10 @@ var studio = function studio(ctlUser){
 	    }
 	});
 	$(document).on('mousedown','.sample .ui-resizable-handle',function(e){	
+		if($(this).closest('.channels_list_row').hasClass('noPermission')){
+			e.preventDefault();
+			return;	
+		}
 		var sample = getSampletById($(e.target).closest('.sample').attr("id"));
 		ac.addAction(new Action('sample',jQuery.extend(true, {}, sample)));
 		updateUndoRedoIcons();
@@ -2799,6 +2825,10 @@ var studio = function studio(ctlUser){
 	});
 
 	$(document).on('contextmenu','.sample',function(e){
+		if($(this).closest('.channels_list_row').hasClass('noPermission')){
+			e.preventDefault();
+			return;	
+		}
 		if(isControl)
 			return;
 		var id  = (e.target.id).substring(5,(e.target.id).length);

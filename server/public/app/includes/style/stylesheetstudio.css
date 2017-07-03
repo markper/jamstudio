@@ -480,7 +480,9 @@ main{
     );
 
 	}
-
+.noPermission{
+	opacity: 0.9 !important;
+}
 main #channels_title{
 	height: 24px;
 	top: 0px;
