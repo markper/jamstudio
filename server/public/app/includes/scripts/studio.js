@@ -1030,7 +1030,7 @@ var studio = function studio(ctlUser){
 			}
 			var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channel.name +'</span><div><div class="channel_details"><span class="channel_user">'+
 				userFullName
-				+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="btn_eye"></li><li class="btn_mic"></li></article>');
+				+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="btn_sort">☰</li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
 			$(list_item).find('.volume_placeholder').append(slider);
 			$(row).find('.channel_list_row').append(list_item);
 		
@@ -1339,11 +1339,7 @@ var studio = function studio(ctlUser){
 			ctlMessage.send("updateChannel",{"channelId":channelId});
 		}
 		this.sortChannels = function(){
-			var list = [];
-			$('.channels_list_row').each(function(key,value){
-				list.push({channelId:$(value).attr('data-channel'),level:list.length});
-			});
-			console.log(list);
+			var list = $( "#channels_list" ).sortable( "toArray" ,{attribute: 'data-channel'} );
 			ctlAPI.sortChannels({"list":list},function(result){
 				console.log(result);
 			});
@@ -2032,10 +2028,16 @@ var studio = function studio(ctlUser){
 	// Channels
 
 	$( "#channels_list").sortable({
+		axis: "y",
 	    revert: true,
-	    items: "div.channels_list_row:not(.noPermission)",
-	    connectWith: '.channel_user',
-		cancel: '.channel_grid_row , .selected',
+	    items: "div.channels_list_row:not(.noPermission)",	    
+		distance: 5,
+		cancel: '.channel_grid_row , .selected , .channel_list_row_info ,li:not(.btn_sort)',
+		placeholder: 'sortable_placeholder',
+		zIndex: 2147483647,
+		start: function(e, ui){
+        	ui.placeholder.height(ui.item.height());
+    	},
 		update: function(event, ui) {
             ctlDBHelper.sortChannels();
         }
@@ -2474,14 +2476,16 @@ var studio = function studio(ctlUser){
 	    function(e){
 	    	$(e.target).find('div').hide();
 	    }
-	); 
-	$(document).on('click','#toolbox_btn_export_menu',function(e){
-
-		if($(e.target).find('span').hasClass('loading'))
-			return;
+	); 	
+	$(document).on('click','#btn-export-toggle',function(e){
+		if($('.range').is(":visible"))
+			$(this).text('Show Scope');
 		else
-			$(e.target).find('span').addClass('loading');
-
+			$(this).text('Hide Scope');
+		$('.range').toggle();		
+	});
+	$(document).on('click','#btn-export-start',function(e){
+		$('#loader').show();
 		var channels = ctlProject.toJson().track_version.channels;
 		var channelsArray = {'channels':[]};
 		for (var i = 0; i < channels.length; i++) {
@@ -2496,7 +2500,7 @@ var studio = function studio(ctlUser){
 		    link.download = msg;
 		    link.href = msg;
 		    link.click();
-		    $(e.target).find('span').removeClass('loading');
+		    $('#loader').hide();
 		});
 	});
 

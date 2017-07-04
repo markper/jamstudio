@@ -72,7 +72,7 @@ exports.sortChannels = function(list,callback){
     var err = {success: true};
     var counter = 0;
     for (var i = 0;  i < list.length; i++) { 
-        sortChannel(list[i].channelId,list[i].level,function(result){
+        sortChannel(list[i],i,function(result){
             if (result instanceof Error)
                 err = errors.errorUpdate((err?err:''));
             if(++counter== list.length)

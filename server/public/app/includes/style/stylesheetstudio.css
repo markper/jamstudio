@@ -22,7 +22,7 @@
     min-height: 12px;
 }
 main .channel_list_row_btns li {
-    height: 15px !important;
+    height: 15px;
 }
 /*bootstrap fixes*/
 
@@ -182,10 +182,11 @@ input.form-control{
 }
 .range{
 	position: absolute;
+	display: none;
 	top: 0px;
 	left: 160px;
 	height: 100%;
-    z-index: 2147483647;
+    z-index: 2147483645;
 	background-color: black;
 	width: 3px;
 	background: red; /* For browsers that do not support gradients */
@@ -494,6 +495,7 @@ main #channels_title:after{
 	clear: both;
 }
 main .channel_list_buttons{
+	z-index: 2147483646;
 	color: #ffffff;
 	left: 0px;
 	position: absolute;
@@ -591,7 +593,7 @@ main .channels_list_row.selected .channel_list_row{
 main .channel_list_row{
 	position: absolute;
 	left: 0px;
-	z-index: 2147483647;
+	z-index: 2147483646;
 	height: 100%;
 	width: 160px;
 	background-color: #232323;
@@ -655,7 +657,7 @@ main .channel_list_row_btns{
 }
 main .channel_list_row_btns li{
 	width:100%;
-	height: 20px;
+	height: 15px;
 	margin-top: 5px;
 	float: left;
 }
@@ -728,7 +730,14 @@ main .channel_list_row_btns .btn_eye{
 	background-size: contain;
 	background-repeat: no-repeat;
 }
-
+main .channel_list_row_btns li.btn_sort{
+	height: 20px;
+	color: #ffffff;
+}
+.sortable_placeholder{
+	z-index: 2147483646;
+	background-color: #ffffff;
+}
 main .channel_grid_row{
 	float: left;
 	margin-left: 160px;
@@ -757,7 +766,7 @@ main #cursorLine{
 	left: 0px;
 	top: 0px;
 	margin-left: 160px;
-	z-index: 2147483646;
+	z-index: 2147483645;
 }
 .cursorCircle{
 	width: 1px;
@@ -767,7 +776,7 @@ main #cursorLine{
 	left: 0px;
 	top: 0px;
 	margin-left: 160px;
-	z-index: 2147483646;
+	z-index: 2147483645;
 }
 .noselect *{
 	-webkit-touch-callout: none; /* iOS Safari */
@@ -814,18 +823,27 @@ main #cursorLine{
 .sample_signed{
 	background: linear-gradient(141deg, #0fb8ad 0%, #1fc8db 51%, #2cb5e8 75%);
 }
-#channels_list > div:nth-child(3n+2) .channel_grid_row .sample , #channels_list > div:nth-child(3n+2) .player-fill{
+#channels_list > div:nth-child(4n+2) .channel_grid_row .sample , #channels_list > div:nth-child(4n+2) .player-fill{
 	background-color: #FFB253;
 	border: 1px solid #d68227; 
 	color: #d68227;
 	fill: #FFB253;
 }
-#channels_list > div:nth-child(3n+3) .channel_grid_row .sample  , #channels_list > div:nth-child(3n+3) .player-fill{
+#channels_list > div:nth-child(4n+3) .channel_grid_row .sample  , #channels_list > div:nth-child(4n+3) .player-fill{
 	background-color: #00A4D3;
 	border: 1px solid #006e8c; 
 	color: #006e8c;
 	fill: #00A4D3;
 }
+
+#channels_list > div:nth-child(4n+4) .channel_grid_row .sample  , #channels_list > div:nth-child(4n+4) .player-fill{
+	background-color: #e571dd;
+	border: 1px solid #cc59c2; 
+	color: #e571dd;
+	fill: #cc59c2;
+}
+
+
 .sample_placeholder{
 	width: 100%;
     height: 100%;

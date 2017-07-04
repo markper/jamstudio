@@ -71,9 +71,17 @@
 				</ul>
 				<ul>
 					<li id="toolbox_btn_export_menu">
-						  <div>
+						<div class="dropdown">
+						  <div id="dVersion" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+
 						    <span class="glyphicon glyphicon-share" aria-hidden="true"></span> Export
+						    <span class="caret"></span>
 						  </div>
+						  <ul class="dropdown-menu" aria-labelledby="dVersion">
+						    <li id="btn-export-toggle">Show Scope</li>	
+						    <li id="btn-export-start">Start Exporting</li>		    
+						  </ul>
+						</div>
 					</li>
 				</ul>
 				<ul>
@@ -136,7 +144,6 @@
 	<main class="scrolls">
 		<section id="channels_list"></section>
 		<section id="channels_title">
-			<artical class="cursorCircle"></artical>
 			<article class="channel_list_buttons">		
 				<div id="open_nav">&#9776;</div>
 				<ul>
@@ -146,6 +153,8 @@
 				</ul>
 			</article>
 			<article class="channels_grid_title"></article>
+			<artical class="cursorCircle"></artical>
+
 		</section>
 		<div id="cursorLine"></div>
 		<div id="range-start" class="range">
