@@ -899,25 +899,27 @@ var studio = function studio(ctlUser){
 		    });
 		}
 
-		window.onload = function init() {
-		    try {
-		      // webkit shim
-		      window.AudioContext = window.AudioContext || window.webkitAudioContext;
-		      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+		//
+		// Load Recorder
+		//
+	    try {
+	      // webkit shim
+	      window.AudioContext = window.AudioContext || window.webkitAudioContext;
+	      navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-		      window.URL = window.URL || window.webkitURL;
-		      
-		      audio_context = new AudioContext;
-		      //console.log('Audio context set up.');
-		      //console.log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
-		    } catch (e) {
-		     // console.log('No web audio support in this browser!');
-		    }
-		    
-		    navigator.getUserMedia({audio: true},  startUserMedia, function(e) {
-		     // console.log('No live audio input: ' + e);
-		    });
-		};
+	      window.URL = window.URL || window.webkitURL;
+	      
+	      audio_context = new AudioContext;
+	      //console.log('Audio context set up.');
+	      //console.log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+	    } catch (e) {
+	     // console.log('No web audio support in this browser!');
+	    }
+	    
+	    navigator.getUserMedia({audio: true},  startUserMedia, function(e) {
+	     // console.log('No live audio input: ' + e);
+	    });
+		
 	}
 
 	var Channel = class Channel {
@@ -977,9 +979,13 @@ var studio = function studio(ctlUser){
 	    }
 
 	    this.hasPermission = function(){
-	    	return (this.userId==ctlUser.info._id
+	    	try{
+	    	return ((this.userId==ctlUser.info._id && ctlProject.contributors[ctlUser.info._id].access=="0")
 	    	 || ctlProject.contributors[ctlUser.info._id].access=="admin"
 	    	 || ctlProject.contributors[ctlUser.info._id].access=="1")
+	    	}catch(exc){
+	    		return false;
+	    	}
 	    }
 
 		this.draw = function(){	
@@ -1017,15 +1023,18 @@ var studio = function studio(ctlUser){
 					},250);	
 		  	    }
 			});
+			var userFullName = "ghost";
 			try{
-				var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channel.name +'</span><div><div class="channel_details"><span class="channel_user">'+
-				ctlProject.contributors[channel.userId].user.firstName + ' ' +ctlProject.contributors[channel.userId].user.lastName
-					+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="checkbox">'+checkbox+'</li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
-				$(list_item).find('.volume_placeholder').append(slider);
-				$(row).find('.channel_list_row').append(list_item);
+				userFullName = ctlProject.contributors[channel.userId].user.firstName + ' ' +ctlProject.contributors[channel.userId].user.lastName;
 			}catch(e){
 
 			}
+			var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channel.name +'</span><div><div class="channel_details"><span class="channel_user">'+
+				userFullName
+				+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="checkbox">'+checkbox+'</li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
+			$(list_item).find('.volume_placeholder').append(slider);
+			$(row).find('.channel_list_row').append(list_item);
+		
 			// create and append, grid cells to grid row
 			var cells = Math.round(max_time/time_units);						
 			for (var j = 0; j < cells; j++) {
@@ -2027,10 +2036,10 @@ var studio = function studio(ctlUser){
 	var isAlt  = false;
 
 	// Channels
-	// this will prevent drop on section   
 
-	$( "#channels_list" ).sortable({
+	$( "#channels_list").sortable({
 	    revert: true,
+	    items: "div.channels_list_row:not(.noPermission)",
 	    connectWith: '.channel_user',
 		cancel: '.channel_grid_row',
 		update: function(event, ui) {

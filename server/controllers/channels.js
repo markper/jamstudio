@@ -282,7 +282,6 @@ exports.checkChannelPermitions = function(channelId,userId,callback){
     });
 }
 
-
 function checkTrackPermitions(trackId,userId,callback){
     Track.findOne({_id:trackId},function(err,track){
         if(err || !track)
