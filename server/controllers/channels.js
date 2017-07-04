@@ -233,20 +233,22 @@ exports.getSample = function(channelId,sampleId,callback){
 
 exports.deleteSample = function(userId,channelId,sampleId,callback){
     checkChannelPermitions(channelId,userId,function(access){
-        if(!access){
+        if(!access)
             return callback(errors.errorPermitions((err?err:'')));
-        }else{
-            deleteSample(channelId,sampleId,callback);
-        }
+        else
+            deleteSample(channelId,sampleId,function(result){
+                callback(result);
+                console.log("fuck");
+            });
     });   
 }
 
 function deleteSample(channelId,sampleId,callback){
     Channel.update( {_id:channelId}, {$pull: {samples: {_id:sampleId}}}, function(err, data){
-        if(err || !data.nModified) {
+        if(err || !data.nModified) 
             return callback(errors.errorUpdate((err?err:'')));
-        }
-        return callback(data);
+        else
+            return callback(data);
     });
 }
 
@@ -258,14 +260,15 @@ function updateSample(channelId,sampleJson,callback){
                 {$push: {"samples": sampleJson}},
                 {safe: true, upsert: true},
                 function(err, model) {
-                    if(err) {
+                    if(err) 
                         return callback(errors.errorUpdate((err?err:'')));
-                    }
-                    Channel.findOne({_id:channelId},function(err,date){
-                        if(err) 
-                            return callback(errors.errorUpdate((err?err:'')));
-                        return callback(date.samples[date.samples.length-1]);
-                    })
+                    else
+                        Channel.findOne({_id:channelId},function(err,date){
+                            if(err) 
+                                return callback(errors.errorUpdate((err?err:'')));
+                            else
+                                return callback(date.samples[date.samples.length-1]);
+                        });
                 }
             );
         }

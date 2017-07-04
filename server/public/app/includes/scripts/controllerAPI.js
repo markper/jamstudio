@@ -663,6 +663,8 @@ function controllerAPI(){
 	};
 
 	this.deleteSample = function(channelId,sampleId,callback){
+			        	console.log("11");
+
 		$.ajax({
 	        type: "Delete",
 	        datatype:"json",
@@ -670,9 +672,11 @@ function controllerAPI(){
 	        data:({}),
 	        success: function(result)
 	        {
+	        	console.log("aa");
 	        	callback(result);
 	        },
 	        error:function(err){
+	        	console.log("bb");
 	        	callback(null);
 	        }
 	    });

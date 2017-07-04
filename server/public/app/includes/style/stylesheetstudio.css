@@ -796,7 +796,9 @@ main #cursorLine{
 }
 .sample.selected{
 /*	opacity: 0.5 !important;*/
-	border: 1px solid red !important;
+	background-color:#c3bb38 !important;
+	opacity: 0.6 !important;
+	border: 1px solid #b3b167 !important;
 }
 .sample-info{
 	color: #343434;

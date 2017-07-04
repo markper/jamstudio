@@ -1006,7 +1006,6 @@ var studio = function studio(ctlUser){
 						'<path class="player-fill" d="M256,0C114.617,0,0,114.617,0,256s114.617,256,256,256s256-114.617,256-256S397.383,0,256,0z M336,320'+
 						'c0,8.836-7.156,16-16,16H192c-8.844,0-16-7.164-16-16V192c0-8.836,7.156-16,16-16h128c8.844,0,16,7.164,16,16V320z"/>';
 			
-			var checkbox = '<input type="checkbox" id="checkbox'+channelId+'" class="css-checkbox lrg"/><label for="checkbox'+channelId+'" name="checkbox'+channelId+'_lbl" class="css-label lrg web-two-style"></label>';
 			var slider = $('<div class="slider-vertical"></div>');
 			var resizeTimer;
 			$(slider).slider({
@@ -1031,7 +1030,7 @@ var studio = function studio(ctlUser){
 			}
 			var list_item = $('<article class="channel_list_row_info"><div class="mini_player">'+svg+svg2+'<div class="volume_placeholder"></div></div> <div class="channel_info"><span class="channel_name">'+ channel.name +'</span><div><div class="channel_details"><span class="channel_user">'+
 				userFullName
-				+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="checkbox">'+checkbox+'</li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
+				+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="btn_eye"></li><li class="btn_mic"></li></article>');
 			$(list_item).find('.volume_placeholder').append(slider);
 			$(row).find('.channel_list_row').append(list_item);
 		
@@ -1357,7 +1356,7 @@ var studio = function studio(ctlUser){
 			sj.channelId = sample.channelId;
 			ctlAPI.createSample(sample.channelId,sj,function(data){
 				ctlProject.updateSampleId(sample.channelId,
-											sample.id,
+											sampleId,
 											data._id);
 				ctlMessage.send("newSample",{
 				 	"channelId":data.channelId,
@@ -1938,14 +1937,13 @@ var studio = function studio(ctlUser){
 			moveSample(e,clone.id);
 			ctlDBHelper.createSample(clone.id,function(sampleId){
 				actionController.actionsUndo.pop(); // remove move action
-				clone.id = sampleId;
-				ac.addAction(new Action('sample_new',jQuery.extend(true, {}, clone)));
+				var newSample = getSampletById(sampleId);
+				ac.addAction(new Action('sample_new',jQuery.extend(true, {}, newSample)));
 			});
 			changeCursorPlace(e);
-
 			updateUndoRedoIcons();
 		}
-
+		ss.clean();
 	}
 
 	function deleteSample(e){
@@ -1955,17 +1953,13 @@ var studio = function studio(ctlUser){
 			var sample = getSampletById(selectedSamples.list[i]);
 			if(!sample)
 				continue;
-			ac.addAction(new Action('sample_delete',jQuery.extend(true, {}, sample)));			
+			ac.addAction(new Action('sample_delete',jQuery.extend(true, {}, sample)));	
+			ctlDBHelper.deleteSample(sample.id);		
 			ctlProject.get(sample.channelId).removeSample(sample);
 			p.reset();
 			ctlMessage.send("removeSample",{"sampleId":selectedSamples.list[i]});
+			updateUndoRedoIcons();
 		}
-		for (var i = 0; i < Object.size(ss.channels); i++) {
-			console.log(ss.channels[Object.keys(ss.channels)[i]]);
-			ctlDBHelper.updateChannel(ss.channels[Object.keys(ss.channels)[i]]);
-		}
-
-		updateUndoRedoIcons();		
 		ss.clean();
 	}
 
@@ -2041,7 +2035,7 @@ var studio = function studio(ctlUser){
 	    revert: true,
 	    items: "div.channels_list_row:not(.noPermission)",
 	    connectWith: '.channel_user',
-		cancel: '.channel_grid_row',
+		cancel: '.channel_grid_row , .selected',
 		update: function(event, ui) {
             ctlDBHelper.sortChannels();
         }
@@ -2071,9 +2065,13 @@ var studio = function studio(ctlUser){
 		e.preventDefault();
 	});
 	
-	$(document).on('mousedown','.checkbox *',function(e){
-		var parent = $(e.target).closest('.channels_list_row');
-		sc.add($(parent));
+	$(document).on('mousedown','.channel_list_row',function(e){
+		if(isControl){
+			console.log('ctrl + click');
+			var parent = $(e.target).closest('.channels_list_row');
+			sc.add($(parent));
+			return false;
+		}
 		e.preventDefault();
 	});
 

@@ -91,7 +91,7 @@ router.get('/:channelId/Sample/:sampleId'/*, ensureLoggedIn*/, function(req, res
 
 /* DELETE sample from project */
 router.delete('/:channelId/Sample/:sampleId'/*, ensureLoggedIn*/, function(req, res, next) {
-    channelCtrl.deleteSample(req.params.channelId,req.params.sampleId,function(data){
+    channelCtrl.deleteSample(getUserId(req),req.params.channelId,req.params.sampleId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message);
         else
