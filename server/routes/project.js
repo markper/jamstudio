@@ -116,9 +116,13 @@ router.get('/GetList/:userId', function(req, res, next) {
 });
 
 
-function getUserID(req){
-    return req.user.identities[0].user_id;
-}
+function getUserId(req){
+    try{
+        return req.user.id.split("|")[1];
+    }catch(exc){
+        return "";
+    }
+};
 
 /* DELETE - Remove project. */
 router.delete('/:projectId'/*,ensureLoggedIn*/, function(req, res, next) {
@@ -139,7 +143,7 @@ router.delete('/:projectId'/*,ensureLoggedIn*/, function(req, res, next) {
 /* DELETE - Remove user from project. */
 router.delete('/:projectId/user/:userId'/*,ensureLoggedIn*/, function(req, res, next) {
     
-    projectCtrl.deleteUser(req.params.projectId,req.params.userId,function(data){
+    projectCtrl.deleteUser(req.params.projectId,req.params.userId,getUserId(req),function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else
@@ -150,8 +154,8 @@ router.delete('/:projectId/user/:userId'/*,ensureLoggedIn*/, function(req, res, 
 
 /* PUT - add user to project. */
 router.post('/:projectId/user/:userId/access/:access'/*,ensureLoggedIn*/, function(req, res, next) {
-    console.log('<><><><>');
-    projectCtrl.addUser(req.params.projectId,req.params.userId,req.params.access,function(data){
+
+    projectCtrl.addUser(req.params.projectId,req.params.userId,req.params.access,getUserId(req),function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else
@@ -163,7 +167,7 @@ router.post('/:projectId/user/:userId/access/:access'/*,ensureLoggedIn*/, functi
 /* PUT - update user access in project. */
 router.put('/:projectId/user/:userId/access/:access'/*,ensureLoggedIn*/, function(req, res, next) {
     
-    projectCtrl.updateUserAccess(req.params.projectId,req.params.userId,req.params.access,function(data){
+    projectCtrl.updateUserAccess(req.params.projectId,req.params.userId,req.params.access,getUserId(req),function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else

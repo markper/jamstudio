@@ -261,35 +261,83 @@ exports.updateProjectPrivacy =  function(projectId,projectJson,callback){
 };
 
 
-exports.addUser = function(projectId,userId,access,callback){
-	User.findOne({_id:userId},function(err,user){		
-		if(err || !user){
-            return callback(errors.errorNotFound((err?err:'')));
-        }
-        else{
-            Project.update( {_id:projectId,'users.user': { $ne: userId }}, {$push: {users: {user:userId,access:access}}}, function(err, data){
-		        if(err) 
-		            return callback(errors.errorUpdate((err?err:'')));
-		        return callback(data);
-		    });
-        }
-	});
+exports.addUser = function(projectId,userId,access,byUserId,callback){
+    checkUserPermissions(projectId,byUserId,function(result){
+        if(result)
+            User.findOne({_id:userId},function(err,user){       
+                if(err || !user){
+                    return callback(errors.errorNotFound((err?err:'')));
+                }
+                else{
+                    Project.update( {_id:projectId,'users.user': { $ne: userId }}, {$push: {users: {user:userId,access:access}}}, function(err, data){
+                        if(err) 
+                            return callback(errors.errorUpdate((err?err:'')));
+                        else
+                            return callback(data);
+                    });
+                }
+            });
+        else
+            return callback(errors.errorPermitions(('')));
+    });   
 };
 
-exports.deleteUser = function(projectId,userId,callback){
-    Project.update( {_id:projectId}, {$pull: {users: {user:userId}}}, function(err, data){
-        if(err || !data)
-            return callback(errors.errorNotFound((err?err:'')));
-        return callback(data);
+
+function checkUserPermissions(projectId,userId,callback){
+    Project.findOne({_id:projectId},function(err,project){
+        if(project.adminUser == userId){
+            console.log(userId);
+            return callback(true);            
+        }
+        else{
+            var found = false;
+            for (var i = project.users.length - 1; i >= 0; i--) {
+                console.log(project.users[i].user);
+                console.log(project.users[i].access);
+                if(project.users[i].user == userId && project.users[i].access == '1'){
+                    found = true;
+                    return callback(true);
+                }
+            }
+            return callback(found);
+        }
+    });
+}
+
+function checkAdminPermissions(projectId,userId,callback){
+    Project.findOne({_id:projectId},function(err,project){
+        if(project.adminUser == userId)
+            return callback(true);            
+        else
+            return callback(false);     
+    });
+}
+
+
+exports.deleteUser = function(projectId,userId,byUserId,callback){
+    checkUserPermissions(projectId,byUserId,function(result){
+        if(result || userId==byUserId)
+            Project.update( {_id:projectId}, {$pull: {users: {user:userId}}}, function(err, data){
+                if(err || !data)
+                    return callback(errors.errorNotFound((err?err:'')));
+                return callback(data);
+            });
+        else
+            return callback(errors.errorPermitions(('')));
     });
 };
 
 
-exports.updateUserAccess =  function(projectId,userId,access,callback){
-    Project.update( {_id:projectId,users: { $elemMatch: { user:userId } }},  { $set:{ "users.$.access":access }}, function(err, data){
- 		if(err)
-            return callback(errors.errorUpdate((err?err:'')));
-        return callback(data);
+exports.updateUserAccess =  function(projectId,userId,access,byUserId,callback){
+    checkUserPermissions(projectId,byUserId,function(result){
+        if(result)
+            Project.update( {_id:projectId,users: { $elemMatch: { user:userId } }},  { $set:{ "users.$.access":access }}, function(err, data){
+                if(err)
+                    return callback(errors.errorUpdate((err?err:'')));
+                return callback(data);
+            });
+        else
+            return callback(errors.errorPermitions(('')));
     });
 };
 

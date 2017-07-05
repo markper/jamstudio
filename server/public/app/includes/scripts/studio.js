@@ -192,12 +192,15 @@ var studio = function studio(ctlUser){
 
 		this.track_version = null;
 
+		this.adminUser = 
+
 		this.init = function(data,callback){
 			if(data==null)				
 				data ={tracks:[]}				
 			this.json = data;
 			this.track_version =  data.track_version._id;
 			ctlAPI.getContributors(data._id,function(result){
+				_this.adminUser = result.adminUser;
 				_this.contributors[result.adminUser._id] = {user:result.adminUser,access:"admin"};
 				for (var i = 0; i < result.users.length; i++) {
 					_this.contributors[result.users[i].user._id] = result.users[i];
@@ -1665,6 +1668,7 @@ var studio = function studio(ctlUser){
 			$(el.target).parent().addClass('row_pressed');
 		}
 	}
+
 	function togglePlayPause(){
 		$("#play").toggle();
 		$("#pause").toggle();
@@ -1882,6 +1886,13 @@ var studio = function studio(ctlUser){
 		}
 		ss.updateSamples();
 		ss.clean();
+	}
+
+	function volume(sampleId,level){
+		var sample = getSampletById(sampleId);
+		if(level < 1 && level>0)
+			sample.volume = level;
+		p.reset();
 	}
 
 	function moveTime(sec){
@@ -2259,7 +2270,8 @@ var studio = function studio(ctlUser){
 
 		var users = ctlProject.contributors;
 		for (var i = Object.size(users) - 1; i >= 0; i--) {
-			$('#modal-list .modal-body form').append($(buildContributor(users[Object.keys(users)[i]])));
+			if(users[Object.keys(users)[i]].access != "admin")
+				$('#modal-list .modal-body form').append($(buildContributor(users[Object.keys(users)[i]])));
 		}
 		$(users).each(function(key,value){
 			var user = value;
@@ -2816,7 +2828,24 @@ var studio = function studio(ctlUser){
 		if(!$(e.target).hasClass('time-box'))
 			return;
 		$('#contextmenu').hide();
-		sf.clean();
+		enableScroll();
+		sf.clean();		
+		ss.clean();
+	});
+
+	$(document).on('contextmenu','.time-box',function(e){
+		if(isControl)
+			return;
+		if(!$(e.target).hasClass('selected')){
+			sf.clean();
+			sf.add($(this));
+		}
+		var id  = (e.target.id).substring(4,(e.target.id).length);
+		var listItems = [
+		{text:'Paste','value':'paste',shortCut:'Ctrl+V'},
+		{text:'Hide channel','value':'hide-channel'},		
+		]
+		showContextMenu('channel',listItems,id,e);
 	});
 
 	$(document).on('contextmenu','.file',function(e){
@@ -2842,15 +2871,15 @@ var studio = function studio(ctlUser){
 		}
 		if(isControl)
 			return;
-		var id  = (e.target.id).substring(5,(e.target.id).length);
+		var id  = $(this).attr('id');
 		var listItems = [
 			{text:'Copy','value':'delete',shortCut:'Ctrl+C'},
 			{text:'Paste','value':'delete',shortCut:'Ctrl+V'},
 			{text:'Split','value':'delete',shortCut:'Ctrl+S'},
 			{text:'Fade-in','value':'delete',shortCut:'Ctrl+W'},
 			{text:'Fade-out','value':'delete',shortCut:'Ctrl+E'},
-			{text:'Volume-up','value':'delete',shortCut:'Ctrl+Up'},
-			{text:'Volume-down','value':'delete',shortCut:'Ctrl+Down'}
+			{text:'Volume-up','value':'volume_up',shortCut:'Ctrl+Up'},
+			{text:'Volume-down','value':'volume_down',shortCut:'Ctrl+Down'}
 		]
 		showContextMenu('sample',listItems,id,e);
 	});
@@ -2879,8 +2908,19 @@ var studio = function studio(ctlUser){
 					break;
 				}
 			}
-		}else if(type=='sample'){
-
+		}else if(type=='sample'){			
+			var sample = getSampletById(id);
+			switch(command){
+				case 'volume_up':{
+					volume(id,sample.volume + 0.2);
+					break;
+				}
+				case 'volume_down':{
+					volume(id,sample.volume - 0.2);
+					break;
+				}
+			}
+			console.log(sample.volume);
 		}
 	});
 
@@ -2895,17 +2935,61 @@ var studio = function studio(ctlUser){
 			$(li).append(link);
 			$(ul).append(li);
 		}
+		
 		$('#contextmenu')
 		.html(ul)
 		.attr('data-type',type)
 		.attr('data-id',id)
 		.show()
 		.css({'left':e.pageX,'top':e.pageY});
+		if($('#contextmenu').height()+e.pageY>$('main').height()+50)
+			$('#contextmenu').css({'top':e.pageY-$('#contextmenu').height()});
+		disableScroll();
 	}
 
 	$(document).on('contextmenu',function(e){
 		return false;
 	});
+
+	// Stop scrolling
+	// left: 37, up: 38, right: 39, down: 40,
+	// spacebar: 32, pageup: 33, pagedown: 34, end: 35, home: 36
+	var keys = {37: 1, 38: 1, 39: 1, 40: 1};
+
+	function preventDefault(e) {
+	  e = e || window.event;
+	  if (e.preventDefault)
+	      e.preventDefault();
+	  e.returnValue = false;  
+	}
+
+	function preventDefaultForScrollKeys(e) {
+	    if (keys[e.keyCode]) {
+	        preventDefault(e);
+	        return false;
+	    }
+	}
+
+	function disableScroll() {
+	  if (window.addEventListener) // older FF
+	      window.addEventListener('DOMMouseScroll', preventDefault, false);
+	  window.onwheel = preventDefault; // modern standard
+	  window.onmousewheel = document.onmousewheel = preventDefault; // older browsers, IE
+	  window.ontouchmove  = preventDefault; // mobile
+	  document.onkeydown  = preventDefaultForScrollKeys;
+	}
+
+	function enableScroll() {
+	    if (window.removeEventListener)
+	        window.removeEventListener('DOMMouseScroll', preventDefault, false);
+	    window.onmousewheel = document.onmousewheel = null; 
+	    window.onwheel = null; 
+	    window.ontouchmove = null;  
+	    document.onkeydown = null;  
+	}
+
+
+
 
 	$(document).on('click','#logo',function() {
 		window.location.href = '../dashboard/'+ ctlUser.info._id;
