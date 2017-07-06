@@ -1,3 +1,7 @@
+var url = window.location.href
+var arr = url.split("/");
+var server = arr[0] + "//" + arr[2]
+
 var ctlAPI = new controllerAPI();
 var projects = {};
 
@@ -75,7 +79,7 @@ function printProjects(projects,selector){
 }
 function buidUser(userObject){
 	if(userObject)
-	return '<img src="'+userObject.picture+'" alt="..." class="img-circle" style="width:40px;"> &nbsp;'+ userObject.firstName+' '+userObject.lastName;
+	return '<img src="'+server +'/static/uploads/'+userObject.picture+'" alt="..." class="img-circle" style="width:40px;"> &nbsp;'+ userObject.firstName+' '+userObject.lastName;
 }
 function buildIcq(icq){
 	return  '<li class="list-group-item" data-icqid="'+icq._id+'">'+
@@ -116,13 +120,6 @@ $(document).on('click','#btn-create-project',function(e){
 	});
 });
 
-/* NavBar */
-$(document).on('click','#hamburger',function(e){
-	$('.sidenav').toggleClass("open");
-});
-$(document).on('click','.closebtn',function(e){
-	$('.sidenav').toggleClass("open");
-});
 
 
 		

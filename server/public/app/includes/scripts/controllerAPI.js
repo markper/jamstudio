@@ -796,48 +796,51 @@ function controllerAPI(){
 			console.log(id);
 		});
 	}
-this.uploadPicture = function(userId,formData,progressLoader){
-		$.ajax({
-	        // Your server script to process the upload
-	        url: 'http://localhost:3000/user/picture',//serverFiles+'/uploads',
-	        type: 'POST',
+this.uploadUserPicture = function(formData,callback){
+	  $('#loader').show();
+      $('.loader-progress').show();
+      $('.progress-bar').css({'width':'0px'});
 
-	        // Form data
-	        data: formData,
+      $.ajax({
+        url: serverDB+ '/user/picture',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(data){
+            callback('upload successful!\n' + data);
+            $('.loader-progress').hide();
+            $('#loader').hide();
+            $('#user-set-picture').attr('src','../static/uploads/'+data);
+        },
+        xhr: function() {
+          // create an XMLHttpRequest
+          var xhr = new XMLHttpRequest();
 
-	        // Tell jQuery not to process data or worry about content-type
-	        // You *must* include these options!
-	        cache: false,
-	        contentType: false,
-	        processData: false,
+          // listen to the 'progress' event
+          xhr.upload.addEventListener('progress', function(evt) {
 
-	        // Custom XMLHttpRequest
-	        xhr: function() {
-	            var myXhr = $.ajaxSettings.xhr();
-	            if (myXhr.upload) {
-	            	$('#loader').show();
-	            	$('.loader-progress').show();
-	                $('.progress-bar').css({'width':'0px'});
-	                // For handling the progress of the upload
-	                myXhr.upload.addEventListener('progress', function(e) {
-	                    if (e.lengthComputable) {
-	                 		$('.progress-bar').css({width:e.loaded*100/e.total+'%'})
-	                        console.log({
-	                            value: e.loaded,
-	                            max: e.total,
-	                        });
-	                    }
-	                } , false);
+            if (evt.lengthComputable) {
+              // calculate the percentage of upload completed
+              var percentComplete = evt.loaded / evt.total;
+              percentComplete = parseInt(percentComplete * 100);
 
-	            }
-	            return myXhr;
-	        },
-	        success: function(data){
-	        	$('.loader-progress').hide();
-	        	$('#loader').hide();
-	        },error: function(err){
-	        }
-	    });
+              // update the Bootstrap progress bar with the new percentage
+              //$('.progress-bar').text(percentComplete + '%');
+              $('.progress-bar').width(percentComplete + '%');
+
+              // once the upload reaches 100%, set the progress bar text to done
+              if (percentComplete === 100) {
+                $('.progress-bar').html('Done');
+              }
+
+            }
+
+          }, false);
+
+          return xhr;
+        }
+     });
 	}
 
 	this.upload = function(userId,formData,duration,size,callback,progressLoader){

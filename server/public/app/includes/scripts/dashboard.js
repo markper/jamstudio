@@ -1,4 +1,8 @@
-function loadDashboard(user){
+function loadDashboard(user,loggedUser){
+
+	var url = window.location.href
+	var arr = url.split("/");
+	var server = arr[0] + "//" + arr[2]
 
 	var ctlAPI = new controllerAPI();
 	var projects = {};
@@ -6,6 +10,13 @@ function loadDashboard(user){
 	loadProjectByUserId(user.info._id);
     $('.profile h1').text(user.info.firstName + ' ' + user.info.lastName);
     $('.profile h4').text(user.info.email);
+    $('.profile-image img').attr('src',server +'/static/uploads/'+user.info.picture);
+    $('.profile-image img').css('height',$('.profile-image img').css('width'));
+    if(user.info._id != loggedUser){
+    	$('#user-settings').hide();
+    	$('#create_project').hide();
+    	$('.profile h4').hide();
+    }
 
 	function loadProjectByUserId(userId){
 		ctlAPI.getProjectList(userId,function(_result){
@@ -56,59 +67,7 @@ function loadDashboard(user){
 		});
 	});
 	
-	/* NavBar */
-	$(document).on('click','#hamburger',function(e){
-		$('.sidenav').toggleClass("open");
-	});
-	$(document).on('click','.closebtn',function(e){
-		$('.sidenav').toggleClass("open");
-	});
-
-
-	// TEXT JUSTIFIED
-// 	function SplitText(node)
-// 	{
-// 	    var text = node.nodeValue.replace(/^\s*|\s(?=\s)|\s*$/g, "");
-
-// 	    for(var i = 0; i < text.length; i++)
-// 	    {
-// 	        var letter = document.createElement("span");
-// 	        letter.style.display = "inline-block";
-// 	        letter.style.position = "absolute";
-// 	        letter.appendChild(document.createTextNode(text.charAt(i)));
-// 	        node.parentNode.insertBefore(letter, node);
-
-// 	        var positionRatio = i / (text.length - 1);
-// 	        var textWidth = letter.clientWidth;
-
-// 	        var indent = 100 * positionRatio;
-// 	        var offset = -textWidth * positionRatio;
-// 	        letter.style.left = indent + "%";
-// 	        letter.style.marginLeft = offset + "px";
-
-// 	        //console.log("Letter ", text[i], ", Index ", i, ", Width ", textWidth, ", Indent ", indent, ", Offset ", offset);
-// 	    }
-
-// 	    node.parentNode.removeChild(node);
-// 	}
-// 	Justify('user_email');
-// 	Justify('user_fullname');
-// 	function Justify(selector)
-// 	{
-// 	    var TEXT_NODE = 3;
-// 	    var elem = document.getElementById(selector);
-// 	    elem = elem.firstChild;
-
-// 	    while(elem)
-// 	    {
-// 	        var nextElem = elem.nextSibling;
-
-// 	        if(elem.nodeType == TEXT_NODE)
-// 	            SplitText(elem);
-
-// 	        elem = nextElem;
-// 	    }
-// 	}
+	
 
  }
 

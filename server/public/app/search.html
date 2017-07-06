@@ -9,9 +9,12 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="../static/includes/style/jquery-ui.min.css">
 	<script src="../static/includes/scripts/jquery-ui.min.js"></script>
+	<script src="https://cdn.socket.io/socket.io-1.0.0.js"></script>
+
 	<script src="../static/includes/scripts/controllerAPI.js"></script>
 	<script src="../static/includes/scripts/studio.js"></script>
-	<script src="https://cdn.socket.io/socket.io-1.0.0.js"></script>
+	<script src="../static/includes/scripts/search.js"></script>
+	<script src="../static/includes/scripts/userComponent.js"></script>
 
 	<!-- -->
     <meta charset="utf-8">
@@ -34,7 +37,6 @@
 	<header>
 		<ul>
 		  <li id="hamburger">
-
 		  </li>
 		  <li id="logo"></li>
 		  <li id="search-line">
@@ -165,14 +167,14 @@
 			<li id="nav_settings">
 			  <a href="#">Home</a>
 			</li>
-			<li id="nav_versions">
-			  <a href="dashboard">Dashboard</a>
+			<li id="nav_dashboard">
+			  <a href="#">Dashboard</a>
 			</li>
 			<li id="nav_contributors">
-			  <a href="search">Search</a>
+			  <a href="#">Search</a>
 			</li>
 			<li id="nav_exit">
-			  <a href="usersettings">Settings</a>
+			  <a href="#">Settings</a>
 			</li>
 		</ul>
 	</nav>
@@ -180,15 +182,12 @@
 		<div></div>
 	</section>
 	<section id="contextmenu"></section>
-
-	<script src="../static/includes/scripts/userComponent.js"></script>
 	<script>
 		(function(){
 			var ctlUserComponent = new userComponent(function(user){
 			});
 		})();
 	</script>
-	<script src="../static/includes/scripts/search.js"></script>
     <script src="../static/includes/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </body>
 </html>

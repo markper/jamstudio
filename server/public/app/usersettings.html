@@ -10,9 +10,11 @@
   <link rel="stylesheet" href="../../static/includes/style/jquery-ui.min.css">
   <script src="../../static/includes/scripts/jquery-ui.min.js"></script>
   <script src="https://cdn.socket.io/socket.io-1.0.0.js"></script>
+
+  <link rel="stylesheet" href="../../../static/includes/style/userComponent.css">
+  <script src="../../../static/includes/scripts/userComponent.js"></script>
   <script src="../../static/includes/scripts/controllerAPI.js"></script>
-  <script src="../../static/includes/scripts/template.js"></script>
-  <script src="../../static/includes/scripts/project.js"></script>
+  <script src="../static/includes/scripts/usersettings.js"></script>
 
   <!-- -->
     <meta charset="utf-8">
@@ -34,7 +36,6 @@
   <header>
     <ul>
       <li id="hamburger">
-
       </li>
       <li id="logo"></li>
       <li id="search-line">
@@ -90,7 +91,8 @@
               <!-- Nav tabs -->
               <ul role="tablist" class="nav nav-pills nav-stacked">
                 <li role="presentation" class="active"><a href="#user-set" aria-controls="user-set" role="tab" data-toggle="tab">Edit User</a></li>
-                <li role="presentation"><a href="#user-privacy" aria-controls="user-privacy" role="tab" data-toggle="tab">Plan</a></li>
+                <li role="presentation"><a href="#user-picture" aria-controls="user-privacy" role="tab" data-toggle="tab">Picture</a></li>
+                <li role="presentation"><a href="#user-privacy" aria-controls="user-privacy" role="tab" data-toggle="tab">Plan</a></li>                
               </ul>
             </div>
             <div class="col-md-10">
@@ -123,17 +125,21 @@
                     </div>
                   </div>
                   <div class="form-group">
-                    <label class="control-label col-sm-2" for="user-set-picture">Picture:</label>
-                    <div class="col-sm-2">
-                        <img src="" alt="..." class="img-circle" style="width:40px;height:40px;" id="user-set-picture">
-                    </div>
-                  </div>
-                  <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
                       <button type="submit" class="btn btn-default" id="btn-user-set">Submit</button>
                     </div>
                   </div>
                 </form>
+              </div>
+              <div role="tabpanel" class="tab-pane" id="user-picture">
+              <form class="form-horizontal" id="form-update-privacy" >
+                  <div class="form-group">
+                    <label class="control-label col-sm-2" for="user-set-picture">Picture:</label>
+                    <div class="col-sm-2">
+                        <img src="" alt="..." class="img-circle" style="width:40px;height:40px;" id="user-set-picture">
+                    </div>
+                  </div>
+              </form>
               </div>
               <div role="tabpanel" class="tab-pane" id="user-privacy">
               <form class="form-horizontal" id="form-update-privacy" >
@@ -185,7 +191,6 @@
         </div>
       </div>
     </section>
-    <script src="../static/includes/scripts/usersettings.js"></script>
     <script src="../static/includes/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   </body>
 </html>

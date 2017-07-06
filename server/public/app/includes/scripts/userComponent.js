@@ -2,7 +2,9 @@
 function userComponent(callback){
 
 	var _this = this;
-
+	var url = window.location.href
+	var arr = url.split("/");
+	var server = arr[0] + "//" + arr[2]
 	var ctlAPI = new controllerAPI();
 	var ctlUser = new user();
 	var socket = io.connect("https://oran-p2p2-yale.herokuapp.com/");
@@ -24,7 +26,7 @@ function userComponent(callback){
 
 		var email = (result.email.length >13?result.email.substring(0,13)+'..':result.email);
         $('div.username span:first').text(email);
-        $('header #connected_user .user_img').css('background-image','url('+result.picture+')');
+        $('header #connected_user .user_img').css('background-image','url('+server+'/static/uploads/'+result.picture+')');
 		
 		$(document).on('click','.notification',function(e){
 			var id = $(this).attr('data-id');
@@ -96,6 +98,27 @@ function userComponent(callback){
 	this.buidUser = function(userObject){
 		return ('<img src="'+userObject.picture+'" alt="..." class="img-circle" style="width:40px;"> '+ userObject.firstName+' '+userObject.lastName);
 	}
+
+	/* NavBar */
+	$(document).on('click','#hamburger',function(e){
+		$('.sidenav').toggleClass("open");
+	});
+	$(document).on('click','.closebtn',function(e){
+		$('.sidenav').toggleClass("open");
+	});
+	
+	$(document).on('click','#nav_settings',function(e){
+		window.location.href= server + '/app/usersettings';
+	});
+	$(document).on('click','#nav_dashboard',function(e){
+		window.location.href= server + '/app/dashboard/'+ctlUser.info._id;
+	});
+	$(document).on('click','#nav_contributors',function(e){
+		window.location.href= server + '/app/usersettings';
+	});
+	$(document).on('click','#nav_exit',function(e){
+		window.location.href= server + '/app/usersettings';
+	});
 
 }
 

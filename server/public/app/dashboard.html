@@ -4,16 +4,13 @@
 	<meta charset="UTF-8">
 	<title>Studio</title>
 	<link rel="icon" type="image/png" href="../../static/includes/images/favicon.png">
-	<link rel="stylesheet" type="text/css" href="../../static/includes/style/dashboard.css">
-	<link rel="stylesheet" type="text/css" href="../../static/includes/style/tamplate.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 	<link rel="stylesheet" href="../../static/includes/style/jquery-ui.min.css">
 	<script src="../../static/includes/scripts/jquery-ui.min.js"></script>
-	<script src="../../static/includes/scripts/controllerAPI.js"></script>
-	<script src="../../static/includes/scripts/studioUI.js"></script>
-	<script src="../../static/includes/scripts/slider-widjet.js"></script>
 	<script src="https://cdn.socket.io/socket.io-1.0.0.js"></script>
 
+	<link rel="stylesheet" type="text/css" href="../../static/includes/style/dashboard.css">
+	<link rel="stylesheet" type="text/css" href="../../static/includes/style/tamplate.css">
 	<link rel="stylesheet" href="../../../static/includes/style/userComponent.css">
 	<script src="../../../static/includes/scripts/userComponent.js"></script>
 	<script src="../../static/includes/scripts/controllerAPI.js"></script>
@@ -100,8 +97,8 @@
 				<h1 id="user_fullname">User name</h1>
 				<h4 id="user_email">email</h4>
 				<ul class="list-group">
-				  <li class="list-group-item">
-				  	<a href="usersettings">
+				  <li class="list-group-item" id="user-settings">
+				  	<a href="../usersettings">
 				  		User settings
 					</a>
 				  </li>
@@ -182,14 +179,14 @@
 			<li id="nav_settings">
 			  <a href="#">Home</a>
 			</li>
-			<li id="nav_versions">
-			  <a href="dashboard">Dashboard</a>
+			<li id="nav_dashboard">
+			  <a href="#">Dashboard</a>
 			</li>
 			<li id="nav_contributors">
-			  <a href="../search">Search</a>
+			  <a href="#">Search</a>
 			</li>
 			<li id="nav_exit">
-			  <a href="../usersettings">Settings</a>
+			  <a href="#">Settings</a>
 			</li>
 		</ul>
 	</nav>
@@ -206,15 +203,15 @@
 					var ctlAPI = new controllerAPI();
 					ctlAPI.getUser(userId,function(_user){	
 						if(!(_user.status==500)){					
-							new loadDashboard({info:_user});
+							new loadDashboard({info:_user},user.info._id);
 							return false;
 						}
 						else
-							new loadDashboard(user);
+							new loadDashboard(user,user.info._id);
 					});	
 				}
 				else
-					new loadDashboard(user);
+					new loadDashboard(user,user.info._id);
 			});
 
 		})();

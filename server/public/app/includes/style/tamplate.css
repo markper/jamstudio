@@ -322,3 +322,48 @@ main::-webkit-scrollbar {
 	position: relative;
 }
 
+.loading{
+	background-image: url('../images/loader.gif') !important;
+}
+
+#progress
+{
+	display: none;
+	top: 0px;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	z-index: 2147483646;
+	background-color: rgba(255,255,255,0.95);
+}
+#loader{
+	display: none;
+	top: 0px;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	z-index: 2147483646;
+	background-color: rgba(255,255,255,0.95);
+}
+#loader div.logo{
+	position: absolute;;
+	background-image: url('../images/loading2.gif');
+	width: 100px;
+	height: 100px;
+	background-size: 100px;
+	top: calc(50% - 50px);
+	left: calc(50% - 50px);
+}
+#loader div.loader-progress{
+	display: none;
+	position: absolute;
+	width: 500px;
+	height: 10px;
+	background-size: 100px;
+	top: calc(50% + 100px);
+	left: calc(50% - 250px);
+}
+div.loader-progress .progress-bar{
+	width: 0%;
+}
+
