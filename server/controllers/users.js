@@ -26,6 +26,19 @@ exports.getUsersByPrefix = function(prefix,callback){
   	});
 };
 
+exports.updateUserPicture = function(userId,picture,callback){
+    User.findOne({_id: userId}, function(err, user) {
+		if(err)
+			return callback(errors.errorNotFound());
+		user.picture = picture;
+		user.save(function(err,data){
+			if(err)
+				return callback(errors.errorUpdate());
+			return callback(data);
+		});
+	});
+};
+
 exports.updateUser = function(userId,userJson,callback){
     User.findOne({_id: userId}, function(err, user) {
 		if(err)

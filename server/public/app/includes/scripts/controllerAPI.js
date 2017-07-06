@@ -796,6 +796,49 @@ function controllerAPI(){
 			console.log(id);
 		});
 	}
+this.uploadPicture = function(userId,formData,progressLoader){
+		$.ajax({
+	        // Your server script to process the upload
+	        url: 'http://localhost:3000/user/picture',//serverFiles+'/uploads',
+	        type: 'POST',
+
+	        // Form data
+	        data: formData,
+
+	        // Tell jQuery not to process data or worry about content-type
+	        // You *must* include these options!
+	        cache: false,
+	        contentType: false,
+	        processData: false,
+
+	        // Custom XMLHttpRequest
+	        xhr: function() {
+	            var myXhr = $.ajaxSettings.xhr();
+	            if (myXhr.upload) {
+	            	$('#loader').show();
+	            	$('.loader-progress').show();
+	                $('.progress-bar').css({'width':'0px'});
+	                // For handling the progress of the upload
+	                myXhr.upload.addEventListener('progress', function(e) {
+	                    if (e.lengthComputable) {
+	                 		$('.progress-bar').css({width:e.loaded*100/e.total+'%'})
+	                        console.log({
+	                            value: e.loaded,
+	                            max: e.total,
+	                        });
+	                    }
+	                } , false);
+
+	            }
+	            return myXhr;
+	        },
+	        success: function(data){
+	        	$('.loader-progress').hide();
+	        	$('#loader').hide();
+	        },error: function(err){
+	        }
+	    });
+	}
 
 	this.upload = function(userId,formData,duration,size,callback,progressLoader){
 		$.ajax({
