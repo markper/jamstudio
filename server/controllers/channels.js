@@ -332,7 +332,7 @@ function checkChannelPermitions(channelId,userId,callback){
                     Project.findOne({_id:track.project},function(err,project){
                         if(err || !project){
                             console.log('!project');
-                            return callback(track)
+                            return callback(false)
                         }
                         else{
                             if(project.adminUser == userId){

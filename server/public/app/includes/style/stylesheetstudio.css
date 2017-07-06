@@ -894,45 +894,11 @@ main #cursorLine{
 	right: 30px;
 	top:10px;
 }
-#file_explorer.minimize{
-	height: 34px;
-	top:calc(100vh - 100px);
-	overflow: hidden;	
+#file_explorer div , #file_explorer div span{
+    font-family: Helvetica;
+    padding-left: 5px;
 }
-#file_explorer article.file_explorer_title{
-	padding: 10px;
-	padding-bottom: 0px;
-	height:24px;
-	text-align: left;
-	font-size: 14px;
-	font-family:Helvetica;
-}
-#file_explorer article.file_explorer_title span{
-	right: 10px;
-	position: absolute;
-}
-#file_explorer span.minimize{
-	
-}
-#file_explorer span.maximize{
-	display: none;	
-	top:3px;
-	font-size: 20px;
-}
-#file_explorer article{
-	padding-left: 20px;
-}
-#file_explorer article div{
-    font-family:Helvetica;
-	font-size: 12px;
-	padding: 5px;
-	padding-left: 0px;
-}
-#file_explorer article span{
-	padding-right: 5px;
-	font-weight: bold;
-	font-family: Tahoma;
-}
+
 #file_explorer ul li{
     font-family: Helvetica;
 	font-weight: 200;
@@ -943,7 +909,119 @@ main #cursorLine{
 #file_explorer .file.selected{
 	font-weight: bold;
 }
+/* Minimize */
 
+.minimizeParent{
+	height: 34px !important;
+    top: initial !important;
+    bottom: 65px !important;
+	overflow: hidden !important;	
+}
+.minimize{
+	position: absolute;
+	right: 10px;
+	font-size: 20px;
+}
+.maximize{
+	display: none;
+	position: absolute;
+	right: 10px;
+	font-size: 20px;
+}
+.minimizeParent .minimize{
+	display: none;
+}
+.minimizeParent .maximize{
+	display: inline-block;
+}
+.minimizeParent article:not(.title){
+	display: none;
+}
+.title{
+	height: 34px;
+	line-height: 34px;
+}
+.title span:first-child{
+	font-family: Tahoma;
+	padding-left: 10px;
+}
+/* Chat */
+#chat{
+    z-index: 2147483647;
+    right: 224px;
+	background-color: white;
+	position: fixed;
+	width:250px;
+	height: 300px;
+	bottom: 65px;
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+	overflow: auto;
+	border-left: 1px solid silver;
+	border-top-right-radius: 5px;
+	border-top-left-radius: 5px;
+}
+
+
+#chatTitle{
+	border-radius-top: 10px;
+	position: fixed;
+	width: 250px;
+	height: 34px;	
+	font-family: Tahoma;
+	background-color: #eeeeee;
+	border-top-right-radius: 5px;
+	border-top-left-radius: 5px;
+}
+#chatBoard{
+	height: calc(100% - 50px);	
+	position: absolute;	
+	top: 34px;
+	font-family: arial;
+	overflow-y: scroll;
+    width: 100%;
+}
+#chatBoard::-webkit-scrollbar {
+    width: 5px;
+}
+#chatBoard span:first-child{
+	font-family: arial;
+	font-weight: 200;
+	color: #3a3a3a;
+	height: auto;
+}
+#chatBoard>div>div{
+    white-space: initial;
+    font-family: arial;
+    color: #5e5e5e;
+    padding: 5px;
+    max-width: 140px;
+    position: relative;
+    top: -25px;
+    left: 40px;
+}
+.redLight span{
+	padding-left: 3px !important;
+	padding-right: 3px !important;
+    font-size: 8px;
+    background-color: red;
+}
+#chatBoard > div{
+	height: initial;
+	height: auto;
+}
+#chatMessage{
+	background-color: silver;
+	height: 25px;
+	position: fixed;
+	bottom: 65px;
+	width:250px;
+}
+#chatMessage input{
+	width:100%;
+	border: 0px;
+	border-top: 1px solid silver;
+	font-family: helvetica;
+}
 /* Menu  */
 
 #contextmenu{

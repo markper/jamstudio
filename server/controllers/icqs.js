@@ -31,7 +31,7 @@ exports.getIcqByString = function(string,callback){
         {"description": new RegExp('^'+string, "i")},
         {"instruments": new RegExp('^'+string, "i")}
         ]})
-        .select(["_id","projectId","title","description","instruments"])
+        //.select(["_id","projectId","title","description","instruments"])
         .populate({path:'projectId',select: ['name','description','genre']})
         .exec(function (err, list) {
             console.log(list);

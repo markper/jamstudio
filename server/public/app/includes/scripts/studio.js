@@ -14,6 +14,7 @@ var studio = function studio(ctlUser){
 	var sf = new selectedFiles();
 	var sc = new selectedChannels();
 	var sr = new soundRecorder();
+	var chatCounter  = 0;
 	var mouseOffsetSampleClicked;
 	var sharedEvent = null;
 	var ctlFiles = new files();
@@ -87,7 +88,7 @@ var studio = function studio(ctlUser){
 		this.send = function(action,msg){
 			socket.emit('broadcast', {room:getURLID(),emit:action,msg:msg});
 		}
-		
+
 		socket.on("moveSample", function(data) {
 			ctlProject.moveSample(data.oldChannelId,data.newChannelId,data.sampleId,data.start);
 			board("sample moved..");
@@ -129,6 +130,9 @@ var studio = function studio(ctlUser){
 	    	});
 	    	board("sample updated..");
 		});
+		socket.on("chat", function(data) {
+			chatMessage(data);
+		});
 	}
 
 	function loaderWindow(){
@@ -163,12 +167,12 @@ var studio = function studio(ctlUser){
 			}
 		}
 		this.add = function(data){	
-			ctlAPI.isFileExist(data.file._id,function(result){
-				if(result){
+		//	ctlAPI.isFileExist(data.file._id,function(result){
+				//if(result){
 					_this.map['file'+data.file._id]=data.file;
 					$('#'+data.type).append('<li class="file" draggable="true" id="file'+data.file._id+'">'+ data.file.name+'</li>');
-				}
-			});	
+				//}
+			//});	
 		}
 		this.remove = function(file){
 			$('file'+file._id).remove();
@@ -298,6 +302,7 @@ var studio = function studio(ctlUser){
 			sample.start = sec;
 			if(fromChannelId!=toChannelId)
 				newChannel.addSample(sample);
+			p.stop();
 			sample.draw();
 			p.reset();
 		}
@@ -1242,6 +1247,7 @@ var studio = function studio(ctlUser){
 
 	function selectedSamples(){
 		selectedSamples.list = new Array();
+		selectedSamples.waiting = new Array();
 		selectedSamples.operation = null;
 		this.channels = {};
 
@@ -1261,6 +1267,14 @@ var studio = function studio(ctlUser){
 				}
 				$(sample).removeClass('selected');
 			}
+		}
+		this.wait = function(){
+			selectedSamples.waiting = new Array();
+			for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
+				var sample = getSampletById(selectedSamples.list[i]);
+				selectedSamples.waiting.push(sample);
+			}
+			this.clean();
 		}
 		this.clean = function(){
 			selectedSamples.list = new Array();
@@ -1767,6 +1781,7 @@ var studio = function studio(ctlUser){
 		updateUndoRedoIcons();
 
 		sample.start = all;
+		if(lastChannel.channelId!=newChannel.channelId)
 		ctlProject.moveSample(lastChannel.channelId,newChannel.channelId,data,all);
 
 		return changes;
@@ -1914,17 +1929,22 @@ var studio = function studio(ctlUser){
 			ac.addAction(new Action('sample_hide',jQuery.extend(true, {}, sample)));
 		};
 		updateUndoRedoIcons();
+		ss.wait();
+		for (var i = selectedSamples.waiting.length - 1; i >= 0; i--) {
+			ctlProject.removeSample(selectedSamples.waiting[i].id);
+		};
 	}
 	function copy(e){
 		selectedSamples.operation = 'copy'
+		ss.wait();
 	}
 	function paste(e){
 		selectedSamples.operation = 'paste'
 		mouseOffsetSampleClicked=0;
-		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
-			var sample = getSampletById(selectedSamples.list[i]);
-			ctlDBHelper.dropSample(moveSample(e,sample.id));
-			$('#'+sample.id).show();
+		for (var i = selectedSamples.waiting.length - 1; i >= 0; i--) {
+			var sample = selectedSamples.waiting[i];
+			ctlProject.addSample(sample.toJson2());
+			ctlDBHelper.dropSample(moveSample(e,sample.id));			
 			ac.addAction(new Action('sample_show',jQuery.extend(true, {}, sample)));
 			ac.addAction(new Action('sample_cut_copy',null));
 		}
@@ -1932,8 +1952,8 @@ var studio = function studio(ctlUser){
 	}
 	function copypaste(e){	
 		mouseOffsetSampleClicked=0;
-		for (var i = selectedSamples.list.length - 1; i >= 0; i--) {
-			var sample = ctlProject.getSample(selectedSamples.list[i]);
+		for (var i = selectedSamples.waiting.length - 1; i >= 0; i--) {
+			var sample = selectedSamples.waiting[i];
 			var time = offsetToSeconds(mouseOffsetSampleClicked);
 			var clone = new jQuery.extend(true, {}, sample);
 			clone.id = 'newSample'+sampleIndexGenerator++;
@@ -2230,11 +2250,16 @@ var studio = function studio(ctlUser){
 		p.pause();
 	});
 	$(document).on('click','#toolbox_btn_fadein',function(e){
-		$("#modal-prompt").modal();
-		$("#modal-prompt").attr("action","fadein");
-		p.pause();
+		modalPrompt("fadein");
 	});
-
+	$(document).on('click','#toolbox_btn_fadeout',function(){
+		modalPrompt("fadeout");
+	});
+	function modalPrompt(type){
+		$("#modal-prompt").modal();
+		$("#modal-prompt").attr("action",type);
+		p.pause();
+	}
 
 	$(document).on('click','#btn-version-create',function(e){
 		$("#modal-prompt").modal();
@@ -2425,11 +2450,7 @@ var studio = function studio(ctlUser){
 		$("#modal-prompt").modal("hide");
 	});
 	
-	$(document).on('click','#toolbox_btn_fadeout',function(){
-		$("#modal-prompt").modal();
-		$("#modal-prompt").attr("action","fadeout");
-		p.pause();
-	});
+
 	$(document).on('click','#toolbox_btn_cut',function(e){
 		cut(e);
 	});
@@ -2437,6 +2458,9 @@ var studio = function studio(ctlUser){
 		copy(e);
 	});
 	$(document).on('click','#toolbox_btn_paste',function(e){
+		clickPaste();
+	});
+	function clickPaste(){
 		if(selectedSamples.operation == 'cut'){
 			paste(sharedEvent);
 			console.log('paste clicked..');
@@ -2445,7 +2469,7 @@ var studio = function studio(ctlUser){
 			copypaste(sharedEvent);
 			console.log('copypaste clicked..');
 		}
-	});
+	}
 	$(document).on('click','#toolbox_btn_delete',function(e){
 		deleteSample();
 	});
@@ -2563,8 +2587,13 @@ var studio = function studio(ctlUser){
 	});
 
 	$(document).on('click','.btn_eye',function(e){
-		var channel = $(this).closest('.channels_list_row');
+		var channel = $(e.target).closest('.channels_list_row');
 		var channelId = $(channel).attr('data-channel');
+		toggleChannel(channelId);
+	});
+
+	function toggleChannel(channelId){
+
 		var index = -1;
 		for (var i = player.mutedChannels.length - 1; i >= 0; i--) {
 			if(player.mutedChannels[i] == channelId){
@@ -2572,24 +2601,22 @@ var studio = function studio(ctlUser){
 			}
 		}
 		if (index > -1) {
-			$(this).css('opacity','1');
+			$('.channels_list_row[data-channel='+channelId+']').find('.btn_eye').css('opacity','1');
 		    player.mutedChannels.splice(index, 1);			
 		}
 		else{
-			$(this).css('opacity','0.5');
+			$('.channels_list_row[data-channel='+channelId+']').find('.btn_eye').css('opacity','0.5');
 			player.mutedChannels.push(channelId);
 		}
 		if(player.mutedChannelsFlag){
-			$(channel).hide();	
+			$('.channels_list_row[data-channel='+channelId+']').hide();	
 		}
 		else{
-
-			$(channel).show();
+			$('.channels_list_row[data-channel='+channelId+']').show();
 		}
-		console.log(player.mutedChannels);
 		p.reset();	
-		resetCursor();		
-	});
+		resetCursor();	
+	}
 
 	$(document).on('click','#btn_channel_eye',function(e){
 		player.mutedChannelsFlag = !player.mutedChannelsFlag;
@@ -2757,16 +2784,24 @@ var studio = function studio(ctlUser){
 
 	$("#file_explorer" ).resizable({ handles: 'w', minWidth: 200	 }).on('resize', function (e) {});;
 
-	$(document).on("mousedown","#file_explorer .minimize",function(){
-		$('#file_explorer').addClass('minimize');
-		$('#file_explorer .minimize').hide();
-		$('#file_explorer .maximize').show();
+	// $(document).on("mousedown","#file_explorer .minimize",function(e){
+	// 	$('#file_explorer').addClass('minimize');
+	// 	$('#file_explorer .minimize').hide();
+	// 	$('#file_explorer .maximize').show();
+	// });
+
+	// $(document).on("mousedown","#file_explorer .maximize",function(){
+	// 	$('#file_explorer').removeClass('minimize');
+	// 	$('#file_explorer .minimize').show();
+	// 	$('#file_explorer .maximize').hide();
+	// });
+
+	$(document).on("mousedown",".maximize",function(e){
+		$(e.target).parent().parent().removeClass('minimizeParent');
 	});
 
-	$(document).on("mousedown","#file_explorer .maximize",function(){
-		$('#file_explorer').removeClass('minimize');
-		$('#file_explorer .minimize').show();
-		$('#file_explorer .maximize').hide();
+	$(document).on("mousedown",".minimize",function(e){
+		$(e.target).parent().parent().addClass('minimizeParent');
 	});
 
 	$(document).on('click','.file_explorer_files div',function(e){
@@ -2840,10 +2875,11 @@ var studio = function studio(ctlUser){
 			sf.clean();
 			sf.add($(this));
 		}
-		var id  = (e.target.id).substring(4,(e.target.id).length);
+		var id  = $(e.target).closest('.channels_list_row').attr('data-channel');
+		var isHide = (player.mutedChannels.indexOf(id)!=-1);
 		var listItems = [
 		{text:'Paste','value':'paste',shortCut:'Ctrl+V'},
-		{text:'Hide channel','value':'hide-channel'},		
+		{text:(isHide?'Show':'Hide')+' channel','value':'hide-channel'},		
 		]
 		showContextMenu('channel',listItems,id,e);
 	});
@@ -2873,15 +2909,15 @@ var studio = function studio(ctlUser){
 			return;
 		var id  = $(this).attr('id');
 		var listItems = [
-			{text:'Copy','value':'delete',shortCut:'Ctrl+C'},
-			{text:'Paste','value':'delete',shortCut:'Ctrl+V'},
-			{text:'Split','value':'delete',shortCut:'Ctrl+S'},
-			{text:'Fade-in','value':'delete',shortCut:'Ctrl+W'},
-			{text:'Fade-out','value':'delete',shortCut:'Ctrl+E'},
+			{text:'Copy','value':'copy',shortCut:'Ctrl+C'},
+			{text:'Split','value':'split',shortCut:'Ctrl+S'},
+			{text:'Fade-in','value':'fadein',shortCut:'Ctrl+W'},
+			{text:'Fade-out','value':'fadeout',shortCut:'Ctrl+E'},
 			{text:'Volume-up','value':'volume_up',shortCut:'Ctrl+Up'},
 			{text:'Volume-down','value':'volume_down',shortCut:'Ctrl+Down'}
 		]
 		showContextMenu('sample',listItems,id,e);
+		sharedEvent = jQuery.extend(true, {}, e);
 	});
 
 	$(document).on('mousedown','#contextmenu li',function(e){
@@ -2919,8 +2955,40 @@ var studio = function studio(ctlUser){
 					volume(id,sample.volume - 0.2);
 					break;
 				}
+				case 'fadein':{	
+					selectedSamples.list.push(id);
+					modalPrompt("fadein");
+					break;
+				}
+				case 'fadeout':{
+					selectedSamples.list.push(id);
+					modalPrompt("fadeout");
+					break;
+				}
+				case 'copy':{
+					selectedSamples.list.push(id);
+					copy(sharedEvent);					
+					break;
+				}
+				case 'split':{
+					selectedSamples.list.push(id);
+					cutSample(sharedEvent);
+					break;
+				}
 			}
-			console.log(sample.volume);
+		}
+		else if(type=='channel'){			
+			switch(command){
+				case 'hide-channel':{
+					console.log(id);
+					toggleChannel(id);
+					break;
+				}
+				case 'paste':{
+					clickPaste();
+					break;
+				}
+			}
 		}
 	});
 
@@ -2945,6 +3013,26 @@ var studio = function studio(ctlUser){
 		if($('#contextmenu').height()+e.pageY>$('main').height()+50)
 			$('#contextmenu').css({'top':e.pageY-$('#contextmenu').height()});
 		disableScroll();
+	}
+
+	/* Chat */
+	$(document).on('keyup','#chatMessage', function (e) {
+	    if (e.keyCode == 13) {
+	    	var data = {name: ctlUser.info.firstName, message: $(e.target).val() };
+			ctlMessage.send('chat',data);	
+			chatMessage(data);
+			$('#chatMessage input').val('');
+	    }
+	});
+	$(document).on("mousedown","#chat .maximize",function(e){
+		$('.redLight').hide();
+		chatCounter = 0;
+	});
+	function chatMessage(data){
+		if($('#chat').hasClass('minimizeParent'))
+			$('.redLight').show().html('<span class="badge">'+(++chatCounter)+'</span>');	
+		$('#chatBoard').append('<div><span>'+data.name+':</span><div> '+data.message+'</div></div>');
+		$('#chatBoard').animate({ scrollTop: $('#chatBoard')[0].scrollHeight }, 1000);
 	}
 
 	$(document).on('contextmenu',function(e){
