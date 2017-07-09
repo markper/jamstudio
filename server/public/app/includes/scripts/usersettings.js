@@ -1,5 +1,6 @@
 var ctlAPI = new controllerAPI();
 var loggedUser = {};
+var serverFiles = 'https://oran1.herokuapp.com/uploads/';
 
 init();
 
@@ -10,6 +11,7 @@ function init(){
       bindFormUserEditData();
       bindFormUserPlanData();
     });
+
 }
 
 
@@ -19,7 +21,7 @@ function bindFormUserEditData(){
   $('#user-set-lname').val(loggedUser.lastName);
   $('#user-set-email').val(loggedUser.email);
   $('#user-set-password').val(loggedUser.password);
-  $('#user-set-picture').attr('src','../static/uploads/'+loggedUser.picture);
+  $('#user-set-picture').attr('src',loggedUser.picture);
 }
 
 function bindFormUserPlanData(){
@@ -41,12 +43,16 @@ $(document).on('click','#user-set-picture', function(e){
       var file = this.files[0];
 
       // add the files to formData object for the data payload
-      var formData = new FormData();
-      formData.append('uploads[]', file, file.name);
+      var formData = new FormData($(form)[0])
 
-      ctlAPI.uploadUserPicture(formData, function(result){
+     // formData.append('uploads[]', file, file.name);
+
+      ctlAPI.upload(loggedUser._id,formData,0,0, function(result){
         console.log(result);
-        reload('user-picture');
+         ctlAPI.updateUserPicture({picture: result.path}, function(result){
+           reload('user-picture');
+         });
+       
       });
 
     });

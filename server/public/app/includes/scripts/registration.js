@@ -7,18 +7,11 @@ function init(){
   // Init
   ctlAPI.getUserInfo(function(result){
     loggedUser = result;
-    bindFormUserEditData();
     bindFormUserPlanData();
   });
 }
 
-function bindFormUserEditData(){
-  $('#firstName').val('firstName');
-  $('#lastName').val('lastName');
-  $('#email').val('email');
-  $('#password').val('password');
-  $('#planId option:selected').attr('data-planid');
-}
+
 
 function bindFormUserPlanData(){
   ctlAPI.getAllPlan(function(result){

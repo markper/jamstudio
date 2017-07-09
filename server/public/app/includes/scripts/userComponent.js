@@ -1,10 +1,9 @@
 
 function userComponent(callback){
-
-	var _this = this;
 	var url = window.location.href
 	var arr = url.split("/");
 	var server = arr[0] + "//" + arr[2]
+	var _this = this;
 	var ctlAPI = new controllerAPI();
 	var ctlUser = new user();
 	var socket = io.connect("https://oran-p2p2-yale.herokuapp.com/");
@@ -26,7 +25,7 @@ function userComponent(callback){
 
 		var email = (result.email.length >13?result.email.substring(0,13)+'..':result.email);
         $('div.username span:first').text(email);
-        $('header #connected_user .user_img').css('background-image','url('+server+'/static/uploads/'+result.picture+')');
+        $('header #connected_user .user_img').css('background-image','url('+result.picture+')');
 		
 		$(document).on('click','.notification',function(e){
 			var id = $(this).attr('data-id');
@@ -51,7 +50,7 @@ function userComponent(callback){
 		});
 
 		$(document).on('click','#search-line .input-group-btn',function(e){
-			window.location = 'search?word=' + $('#input-search').val();
+			window.location = server +'/app/search?word=' + $('#input-search').val();
 		});
 	});
 
@@ -85,7 +84,18 @@ function userComponent(callback){
 			if(notification.subscribes[i].user._id==ctlUser.info._id)
 				isRead = notification.subscribes[i].read;
 		}
-		return $('<li class="notification '+(isRead?'':'not-read')+'" data-id="'+notification._id+'">'+ _this.buidUser(notification.factor) +' set new version at '+ notification.info +' project.. </li>');
+
+		// var text = "";
+		// switch(notification.action){
+		// 	case 'New Contributor':{
+		// 		ctlAPI.getUser(notification.info,function(user){
+		// 			ctlAPI.getProject(notification.,function(user){
+		// 				text = ' New Contributor joined to '+ _this.buidUser(notification.typeId) +' project.. ';
+		// 				return $('<li class="notification '+(isRead?'':'not-read')+'" data-id="'+notification._id+'">'+ _this.buidUser(notification.factor) + text '</li>');
+		// 			});
+		// 		});
+		// 	}
+		// }
 	}
 	this.buildRequest = function(request){
 		var isRead = false;
@@ -119,14 +129,31 @@ function userComponent(callback){
 	$(document).on('click','#nav_exit',function(e){
 		window.location.href= server + '/app/usersettings';
 	});
+	$(document).on('click','#connected_user',function(e){
+		switch(e.target.id){
+			case 'logout':{
+				ctlAPI.logout(function(data){					
+					location.reload();					  
+				});
+				break;
+			}
+			case 'settings':{
+				location.href = server +'/app/usersettings';
+				break;
+			}
+		}
+		$('#connected_user_menu').toggle();
+	});
 
-}
-
-function user(){
+	function user(){
 	this.alerts = {
 		requests: 0,
 		notifications: 0
 	};
 	this.info = null;
 };
+
+
+}
+
 

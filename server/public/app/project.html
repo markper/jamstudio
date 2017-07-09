@@ -11,8 +11,8 @@
 	<link rel="stylesheet" type="text/css" href="../../static/includes/style/projectStyle.css">
 	<script src="../../static/includes/scripts/jquery-ui.min.js"></script>
 	<script src="https://cdn.socket.io/socket.io-1.0.0.js"></script>
+	<script src="../../../static/includes/scripts/userComponent.js"></script>
 	<script src="../../static/includes/scripts/controllerAPI.js"></script>
-	<script src="../../static/includes/scripts/template.js"></script>
 	<script src="../../static/includes/scripts/project.js"></script>
 
 
@@ -35,10 +35,7 @@
 <body class="dashboard noselect">
 	<header>
 		<ul>
-		  <li id="hamburger">
-
-		  </li>
-		  <li id="logo"></li>
+		  <li id="logo">J</li>
 		  <li id="search-line">
 		    <div>
 		      <div class="input-group col-md-12">
@@ -76,8 +73,14 @@
 		</ul>
 	</header>
 	<main class="scrolls">
-	 	<br>
 		<div class="wrapper">
+			<br>
+			<ol class="breadcrumb">
+			  <li><a href="#">Home</a></li>
+			  <li><a href="../dashboard">Dashboard</a></li>	  
+			  <li class="active">Project</li>	  
+			</ol>
+
 			<h3>Projact Name / <span> Username </span></h3>
 			<div class="content">
 			  <!-- Nav tabs -->
@@ -478,7 +481,11 @@
 	</section>
 	<section id="contextmenu"></section>
 
-
+	<script>
+		(function(){			
+			new userComponent(function(user){});
+		})();
+	</script>
     <script src="../../static/includes/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </body>
 </html>

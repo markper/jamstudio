@@ -74,7 +74,7 @@ exports.updateUserPlan = function(userId,planId,callback){
 exports.createUser = function(userJson,callback) {
 	var user = new User(userJson);
 	if("undefined" === typeof userJson.picture)
-		user.picture = 'profile.png';
+		user.picture = 'https://oran1.herokuapp.com/uploads/user/profile.png';
 	user.save(function (err, savedUser) {
 		if(err)
 			return callback(errors.errorCreate());

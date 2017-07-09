@@ -157,4 +157,17 @@ exports.createFile = function(fileJson,callback){
 	});
 };
 
+exports.renameFile = function(fileId,name,callback){
+	 File.findOne({_id: fileId}, function(err, file) {	
+		if (err) 
+			return callback(errors.errorNotFound());
+		file.name = name;
+		file.save(function(err,data){
+			if(err)
+				return callback(errors.errorUpdate());
+			return callback(data);
+		});
+	});
+};
+
 exports.deleteFile = deleteFile;

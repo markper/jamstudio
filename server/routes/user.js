@@ -14,7 +14,7 @@ router.get('/getId',/* ensureLoggedIn, */ function(req, res, next) {
 });
 
 /* get logged in information */
-router.get('/getInfo', ensureLoggedIn,  function(req, res, next) {
+router.get('/getLogged', ensureLoggedIn,  function(req, res, next) {
 
 	userCtrl.getUser(userCtrl.getUserId(req.user.id),function(data){
 		if(data instanceof Error)
@@ -24,48 +24,13 @@ router.get('/getInfo', ensureLoggedIn,  function(req, res, next) {
  	});
 });
 
-
-
-router.post('/picture', function(req, res){
-
-  // create an incoming form object
-  var form = new formidable.IncomingForm();
-
-  // specify that we want to allow the user to upload multiple files in a single request
-  form.multiples = true;
-
-  // store all uploads in the /uploads directory
-  form.uploadDir = path.join(__dirname, '../public/app/uploads');
-
-  // every time a file has been uploaded successfully,
-  // rename it to it's orignal name
-
-  var  name = null;
-  form.on('file', function(field, file) {
-  	var id = getUserId(req);
-  	var ext = path.extname(file.name);
-  	name = id+ext;
-    fs.rename(file.path, path.join(form.uploadDir, name));
-  });
-
-  // log any errors that occur
-  form.on('error', function(err) {
-    console.log('An error has occured: \n' + err);
-  });
-
-  // once all the files have been uploaded, send a response to the client
-  form.on('end', function() {
-  	userCtrl.updateUserPicture(getUserId(req),name,function(data){
+router.put('/picture', function(req, res){
+	userCtrl.updateUserPicture(getUserId(req),req.body.picture,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);
 		else
-			 res.end(name);
+			 res.end(req.body.picture);
  	});
-  });
-
-  // parse the incoming request containing the form data
-  form.parse(req);
-
 });
 
 /* GET user by id */

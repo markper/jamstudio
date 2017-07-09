@@ -17,6 +17,8 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express', env: env });
 });
 
+
+
 router.get('/app/p',ensureLoggedIn, function (req, res, next) {
   var path2 = path.join(__dirname, '../public', 'app/preview.html');
   console.log(path2);
@@ -58,6 +60,12 @@ router.get('/app/project/:projectId', ensureLoggedIn ,function (req, res, next) 
   next();
 })
 
+router.get('/user/getInfo',ensureLoggedIn, function (req, res, next) {
+  var path2 = path.join(__dirname, '../public', 'app/dashboard.html');
+  console.log(path2);
+  return res.sendFile(path2);
+  next();
+})
 router.get('/app/dashboard', ensureLoggedIn, function (req, res, next) {
   var path2 = path.join(__dirname, '../public', 'app/dashboard.html');
   console.log(path2);
@@ -79,6 +87,11 @@ router.get('/app/tamplate', ensureLoggedIn, function (req, res, next) {
   next();
 })
 
+router.get('/signup',
+  function(req, res){
+  var path2 = path.join(__dirname, '../public', 'app/registration.html');
+  return res.sendFile(path2);
+});
 
 router.get('/login',
   function(req, res){

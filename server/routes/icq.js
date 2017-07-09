@@ -111,4 +111,13 @@ router.put('/:icqId/Applicant', /* ensureLoggedIn, */function(req, res, next) {
  	});
 });
 
+router.get('/:icqId/Applicant/:userId', /* ensureLoggedIn, */function(req, res, next) {
+	icqCtrl.getIcqApplicant(req.params.icqId, req.params.userId,function(data){
+		if(data instanceof Error)
+			res.status(500).send(data.message);
+		else
+			res.status(200).send(data);
+ 	});
+});
+
 module.exports = router;

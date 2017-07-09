@@ -24,6 +24,7 @@ var studio = function studio(ctlUser){
 	var ctlLoader = new loaderWindow();
 	var socket = io.connect("https://oran-p2p2-yale.herokuapp.com/");
 	var ctlMessage = new messages();
+	var isContributor = false;
 
 	this.init = function init(){
 		$('#loader').show();
@@ -45,8 +46,6 @@ var studio = function studio(ctlUser){
 					drawGrid((result==null?"":result.name));
 					// load user project
 					ctlProject.init(result);
-					// init ui
-					studioUI(ctlAPI,(result==null?"":result._id));
 
 					$('#loader').fadeOut();
 				});
@@ -63,6 +62,11 @@ var studio = function studio(ctlUser){
 	}
 
 	/* UI Objects */
+
+	function setNoPermissionView(){
+		grid_offset = 0;
+		$('body').addClass('view');
+	}
 
 	function range(){
 		var start = 0;
@@ -205,10 +209,17 @@ var studio = function studio(ctlUser){
 			this.track_version =  data.track_version._id;
 			ctlAPI.getContributors(data._id,function(result){
 				_this.adminUser = result.adminUser;
+				if(_this.adminUser._id == ctlUser.info._id)
+					isContributor = true;	
 				_this.contributors[result.adminUser._id] = {user:result.adminUser,access:"admin"};
 				for (var i = 0; i < result.users.length; i++) {
 					_this.contributors[result.users[i].user._id] = result.users[i];
-				}
+					if(result.users[i].user._id == ctlUser.info._id)
+						isContributor = true;
+				}	
+				if(!isContributor)
+					setNoPermissionView();
+
 				
 				if(!data.track_version)
 					return;
@@ -221,6 +232,7 @@ var studio = function studio(ctlUser){
 			});
 		
 		}
+
 		this.jsonToChannel = function(channelObject){ 
 			var channel = new Channel(channelObject._id,channelObject.volume, channelObject.name, channelObject.username, channelObject.instrument
 				,channelObject.trackId,channelObject.userId);				
@@ -1040,7 +1052,8 @@ var studio = function studio(ctlUser){
 				userFullName
 				+'</span> - <span class="channel_instrument">'+ channel.instrument +'</span><div></article><article class="channel_list_row_btns"><ul><li class="btn_sort">☰</li><li class="btn_eye"></li><li class="btn_mic"></li></article>');
 			$(list_item).find('.volume_placeholder').append(slider);
-			$(row).find('.channel_list_row').append(list_item);
+			if(this.hasPermission())
+				$(row).find('.channel_list_row').append(list_item);
 		
 			// create and append, grid cells to grid row
 			var cells = Math.round(max_time/time_units);						
@@ -1278,7 +1291,7 @@ var studio = function studio(ctlUser){
 		}
 		this.clean = function(){
 			selectedSamples.list = new Array();
-			$('.sample').removeClass('selected').css('opacity','1');
+			$('.sample').removeClass('selected');
 		}
 
 		this.updateSamplesChannels = function(){
@@ -1295,30 +1308,32 @@ var studio = function studio(ctlUser){
 		}
 	}
 
-	function dbHelper(){
-		var _this = this;
-		function emitNotification(type){
-				var subscribes = [];
+	function emitNotification(type){
+			var subscribes = [];
+			for (var i = 0; i < Object.size(ctlProject.contributors); i++) {
+				var contributor = ctlProject.contributors[Object.keys(ctlProject.contributors)[i]];
+				if(contributor.user._id!=ctlUser.info._id)
+					subscribes.push({user:contributor.user._id,read:false});
+			}
+			var notJson = {
+			    projectId: getURLID(),
+			    factor:ctlUser.info._id,
+			    type: "notification",
+			    typeId: getURLID(),
+			    action: type,
+			    subscribes: subscribes
+			};
+			ctlAPI.createNotification( notJson,function(result){
 				for (var i = 0; i < Object.size(ctlProject.contributors); i++) {
 					var contributor = ctlProject.contributors[Object.keys(ctlProject.contributors)[i]];
-					if(contributor.user._id!=ctlUser.info._id)
-						subscribes.push({user:contributor.user._id,read:false});
+					socket.emit('broadcast', { room:contributor.user._id,emit:'notifications',msg:'set'});
 				}
-				var notJson = {
-				    projectId: getURLID(),
-				    factor:ctlUser.info._id,
-				    type: "notification",
-				    typeId: getURLID(),
-				    action: type,
-				    subscribes: subscribes
-				};
-				ctlAPI.createNotification( notJson,function(result){
-					for (var i = 0; i < Object.size(ctlProject.contributors); i++) {
-						var contributor = ctlProject.contributors[Object.keys(ctlProject.contributors)[i]];
-						socket.emit('broadcast', { room:contributor.user._id,emit:'notifications',msg:'set'});
-					}
-				});
-		}
+			});
+	}
+
+	function dbHelper(){
+		var _this = this;
+
 		this.deleteChannel = function(channelId){
 			ctlAPI.deleteChannels(channelId,function(data){
 				console.log('delete..');
@@ -2309,7 +2324,7 @@ var studio = function studio(ctlUser){
 			return ' <li class="list-group-item" data-userid="'+userJson.user._id+'">'+
 					'	<div class="row">'+
 			    	'	  <div class="col-md-3">'+
-					'		<img src="'+userJson.user.picture+'" style="width:40px;" alt="..." class="img-circle"> '+ userJson.user.firstName + ' ' + userJson.user.lastName +
+					'		<img src="'+userJson.user.picture+'" style="width:40px;height: 40px;" alt="..." class="img-circle"> '+ userJson.user.firstName + ' ' + userJson.user.lastName +
 			    	'	  </div>'+
 			    	'	  <div class="col-md-4">'+
 					'		<div class="btn-group contributors-access-btns" data-toggle="buttons">'+
@@ -2385,6 +2400,8 @@ var studio = function studio(ctlUser){
 	            access: 1
 			}			
 			ctlAPI.addContributor(getURLID(),data.user,data.access,function(result){
+				ctlMessage.send({emit:'notifications',msg:'New contributor added..'});
+				emitNotification('New Contributor');
 				window.location.reload();
 			});
 		 	event.preventDefault();
@@ -2479,8 +2496,8 @@ var studio = function studio(ctlUser){
 		 axis: 'x',
 		 drag: function(event, ui) {
 			    var leftPosition = ui.position.left;
-			    if (leftPosition < 160) {
-			        ui.position.left = 160;
+			    if (leftPosition < grid_offset) {
+			        ui.position.left = grid_offset;
 			    }
 			    else if (leftPosition >= $( "#range-end" ).position().left) {
 			        ui.position.left = $( "#range-end" ).position().left-1;
@@ -2493,8 +2510,8 @@ var studio = function studio(ctlUser){
 		 axis: 'x',
 		 drag: function(event, ui) {
 			    var leftPosition = ui.position.left;
-			    if (leftPosition < 160) {
-			        ui.position.left = 160;
+			    if (leftPosition < grid_offset) {
+			        ui.position.left = grid_offset;
 			    }
 			    else if (leftPosition <= $( "#range-start" ).position().left) {
 			        ui.position.left = $( "#range-start" ).position().left+1;
@@ -2505,7 +2522,7 @@ var studio = function studio(ctlUser){
 	    function(e){
 	    	console.log(e.pageY-50);
 	    	$(e.target).find('div').text(
-	    		Math.floor(offsetToSeconds($( e.target ).position().left-160))).css('top',e.pageY-50).show();
+	    		Math.floor(offsetToSeconds($( e.target ).position().left-grid_offset))).css('top',e.pageY-50).show();
 		}
 	); 
 	$(document).on('mouseleave','.range',
@@ -2871,6 +2888,10 @@ var studio = function studio(ctlUser){
 	$(document).on('contextmenu','.time-box',function(e){
 		if(isControl)
 			return;
+		if($(this).closest('.channels_list_row').hasClass('noPermission')){
+			e.preventDefault();
+			return;	
+		}
 		if(!$(e.target).hasClass('selected')){
 			sf.clean();
 			sf.add($(this));
@@ -2936,6 +2957,9 @@ var studio = function studio(ctlUser){
 				}
 				case 'rename':{
 					textFieldChange($('#file'+id),function(data){
+						ctlAPI.renameFile(id,data,function(result){
+							console.log(result);
+						});
 					});
 					break;
 				}

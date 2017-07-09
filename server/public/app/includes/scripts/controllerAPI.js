@@ -44,6 +44,23 @@ function controllerAPI(){
 	    });
 	};
 
+	this.createUser = function(userJson,callback){
+		$.ajax({
+	        type: "Post",
+	        datatype:"json",
+	        url: serverDB+'/user',
+	        data:(userJson),
+	        success: function(result)
+	        {
+	        	callback(result)
+	        },
+	        error: function(err){
+	        	console.log(err);
+	        }
+	    });
+	};
+	
+
 	this.updateUserPlan = function(userId,planId,callback){
 		$.ajax({
 	        type: "Put",
@@ -64,7 +81,7 @@ function controllerAPI(){
 		$.ajax({
 	        type: "Get",
 	        datatype:"json",
-	        url: serverDB+'/user/getInfo',
+	        url: serverDB+'/user/getLogged',
 	        data:({}),
 	        success: function(result)
 	        {
@@ -428,7 +445,7 @@ function controllerAPI(){
 	        	callback(result);
 	        },
 	        error:function(err){
-	        	console.log(err);
+	        	callback(err);
 	        }
 	    });
 	}
@@ -498,13 +515,29 @@ function controllerAPI(){
 	    });
 	}
 
+	this.getIcqApplicants = function(icqId,userId,callback){
+		$.ajax({
+	        type: "Get",
+	        datatype:"json",
+	        url: serverDB+'/Icq/'+icqId+'/Applicant/'+userId,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(true);
+	        },
+	        error:function(err){
+	        	callback(false);
+	        }
+	    });
+	}
+
 	this.addIcqApplicants = function(icqId,applicantJson,callback){
 		$.ajax({
-	        type: "Delete",
+	        type: "Put",
 	        datatype:"json",
 	        url: serverDB+'/Icq/'+icqId+'/Applicant',
 	        contentType: "application/json",
-	        data:(applicantJson),
+	        data:(JSON.stringify(applicantJson)),
 	        success: function(result)
 	        {
 	        	callback(result);
@@ -718,7 +751,21 @@ function controllerAPI(){
 	        }
 	    });
 	};
-
+	this.renameFile = function(fileId,name,callback){
+		$.ajax({
+	        type: "Put",
+	        datatype:"json",
+	        url: serverDB+'/file/'+fileId+'/Name/'+name,
+	        data:({}),
+	        success: function(result)
+	        {
+	        	callback(result);
+	        },
+	        error:function(err){
+	        	console.log(err);
+	        }
+	    });
+	};
 	this.deleteFile = function(fileId,callback){
 		$.ajax({
 	        type: "delete",
@@ -796,52 +843,76 @@ function controllerAPI(){
 			console.log(id);
 		});
 	}
-this.uploadUserPicture = function(formData,callback){
-	  $('#loader').show();
-      $('.loader-progress').show();
-      $('.progress-bar').css({'width':'0px'});
 
-      $.ajax({
-        url: serverDB+ '/user/picture',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(data){
-            callback('upload successful!\n' + data);
-            $('.loader-progress').hide();
-            $('#loader').hide();
-            $('#user-set-picture').attr('src','../static/uploads/'+data);
-        },
-        xhr: function() {
-          // create an XMLHttpRequest
-          var xhr = new XMLHttpRequest();
-
-          // listen to the 'progress' event
-          xhr.upload.addEventListener('progress', function(evt) {
-
-            if (evt.lengthComputable) {
-              // calculate the percentage of upload completed
-              var percentComplete = evt.loaded / evt.total;
-              percentComplete = parseInt(percentComplete * 100);
-
-              // update the Bootstrap progress bar with the new percentage
-              //$('.progress-bar').text(percentComplete + '%');
-              $('.progress-bar').width(percentComplete + '%');
-
-              // once the upload reaches 100%, set the progress bar text to done
-              if (percentComplete === 100) {
-                $('.progress-bar').html('Done');
-              }
-
-            }
-
-          }, false);
-
-          return xhr;
-        }
-     });
+	this.updateUserPicture = function(picture,callback){
+		$.ajax({
+			method: "Put",
+			url: serverDB+'/user/picture',
+			contentType: "application/json",
+			data:JSON.stringify(picture),
+			error: function(e) {
+				callback(false);
+			},
+			success: function(result){
+				callback(result);
+			}
+		})
+		.done(function(msg) {
+			console.log(msg);
+		});
 	}
+
+	// this.uploadUserPicture = function(userId,formData,callback){
+	//   $('#loader').show();
+ //      $('.loader-progress').show();
+ //      $('.progress-bar').css({'width':'0px'}).text('');
+
+ //      $.ajax({
+ //        url: serverFiles+ '/uploadProfile/'+userId,
+ //        type: 'POST',
+ //        data: formData,
+ //        processData: false,
+ //        contentType: false,
+ //        success: function(data){
+ //            callback(data);
+ //            $('.loader-progress').hide();
+ //            $('#loader').hide();
+ //        },
+ //        error: function(data){
+ //            callback(data);
+ //            $('.loader-progress').hide();
+ //            $('#loader').hide();
+ //        },
+ //        xhr: function() {
+ //          // create an XMLHttpRequest
+ //          var xhr = new XMLHttpRequest();
+
+ //          // listen to the 'progress' event
+ //          xhr.upload.addEventListener('progress', function(evt) {
+
+ //            if (evt.lengthComputable) {
+ //              // calculate the percentage of upload completed
+ //              var percentComplete = evt.loaded / evt.total;
+ //              percentComplete = parseInt(percentComplete * 100);
+
+ //              // update the Bootstrap progress bar with the new percentage
+ //              $('.progress-bar').text('');
+ //              $('.progress-bar').width(percentComplete + '%');
+
+ //              // once the upload reaches 100%, set the progress bar text to done
+ //              if (percentComplete === 100) {
+ //                $('.progress-bar').html('Done');
+ //              }
+
+ //            }
+
+ //          }, false);
+
+ //          return xhr;
+ //        }
+ //     });
+
+	// }
 
 	this.upload = function(userId,formData,duration,size,callback,progressLoader){
 		$.ajax({

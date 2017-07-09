@@ -84,7 +84,7 @@ exports.deleteIcq = function(icqId, callback){
     .exec(function (err, icq) {
         if (err || !icq)
             return callback(errors.errorNotFound((err?err:'')));
-          console.log('aaa');
+          return callback({message: 'success'});
     });;
 }
 
@@ -123,6 +123,16 @@ exports.updateIcq = function(icqId, icqJson, callback){
   	});
 };
 
+exports.getIcqApplicant = function(icqId,userId,callback){
+  Icq.findOne({ _id:icqId,applicants: { $elemMatch: { user:userId } } }, { 'applicants.$': 1 })
+  .exec(function (err, applicants) {
+      if (err || !applicants)
+        return callback(errors.errorUpdate((err?err:'')));
+      else
+          return callback(applicants);
+  });
+
+};
 
 exports.deleteIcqApplicant = function(icqId,userId,callback){
     Icq.update( {_id:icqId},  { $pull: { "applicants" : { user: userId } } }, function(err, data){

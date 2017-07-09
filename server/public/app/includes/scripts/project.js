@@ -3,6 +3,7 @@ var ctlAPI = new controllerAPI();
 var ctlUser = new user();
 var project = {};
 var user = {};
+var openIssues = 0;
 
 // Init studio
 ctlAPI.getUserInfo(function(result){
@@ -25,7 +26,6 @@ ctlAPI.getUserInfo(function(result){
 		    return $(this).text() == _result.privacy; 
 		}).prop('selected', true);
 		// issues
-		var openIssues = 0;
 		for (var i = _result.issues.length - 1; i >= 0; i--) {
 			$('#issue-accordion').append($(buidIssue(_result.issues[i],(i==_result.issues.length - 1))));
 			if(_result.issues[i].status==1)
@@ -52,7 +52,7 @@ ctlAPI.getUserInfo(function(result){
 				var reqAmount = 0;
 				$(requests).each(function(key,req){
 					$('#project-icq-requests .list-group').append($(buildRequest(req.applicant,req.icqId)));
-					reqAmount+=applicant.length;
+					reqAmount++;;
 				});
 				$('#request-badge').html(reqAmount);
 			}
@@ -107,32 +107,32 @@ $( document ).on('submit',"#form-icq-new",function(e) {
 	    "instruments": instruments
 	};
 	ctlAPI.createICQ(JSON.stringify(icqJson),function(result){
-		console.log(result);
+		window.location.reload();
 	})
- 	event.preventDefault();
+ 	e.preventDefault();
 });
 
 // new issue
 $( document ).on('submit',"#form-issues-new",function(e) {
+	event.preventDefault();
 	var data ={
         projectId: project._id,
         fromUserId: user._id,
         toUserId: $('#issues-users option:selected').attr('data-userid'),//$('#issues-users').find(":selected").text(),
         name: $('#project-issues-title').val(),
         description:$('#project-issues-description').val(),
-        status: 0
+        status: 1
 	}
 	console.log($('#issues-users').find(":selected").text())
 	ctlAPI.createProjectIssue(project._id,data,function(result){
-		console.log(result);
+		window.location.reload();
 	});
- 	event.preventDefault();
+
 });
 
 // Show users picker
 //$('#form-contributor-user').attr('data-userid','592c04f9f36d2873685a5dbc');
 $(document).on('input , click','#form-contributor-user',function(e){
-	console.log("aa");
 	$("#contributors-picker").show();
 	ctlAPI.getUsersPrefix($(e.target).val(),function(result){
 		console.log(buildUserPicker(result));
@@ -159,6 +159,7 @@ $(document).on('click','.contributors-access-btns .btn',function(e){
 	var type = ($(e.target).find('input').hasClass('btn-limited')?'0':'1');
 	ctlAPI.updateContributorStatus(project._id,userId,type,function(result){
 		console.log(result);
+
 	});
 });
 
@@ -179,7 +180,7 @@ $(document).on('click','#project-icq-requests .btn-default',function(e){
 	console.log(userId);
 	console.log(icqId);
 	ctlAPI.removeIcqApplicants(icqId,userId,function(result){
-	 	console.log(result);
+	 	window.location.reload();
 	})
 });
 
@@ -195,11 +196,12 @@ $(document).on('click','#project-icq-all .btn-default',function(e){
 
 // delete icq
 $(document).on('click','#project-icq-all .btn-danger',function(e){
+	e.preventDefault();
+
 	var	userId = $(e.target).attr('data-userid');
 	var	icqId = $(e.target).closest('.list-group-item').attr('data-icqid');
 	ctlAPI.deleteICQ(icqId,function(result){
-		console.log(result);
-		location.reload();
+		window.location.reload();
 	});
 });
 
@@ -211,7 +213,11 @@ $(document).on('click','#project-icq-requests .btn-primary',function(e){
 	console.log(userId);
 	console.log(icqId);
 	ctlAPI.addContributor(project._id,userId,"all",function(result){
+		ctlAPI.removeIcqApplicants(icqId,userId,function(result){
+			window.location.reload();
+		});
 	});
+
 });
 
 // update issue
@@ -235,6 +241,10 @@ $(document).on('click','button[data-issue]',function(e){
 			$(e.target).removeClass("btn-success").addClass("btn-default").prop('disabled', false)
 			:$(e.target).removeClass("btn-default").addClass("btn-success")).prop('disabled', false);	
 		$(e.target).html(($(e.target).hasClass("btn-success")?'Close Issue':'Open Issue'));	
+		if($(e.target).hasClass("btn-success")) 
+			$('#btn-all-issue span').html(++openIssues);
+		else			
+			$('#btn-all-issue span').html((--openIssues?openIssues:''));
 	});
 
 });
@@ -254,7 +264,7 @@ $( document ).on('submit','form#form-contributors',function(e) {
         access: "all"
 	}			
 	ctlAPI.addContributor(project._id,data.user,data.access,function(result){
-		alert(result);
+		window.location.reload();
 	});
  	event.preventDefault();
 });
@@ -344,14 +354,14 @@ function updateIssue(projectId,issueId,issueJson,callback){
 
 function buidUser(userObject){
 	if(userObject)
-	return '<img src="'+userObject.picture+'" alt="..." class="img-circle" style="width:40px;"> '+ userObject.firstName+' '+userObject.lastName;
+	return '<img src="'+userObject.picture+'" alt="..." class="img-circle" style="width:40px; height:40px;"> '+ userObject.firstName+' '+userObject.lastName;
 }
 
 function buildContributor(userJson){
 	return ' <li class="list-group-item" data-userid="'+userJson.user._id+'">'+
 			'	<div class="row">'+
 	    	'	  <div class="col-md-6">'+
-			'		<img src="'+userJson.user.picture+'" style="width:40px;" alt="..." class="img-circle"> '+ userJson.user.firstName + ' ' + userJson.user.lastName +
+			'		<img src="'+userJson.user.picture+'" style="width:40px;height:40px;" alt="..." class="img-circle"> '+ userJson.user.firstName + ' ' + userJson.user.lastName +
 	    	'	  </div>'+
 	    	'	  <div class="col-md-3">'+
 			'		<div class="btn-group contributors-access-btns" data-toggle="buttons">'+

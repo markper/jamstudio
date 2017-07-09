@@ -180,6 +180,29 @@ header #toolbox > ul > li{
 input.form-control{
 	height: initial !important;
 }
+
+
+/* view mode */
+.view #cursorLine{margin-left: 0px;}
+.view .cursorCircle{margin-left: 0px;}
+.view .channel_list_buttons {display: none;}
+.view .channel_list_row {display: none;}
+.view  .channels_grid_title{margin-left: 0px;}
+.view #chat{
+	display: none;
+}
+.view main .channel_grid_row {
+    margin-left: 0px;
+}
+.view #toolbox ul{
+	display: none;
+}
+.view #toolbox ul#addRequest{
+	display: inline-block;
+}
+.view #toolbox ul#addRequest li{
+	width: auto;
+}
 .range{
 	position: absolute;
 	display: none;
