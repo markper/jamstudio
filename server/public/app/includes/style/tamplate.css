@@ -249,7 +249,6 @@ main::-webkit-scrollbar {
 	display: none;
 }
 .alerts .dropdown-menu {
-	overflow-y: scroll;
 	width:270px;
 	padding: 0px;
 	left: -240px;
