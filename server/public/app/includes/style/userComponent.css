@@ -83,7 +83,7 @@ header .alerts span{
 	display: none;
 }
 .alerts .dropdown-menu {
-	overflow-y: scroll;
+
 	width:270px;
 	padding: 0px;
 	left: -240px;
@@ -99,6 +99,10 @@ header .alerts span{
 	padding: 3px;
 	height: auto;
 }
+.alerts .dropdown-menu>li>a{
+    white-space: normal;
+}
+
 .alerts .not-read{
 	background-color: #eae03a;
 }

@@ -898,7 +898,7 @@ var studio = function studio(ctlUser){
 			    var input = $(form).find('input[name="file"]');
 		    	console.log(input);
 			    if (blob.size > 1024) {
-			        alert('max upload size is 1k');
+			        console.log('max upload size is 1k');
 			    }
 			    console.log(url);
 		    	// Also see .name, .type
@@ -1308,7 +1308,7 @@ var studio = function studio(ctlUser){
 		}
 	}
 
-	function emitNotification(type){
+	function emitNotification(type,typeId,info,callback){
 			var subscribes = [];
 			for (var i = 0; i < Object.size(ctlProject.contributors); i++) {
 				var contributor = ctlProject.contributors[Object.keys(ctlProject.contributors)[i]];
@@ -1321,6 +1321,7 @@ var studio = function studio(ctlUser){
 			    type: "notification",
 			    typeId: getURLID(),
 			    action: type,
+			    info: info,
 			    subscribes: subscribes
 			};
 			ctlAPI.createNotification( notJson,function(result){
@@ -1328,6 +1329,7 @@ var studio = function studio(ctlUser){
 					var contributor = ctlProject.contributors[Object.keys(ctlProject.contributors)[i]];
 					socket.emit('broadcast', { room:contributor.user._id,emit:'notifications',msg:'set'});
 				}
+				callback();
 			});
 	}
 
@@ -1338,7 +1340,6 @@ var studio = function studio(ctlUser){
 			ctlAPI.deleteChannels(channelId,function(data){
 				console.log('delete..');
 				ctlMessage.send("deleteChannel",{"channelId":channelId});
-				emitNotification('Channel deleted');
 			});
 		};
 		this.createChannel = function(channelObject){
@@ -1359,8 +1360,7 @@ var studio = function studio(ctlUser){
 					ac.addAction(new Action('channel_new',jQuery.extend(true, {}, channel)));
 					_this.sortChannels();
 				}
-			});
-			emitNotification('Channel created');
+			});			
 		};
 		this.updateChannel = 	function(channelId){
 			var channel = ctlProject.channels[channelId];	
@@ -1634,7 +1634,7 @@ var studio = function studio(ctlUser){
 		var channel = ctlProject.get(channelId);
 		var sample = new Sample(sampleId,channelId,file.file.path,file.file._id,file.file.duration,start,"1","0","0","0");
 		channel.addSample(sample);
-		alert(sample.file);
+		console.log(sample.file);
 		sample.draw();
 		ctlDBHelper.createSample(sample.id,function(sampleId){
 			ac.addAction(new Action('sample_new',jQuery.extend(true, {}, getSampletById(sampleId))));
@@ -2265,9 +2265,11 @@ var studio = function studio(ctlUser){
 		p.pause();
 	});
 	$(document).on('click','#toolbox_btn_fadein',function(e){
+		$("#promptModalLabel").html('Fade In');
 		modalPrompt("fadein");
 	});
 	$(document).on('click','#toolbox_btn_fadeout',function(){
+		$("#promptModalLabel").html('Fade Out');
 		modalPrompt("fadeout");
 	});
 	function modalPrompt(type){
@@ -2401,8 +2403,10 @@ var studio = function studio(ctlUser){
 			}			
 			ctlAPI.addContributor(getURLID(),data.user,data.access,function(result){
 				ctlMessage.send({emit:'notifications',msg:'New contributor added..'});
-				emitNotification('New Contributor');
-				window.location.reload();
+				emitNotification('New Contributor',$('#form-contributor-user').attr('data-userid'),
+					'The user: '+ $('#form-contributor-user').val() +' has been added to '+ ctlProject.json.name + ' project.',function(){
+					window.location.reload();	
+				});				
 			});
 		 	event.preventDefault();
 		});
@@ -2419,9 +2423,13 @@ var studio = function studio(ctlUser){
 		// remove contributor	
 		$(document).on('click','#modal-list .remove',function(e){
 			var userId = $(e.target).closest('.list-group-item').attr('data-userid');
+			var name =  $(e.target).closest('.list-group-item').find('.col-md-3:first').text();
 			ctlAPI.removeContributor(getURLID(),userId,function(result){
-				location.reload();
-			});
+				emitNotification('Remove Contributor',$(e.target).closest('.list-group-item').attr('data-userid'),
+					'The user: '+ name +' has been removed to '+ ctlProject.json.name + ' project.', function(){	
+					location.reload();
+				});		
+			});			
 		});
 	});
 
@@ -2433,23 +2441,29 @@ var studio = function studio(ctlUser){
 	$(document).on('mousedown','.set-version-btn',function(e){
 		var track = $(e.target).attr('data-version');
 		setVersion(track);
-		window.location.reload();
+		emitNotification('New Version',track,'New version set on: '+ ctlProject.json.name+' project.' ,function(){	
+			location.reload();
+		});	
+		
 	});
 
 	function setVersion(value){
 		ctlAPI.setVersions(getURLID(),value,function(result){
-			
+			emitNotification('Roll Back',value,'Roll back on: '+ ctlProject.json.name+' project.',function(){	
+				location.reload();
+			});	
 		});
 	}
 	function createVersion(version){
 		ctlAPI.createVersion(getURLID(),ctlProject.track_version,version, function(result){
-			location.reload();
+			emitNotification('New Version',version,'New version set on: '+ ctlProject.json.name+' project.' ,function(){	
+				location.reload();
+			});	
 		});
 	}
 	$(document).on('click','#btn-prompt',function(e){
 		var action = $("#modal-prompt").attr("action");
 		var value = $("#inputPrompt").val();
-		$("#promptModalLabel").html(value);
 		switch(action){
 			case 'fadein':{
 				fadeIn(value);
@@ -2981,11 +2995,13 @@ var studio = function studio(ctlUser){
 				}
 				case 'fadein':{	
 					selectedSamples.list.push(id);
+					$("#promptModalLabel").html('Fade In');
 					modalPrompt("fadein");
 					break;
 				}
 				case 'fadeout':{
 					selectedSamples.list.push(id);
+					$("#promptModalLabel").html('Fade Out');
 					modalPrompt("fadeout");
 					break;
 				}
