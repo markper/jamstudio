@@ -1,16 +1,27 @@
+//require modules
 var express = require('express');
 var passport = require('passport');
-var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
-var Project   = require('../model/projectSchema');  // get our mongoose model
-var Track   = require('../model/trackSchema');  // get our mongoose model
 var projectCtrl = require('../controllers/projects');
-//
-/* PROJECT */
-//
 
-/* POST project. */
-router.post('/', function(req, res, next) {
+/* spread the user id from the request*/
+function getUserId(req){
+    try{
+        return req.user.id.split("|")[1];
+    }catch(exc){
+        return "";
+    }
+}
+
+/////////////////////////////////////////////////////////////////
+/*
+    Here start the project routers.
+    they are responsible for calling the function in the controller
+    and returning a response status
+ */
+/////////////////////////////////////////////////////////////////
+
+router.post('/', function(req, res) {
     projectCtrl.createProject(req.body,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -19,8 +30,8 @@ router.post('/', function(req, res, next) {
     });
 });
 
-/* GET project. */
-router.get('/:projectId', function(req, res, next) {
+
+router.get('/:projectId', function(req, res) {
     projectCtrl.getProject(req.params.projectId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -29,8 +40,8 @@ router.get('/:projectId', function(req, res, next) {
     });
 });
 
-/* GET project. */
-router.get('/Search/:string', function(req, res, next) {
+
+router.get('/Search/:string', function(req, res) {
     projectCtrl.getProjectByString(req.params.string,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -39,7 +50,7 @@ router.get('/Search/:string', function(req, res, next) {
     });
 });
 
-router.get('/GetLast/:userId', function(req, res, next) {
+router.get('/GetLast/:userId', function(req, res) {
     projectCtrl.getLastProject(req.params.userId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -48,8 +59,8 @@ router.get('/GetLast/:userId', function(req, res, next) {
     });
 });
 
-/* PUT - update project  */
-router.put('/:projectId', function(req, res, next) {
+
+router.put('/:projectId', function(req, res) {
     projectCtrl.updateProject(req.params.projectId,req.body,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -58,7 +69,8 @@ router.put('/:projectId', function(req, res, next) {
     });
 });
 
-router.put('/Info/:projectId', function(req, res, next) {
+
+router.put('/Info/:projectId', function(req, res) {
     projectCtrl.updateProjectInfo(req.params.projectId,req.body,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -67,7 +79,8 @@ router.put('/Info/:projectId', function(req, res, next) {
     });
 });
 
-router.put('/Privacy/:projectId', function(req, res, next) {
+
+router.put('/Privacy/:projectId', function(req, res) {
     projectCtrl.updateProjectPrivacy(req.params.projectId,req.body,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -77,8 +90,7 @@ router.put('/Privacy/:projectId', function(req, res, next) {
 });
 
 
-/* PUT - set project version */
-router.put('/:projectId/SetVersion/:trackId', function(req, res, next) {
+router.put('/:projectId/SetVersion/:trackId', function(req, res) {
     projectCtrl.updateProjectVersion(req.params.projectId,req.params.trackId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -86,7 +98,9 @@ router.put('/:projectId/SetVersion/:trackId', function(req, res, next) {
             res.status(200).send(data);
     });
 });
-router.put('/:projectId/CreateVersion/:trackId', function(req, res, next) {
+
+
+router.put('/:projectId/CreateVersion/:trackId', function(req, res) {
     projectCtrl.makeProjectVersion(req.params.projectId,req.params.trackId,req.body,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -95,8 +109,8 @@ router.put('/:projectId/CreateVersion/:trackId', function(req, res, next) {
     });
 });
 
-/* GET project versions. */
-router.get('/:projectId/GetVersions', function(req, res, next) {
+
+router.get('/:projectId/GetVersions', function(req, res) {
     projectCtrl.getVersions(req.params.projectId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -105,8 +119,8 @@ router.get('/:projectId/GetVersions', function(req, res, next) {
     });
 });
 
-/* GET project list by user. */
-router.get('/GetList/:userId', function(req, res, next) {
+
+router.get('/GetList/:userId', function(req, res) {
     projectCtrl.getListByUser(req.params.userId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -116,57 +130,47 @@ router.get('/GetList/:userId', function(req, res, next) {
 });
 
 
-function getUserId(req){
-    try{
-        return req.user.id.split("|")[1];
-    }catch(exc){
-        return "";
-    }
-};
-
-/* DELETE - Remove project. */
-router.delete('/:projectId'/*,ensureLoggedIn*/, function(req, res, next) {
-
+router.delete('/:projectId', function(req, res) {
     projectCtrl.deleteProject(req.params.projectId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else
             res.status(200).send(data);       
     });
-
 });
 
-//
-/* USERS */
-//
+/////////////////////////////////////////////////////////////////
+/*
+    Here start the users routers.
+    they are responsible for calling the function in the controller
+    and returning a response status
+ */
+/////////////////////////////////////////////////////////////////
 
 /* DELETE - Remove user from project. */
-router.delete('/:projectId/user/:userId'/*,ensureLoggedIn*/, function(req, res, next) {
-    
+router.delete('/:projectId/user/:userId', function(req, res) {
     projectCtrl.deleteUser(req.params.projectId,req.params.userId,getUserId(req),function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else
             res.status(200).send(data);       
     });
-
 });
 
-/* PUT - add user to project. */
-router.post('/:projectId/user/:userId/access/:access'/*,ensureLoggedIn*/, function(req, res, next) {
 
+/* PUT - add user to project. */
+router.post('/:projectId/user/:userId/access/:access', function(req, res) {
     projectCtrl.addUser(req.params.projectId,req.params.userId,req.params.access,getUserId(req),function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else
             res.status(200).send(data);       
     });
-
 });
 
+
 /* PUT - update user access in project. */
-router.put('/:projectId/user/:userId/access/:access'/*,ensureLoggedIn*/, function(req, res, next) {
-    
+router.put('/:projectId/user/:userId/access/:access', function(req, res) {
     projectCtrl.updateUserAccess(req.params.projectId,req.params.userId,req.params.access,getUserId(req),function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
@@ -176,68 +180,65 @@ router.put('/:projectId/user/:userId/access/:access'/*,ensureLoggedIn*/, functio
 
 });
 
+
 /* GET - get contributors. */
-router.get('/:projectId/GetContributors'/*,ensureLoggedIn*/, function(req, res, next) {
-    
+router.get('/:projectId/GetContributors', function(req, res) {
     projectCtrl.getContributors(req.params.projectId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else
             res.status(200).send(data);       
     });
-
 });
 
-//
-/* ISSUES */
-//
+/////////////////////////////////////////////////////////////////
+/*
+    Here start the issues routers.
+    they are responsible for calling the function in the controller
+    and returning a response status
+ */
+/////////////////////////////////////////////////////////////////
 
 /* POST add issue to project */
-router.post('/:projectId/Issue', function(req, res, next) {
-
+router.post('/:projectId/Issue', function(req, res) {
     projectCtrl.addIssue(req.params.projectId,req.body,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else
             res.status(200).send(data);       
     });
-
 });
 
-/* GET issue from project */
-router.get('/:projectId/Issue/:issueId'/*, ensureLoggedIn*/, function(req, res, next) {
 
+/* GET issue from project */
+router.get('/:projectId/Issue/:issueId', function(req, res) {
     projectCtrl.getIssue(req.params.projectId,req.params.issueId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else
             res.status(200).send(data);       
     });
-
 });
 
+
 /* DELETE issue from project */
-router.delete('/:projectId/Issue/:issueId'/*, ensureLoggedIn*/, function(req, res, next) {
-    
+router.delete('/:projectId/Issue/:issueId', function(req, res) {
     projectCtrl.deleteIssue(req.params.projectId,req.params.issueId,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else
             res.status(200).send(data);       
     });
-
 });
 
 /* PUT update issue */
-router.put('/:projectId/Issue/:issueId'/*,ensureLoggedIn*/, function(req, res, next) {
-    
+router.put('/:projectId/Issue/:issueId', function(req, res) {
     projectCtrl.updateIssue(req.params.projectId,req.params.issueId,req.body,function(data){
         if(data instanceof Error)
             res.status(500).send(data.message); 
         else
             res.status(200).send(data);       
     });
-
 });
 
 

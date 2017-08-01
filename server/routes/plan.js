@@ -1,11 +1,18 @@
+//require modules
 var express = require('express');
 var passport = require('passport');
-var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
-var Plan = require('../model/planSchema');  // get our mongoose model
 var planCtrl = require('../controllers/plans');
 
-router.get('/All', /*ensureLoggedIn*/ function(req, res, next) {
+/////////////////////////////////////////////////////////////////
+/*
+    Here start the plan routers.
+    they are responsible for calling the function in the controller
+    and returning a response status
+ */
+/////////////////////////////////////////////////////////////////
+
+router.get('/All', function(req, res) {
     planCtrl.getAllPlan( function(data){
   		if(data instanceof Error)
   			res.status(500).send(data.message);
@@ -14,7 +21,8 @@ router.get('/All', /*ensureLoggedIn*/ function(req, res, next) {
   	});
 });
 
-router.get('/:planId', /*ensureLoggedIn*/ function(req, res, next) {
+
+router.get('/:planId', function(req, res) {
     var id = req.params.planId;
     planCtrl.getPlan(id, function(data){
   		if(data instanceof Error)
@@ -24,16 +32,18 @@ router.get('/:planId', /*ensureLoggedIn*/ function(req, res, next) {
   	});
 });
 
-router.post('/', function(req, res, next) {
-  planCtrl.createPlan(req.body, function(data){
+
+router.post('/', function(req, res) {
+    planCtrl.createPlan(req.body, function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);
 		else
 			res.status(200).send(data);
-  });
+    });
 });
 
-router.put('/:planId',/* ensureLoggedIn,*/ function(req, res, next) {
+
+router.put('/:planId', function(req, res) {
     var id = req.params.planId;
     var planJson = req.body;
     planCtrl.updatePlan(id, planJson, function(data){
@@ -44,7 +54,8 @@ router.put('/:planId',/* ensureLoggedIn,*/ function(req, res, next) {
   	});
 });
 
-router.delete('/:planId', /* ensureLoggedIn, */function(req, res, next) {
+
+router.delete('/:planId', function(req, res) {
     planCtrl.deletePlan(req.params.planId, function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);

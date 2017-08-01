@@ -1,21 +1,37 @@
+//require modules
 var express = require('express');
 var passport = require('passport');
 var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var userCtrl = require('../controllers/users');
 var fs = require("fs");
-var path = require('path');
-var formidable = require('formidable');
-var mkdirp = require('mkdirp');
+
+
+/* spread the user id from the request*/
+function getUserId(req){
+    try{
+        return req.user.id.split("|")[1];
+    }catch(exc){
+        return "";
+    }
+}
+
+/////////////////////////////////////////////////////////////////
+/*
+    Here start the users routers.
+    they are responsible for calling the function in the controller
+    and returning a response status
+ */
+/////////////////////////////////////////////////////////////////
 
 /* GET logged userId. */
-router.get('/getId',/* ensureLoggedIn, */ function(req, res, next) {
+router.get('/getId', function(req, res) {
 	console.log(req.user.id);
 });
 
-/* get logged in information */
-router.get('/getLogged', ensureLoggedIn,  function(req, res, next) {
 
+/* get logged in information */
+router.get('/getLogged', ensureLoggedIn,  function(req, res) {
 	userCtrl.getUser(userCtrl.getUserId(req.user.id),function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);
@@ -23,6 +39,7 @@ router.get('/getLogged', ensureLoggedIn,  function(req, res, next) {
 			res.status(200).send(data);
  	});
 });
+
 
 router.put('/picture', function(req, res){
 	userCtrl.updateUserPicture(getUserId(req),req.body.picture,function(data){
@@ -33,8 +50,9 @@ router.put('/picture', function(req, res){
  	});
 });
 
+
 /* GET user by id */
-router.get('/:userId',/* ensureLoggedIn, */function(req, res, next) {
+router.get('/:userId',function(req, res) {
  	userCtrl.getUser(req.params.userId,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);
@@ -43,8 +61,9 @@ router.get('/:userId',/* ensureLoggedIn, */function(req, res, next) {
  	});
 });
 
+
 /* GET user list */
-router.get('/GetList/:prefix',/* ensureLoggedIn, */function(req, res, next) {
+router.get('/GetList/:prefix',function(req, res) {
  	userCtrl.getUsersByPrefix(req.params.prefix,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);
@@ -53,8 +72,9 @@ router.get('/GetList/:prefix',/* ensureLoggedIn, */function(req, res, next) {
  	});
 });
 
+
 /* PUT user by id */
-router.put('/:userId',/* ensureLoggedIn, */function(req, res, next) {
+router.put('/:userId',function(req, res) {
 	userCtrl.updateUser(req.params.userId,req.body,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);
@@ -63,8 +83,9 @@ router.put('/:userId',/* ensureLoggedIn, */function(req, res, next) {
  	});
 });
 
+
 /* PUT user by id */
-router.put('/:userId/Plan/:planId',/* ensureLoggedIn, */function(req, res, next) {
+router.put('/:userId/Plan/:planId',function(req, res) {
 	userCtrl.updateUserPlan(req.params.userId,req.params.planId,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);
@@ -75,7 +96,7 @@ router.put('/:userId/Plan/:planId',/* ensureLoggedIn, */function(req, res, next)
 
 
 /* POST user */
-router.post('/',function(req, res, next) {
+router.post('/',function(req, res) {
 	userCtrl.createUser(req.body,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);
@@ -84,8 +105,9 @@ router.post('/',function(req, res, next) {
  	});
 });
 
+
 /* DELETE user */
-router.delete('/:userId', /* ensureLoggedIn, */function(req, res, next) {
+router.delete('/:userId', function(req, res) {
 	userCtrl.deleteUser(req.params.userId,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);
@@ -94,12 +116,5 @@ router.delete('/:userId', /* ensureLoggedIn, */function(req, res, next) {
  	});
 });
 
-function getUserId(req){
-    try{
-        return req.user.id.split("|")[1];
-    }catch(exc){
-        return "";
-    }
-};
 
 module.exports = router;

@@ -1,23 +1,29 @@
+//require modules
 var express = require('express');
 var passport = require('passport');
-var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var fileCtrl = require('../controllers/files');
 
-/* GET file by id */
-router.get('/:fileId',/* ensureLoggedIn, */function(req, res, next) {
 
+/////////////////////////////////////////////////////////////////
+/*
+    Here start the files routers.
+    they are responsible for calling the function in the controller
+    and returning a response status
+ */
+/////////////////////////////////////////////////////////////////
+
+router.get('/:fileId', function(req, res) {
 	fileCtrl.getFile(req.params.fileId,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);	
 		else
 			res.status(200).send(data);
-	});	
-
+	});
 });
 
-/* GET file list */
-router.get('/GetAll/:userId',/* ensureLoggedIn, */function(req, res, next) {
+
+router.get('/GetAll/:userId',function(req, res) {
 	fileCtrl.getAllByUser(req.params.userId,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);	
@@ -27,7 +33,7 @@ router.get('/GetAll/:userId',/* ensureLoggedIn, */function(req, res, next) {
 });
 
 
-router.get('/isExist/:fileId',/* ensureLoggedIn, */function(req, res, next) {
+router.get('/isExist/:fileId',function(req, res) {
 	fileCtrl.isExistDeleteIfNot(req.params.fileId,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);	
@@ -36,8 +42,8 @@ router.get('/isExist/:fileId',/* ensureLoggedIn, */function(req, res, next) {
 	});
 });
 
-/* GET file list */
-router.get('/GetList/:userId',/* ensureLoggedIn, */function(req, res, next) {
+
+router.get('/GetList/:userId',function(req, res) {
 	fileCtrl.getListByUser(req.params.userId,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);	
@@ -46,8 +52,8 @@ router.get('/GetList/:userId',/* ensureLoggedIn, */function(req, res, next) {
 	});
 });
 
-/* GET file list */
-router.get('/GetSharedList/:userId',/* ensureLoggedIn, */function(req, res, next) {
+
+router.get('/GetSharedList/:userId',function(req, res) {
 	fileCtrl.getSharedListByUser(req.params.userId,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);	
@@ -56,8 +62,8 @@ router.get('/GetSharedList/:userId',/* ensureLoggedIn, */function(req, res, next
 	});
 });
 
-/* PUT user by id */
-router.put('/:fileId',/* ensureLoggedIn, */function(req, res, next) {
+
+router.put('/:fileId',function(req, res) {
     fileCtrl.updateFile(req.params.fileId,req.body,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);	
@@ -66,7 +72,8 @@ router.put('/:fileId',/* ensureLoggedIn, */function(req, res, next) {
     });
 });
 
-router.put('/:fileId/Name/:name',/* ensureLoggedIn, */function(req, res, next) {
+
+router.put('/:fileId/Name/:name',function(req, res) {
     fileCtrl.renameFile(req.params.fileId,req.params.name,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);	
@@ -75,7 +82,8 @@ router.put('/:fileId/Name/:name',/* ensureLoggedIn, */function(req, res, next) {
     });
 });
 
-router.put('/:fileId/User/:userId/Access/:access',/* ensureLoggedIn, */function(req, res, next) {
+
+router.put('/:fileId/User/:userId/Access/:access',function(req, res) {
     fileCtrl.updateFileAccess(req.params.fileId,req.params.userId,req.params.access,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);	
@@ -84,8 +92,8 @@ router.put('/:fileId/User/:userId/Access/:access',/* ensureLoggedIn, */function(
     });
 });
 
-/* POST file */
-router.post('/',function(req, res, next) {
+
+router.post('/',function(req, res) {
     fileCtrl.createFile(req.body,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);	
@@ -94,8 +102,8 @@ router.post('/',function(req, res, next) {
     });
 });
 
-/* DELETE file */
-router.delete('/:fileId', /* ensureLoggedIn, */function(req, res, next) {
+
+router.delete('/:fileId', function(req, res) {
     fileCtrl.deleteFile(req.params.fileId,function(data){
 		if(data instanceof Error)
 			res.status(500).send(data.message);	
@@ -103,5 +111,6 @@ router.delete('/:fileId', /* ensureLoggedIn, */function(req, res, next) {
 			res.status(200).send(data);
     });
 });
+
 
 module.exports = router;

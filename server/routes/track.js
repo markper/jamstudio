@@ -1,7 +1,6 @@
-// vars
+//require modules
 var express = require('express');
 var passport = require('passport');
-var ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn();
 var router = express.Router();
 var trackCtrl = require('../controllers/tracks');
 
@@ -9,8 +8,14 @@ var trackCtrl = require('../controllers/tracks');
 var bodyParser = require('body-parser');
 router.use(bodyParser.json());
 
+/////////////////////////////////////////////////////////////////
+/*
+    Here start the track routers.
+    they are responsible for calling the function in the controller
+    and returning a response status
+ */
+/////////////////////////////////////////////////////////////////
 
-/* POST track  */
 router.post('/', function(req, res) {
     trackCtrl.createTrack(req.body , function(data){
         if(data instanceof Error)
@@ -20,7 +25,7 @@ router.post('/', function(req, res) {
     });
 });
 
-/* GET track  */
+
 router.get('/:trackId', function(req, res) {
     trackCtrl.getTrack( req.params.trackId , function(data){
         if(data instanceof Error)
@@ -30,7 +35,7 @@ router.get('/:trackId', function(req, res) {
     });
 });
 
-/* DELETE track */
+
 router.delete('/:trackId', function(req, res) {
     trackCtrl.deleteTrack( req.params.trackId , function(data){
         if(data instanceof Error)
@@ -41,7 +46,6 @@ router.delete('/:trackId', function(req, res) {
 });
 
 
-/* update track */
 router.put('/:trackId', function(req, res) {
     trackCtrl.updateTrack( req.params.trackId ,req.body, function(data){
         if(data instanceof Error)
@@ -50,5 +54,6 @@ router.put('/:trackId', function(req, res) {
             res.status(200).send(data);
     });
 });
+
 
 module.exports = router;
